@@ -209,6 +209,8 @@ CREATE TABLE IF NOT EXISTS lessons (
     summary TEXT,
     content TEXT NOT NULL, -- Nội dung bài giảng Markdown + KaTeX ($...$)
     key_formulas TEXT, -- Công thức trọng tâm dạng text/markdown
+    video_url TEXT DEFAULT NULL, -- Link Google Drive hoặc YouTube video bài giảng
+    document_url TEXT DEFAULT NULL, -- Link Google Drive tài liệu PDF/Docs bài học
     class_id INTEGER REFERENCES classes(id) ON DELETE SET NULL, -- NULL: tất cả học sinh được xem
     attachment_url TEXT DEFAULT NULL,
     created_by INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,

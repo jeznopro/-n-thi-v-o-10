@@ -152,8 +152,8 @@ function restoreBackup(req, res, next) {
       // 9. Phục hồi lessons
       if (Array.isArray(data.lessons)) {
         const stmtLesson = db.prepare(`
-          INSERT OR REPLACE INTO lessons (id, title, category, summary, content, key_formulas, class_id, attachment_url, created_by)
-          VALUES (@id, @title, @category, @summary, @content, @key_formulas, @class_id, @attachment_url, @created_by)
+          INSERT OR REPLACE INTO lessons (id, title, category, summary, content, key_formulas, video_url, document_url, class_id, attachment_url, created_by)
+          VALUES (@id, @title, @category, @summary, @content, @key_formulas, @video_url, @document_url, @class_id, @attachment_url, @created_by)
         `);
         data.lessons.forEach(l => stmtLesson.run(l));
       }

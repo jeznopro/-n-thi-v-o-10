@@ -6,16 +6,26 @@ const bcrypt = require('bcryptjs');
 function seedSampleLessonsIfEmpty(db) {
   try {
     const lessonCount = db.prepare('SELECT COUNT(*) AS count FROM lessons').get()?.count || 0;
-    if (lessonCount > 0) return;
+    if (lessonCount > 0) {
+      try {
+        db.prepare(`
+          UPDATE lessons
+          SET video_url = COALESCE(video_url, 'https://www.youtube.com/watch?v=kqtD5dpn9C8'),
+              document_url = COALESCE(document_url, 'https://docs.google.com/document/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit')
+          WHERE video_url IS NULL OR document_url IS NULL
+        `).run();
+      } catch (e) {}
+      return;
+    }
 
     let teacher = db.prepare("SELECT id FROM users WHERE role = 'teacher' LIMIT 1").get();
     const teacherId = teacher ? teacher.id : 1;
 
-    console.log('📚 Đang nạp 4 Chuyên đề Bài giảng Lý thuyết Toán vào 10 mẫu...');
+    console.log('📚 Đang nạp 4 Chuyên đề Bài giảng Lý thuyết Toán vào 10 mẫu (Kèm Video & Tài liệu Google Drive)...');
 
     const insertLesson = db.prepare(`
-      INSERT INTO lessons (title, category, summary, content, key_formulas, class_id, created_by)
-      VALUES (?, ?, ?, ?, ?, NULL, ?)
+      INSERT INTO lessons (title, category, summary, content, key_formulas, video_url, document_url, class_id, created_by)
+      VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?)
     `);
 
     // Chuyên đề 1: Rút gọn biểu thức

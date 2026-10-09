@@ -87,7 +87,7 @@ function getLessonById(req, res, next) {
 function createLesson(req, res, next) {
   try {
     const teacherId = req.user.id;
-    const { title, category, summary, content, key_formulas, class_id, attachment_url } = req.body;
+    const { title, category, summary, content, key_formulas, class_id, attachment_url, video_url, document_url } = req.body;
 
     if (!title || !title.trim()) {
       return res.status(400).json({
@@ -108,8 +108,8 @@ function createLesson(req, res, next) {
     const cleanSummary = summary ? summary.trim() : '';
 
     const stmt = db.prepare(`
-      INSERT INTO lessons (title, category, summary, content, key_formulas, class_id, attachment_url, created_by)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO lessons (title, category, summary, content, key_formulas, video_url, document_url, class_id, attachment_url, created_by)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     const result = stmt.run(
@@ -118,6 +118,8 @@ function createLesson(req, res, next) {
       cleanSummary,
       cleanContent,
       cleanFormulas,
+      video_url ? video_url.trim() : null,
+      document_url ? document_url.trim() : null,
       class_id ? parseInt(class_id, 10) : null,
       attachment_url || null,
       teacherId
@@ -148,7 +150,7 @@ function createLesson(req, res, next) {
 function updateLesson(req, res, next) {
   try {
     const { id } = req.params;
-    const { title, category, summary, content, key_formulas, class_id, attachment_url } = req.body;
+    const { title, category, summary, content, key_formulas, video_url, document_url, class_id, attachment_url } = req.body;
 
     const existing = db.prepare('SELECT id FROM lessons WHERE id = ?').get(id);
     if (!existing) {
@@ -165,7 +167,7 @@ function updateLesson(req, res, next) {
     db.prepare(`
       UPDATE lessons
       SET title = ?, category = ?, summary = ?, content = ?, key_formulas = ?,
-          class_id = ?, attachment_url = ?, updated_at = CURRENT_TIMESTAMP
+          video_url = ?, document_url = ?, class_id = ?, attachment_url = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `).run(
       title.trim(),
@@ -173,6 +175,8 @@ function updateLesson(req, res, next) {
       cleanSummary,
       cleanContent,
       cleanFormulas,
+      video_url ? video_url.trim() : null,
+      document_url ? document_url.trim() : null,
       class_id ? parseInt(class_id, 10) : null,
       attachment_url || null,
       id

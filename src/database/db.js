@@ -29,6 +29,14 @@ function initSchema() {
   const schemaSql = fs.readFileSync(schemaPath, 'utf8');
   db.exec(schemaSql);
 
+  // Đảm bảo các cột mới trong bảng lessons luôn tồn tại
+  try {
+    db.exec(`ALTER TABLE lessons ADD COLUMN video_url TEXT DEFAULT NULL;`);
+  } catch (e) {}
+  try {
+    db.exec(`ALTER TABLE lessons ADD COLUMN document_url TEXT DEFAULT NULL;`);
+  } catch (e) {}
+
   // Tự động nạp dữ liệu mẫu ban đầu nếu triển khai mới trên Render / VPS
   try {
     const userCount = db.prepare('SELECT COUNT(*) AS count FROM users').get().count;
