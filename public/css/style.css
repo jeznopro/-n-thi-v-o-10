@@ -1061,7 +1061,7 @@ textarea.form-control {
 
 /* Footer nhập chat */
 .ai-tutor-footer {
-  padding: 16px 32px 20px 32px;
+  padding: 16px 32px;
   background: #ffffff;
   border-top: 1.5px solid #e2e8f0;
   display: flex;
