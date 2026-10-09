@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quản lý Bài tập - Hệ thống Tự luận Toán THCS</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/toast.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+</head>
+<body>
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="/teacher/index.html" class="nav-brand">
+        <div class="brand-logo">∑</div>
+        <div class="brand-text">
+          <h1>TOÁN THCS</h1>
+          <p>Cổng Giáo Viên</p>
+        </div>
+      </a>
+
+      <button class="mobile-toggle" aria-label="Menu">&#9776;</button>
+
+      <nav>
+        <ul class="nav-menu">
+          <li><a href="/teacher/index.html" class="nav-link">📊 Tổng quan</a></li>
+          <li><a href="/teacher/classes.html" class="nav-link">👥 Lớp & Học sinh</a></li>
+          <li><a href="/teacher/assignments.html" class="nav-link active">📝 Quản lý bài tập</a></li>
+          <li><a href="/teacher/logs.html" class="nav-link">📜 Nhật ký</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-user">
+        <div class="user-badge">
+          <div class="user-avatar">GV</div>
+          <div class="user-info">
+            <span class="user-name">Giáo viên</span>
+            <span class="user-role">Giáo viên Toán</span>
+          </div>
+        </div>
+        <button id="logout-btn" class="btn btn-secondary btn-sm">Đăng xuất</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="main-wrapper">
+    <div class="page-header">
+      <div class="page-title">
+        <h2>Danh sách Bài tập & Đề thi tự luận Toán</h2>
+        <p>Theo dõi tiến độ nộp bài, nhận xét bài làm và xuất kết quả học tập</p>
+      </div>
+      <div class="page-actions" style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <a href="/teacher/assignment-create.html?action=import-word" class="btn btn-secondary" style="font-weight: 700; background: #f0fdf4; color: #166534; border: 1.5px solid #86efac; border-radius: 12px; display: inline-flex; align-items: center; gap: 6px;">
+          📄 Nhập đề từ file Word (.docx)
+        </a>
+        <a href="/teacher/assignment-create.html" class="btn btn-ai">
+          ✨ Soạn Đề Toán Bằng AI
+        </a>
+        <a href="/teacher/assignment-create.html" class="btn btn-primary">
+          ➕ Soạn đề bài tập mới
+        </a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">📝 Toàn bộ bài tập đã giao</h3>
+      </div>
+      <div class="card-body" style="padding: 0;">
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Tên đề bài</th>
+                <th>Thời lượng</th>
+                <th>Hạn nộp</th>
+                <th>Tiến độ nộp bài</th>
+                <th>Đã nhận xét</th>
+                <th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="assignments-tbody">
+              <tr>
+                <td colspan="6" style="text-align: center; padding: 28px; color: #94a3b8;">
+                  Đang tải danh sách bài tập...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/common.js"></script>
+  <script src="/js/ai-helper.js"></script>
+  <script>
+    async function loadAssignments() {
+      const user = await checkAuthAndLoad('teacher');
+      if (!user) return;
+
+      const tbody = document.getElementById('assignments-tbody');
+
+      try {
+        const res = await apiRequest('/api/assignments/teacher');
+        const assignments = res.assignments || [];
+
+        if (assignments.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="6" style="text-align: center; padding: 36px; color: #94a3b8;">
+                Chưa có bài tập nào. Hãy bấm "Soạn đề bài tập mới" để giao bài cho học sinh!
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        tbody.innerHTML = assignments.map(a => {
+          const totalAssigned = a.total_assigned_students || 0;
+          const totalSubmitted = a.total_submitted || 0;
+          const totalGraded = a.total_graded || 0;
+          const percent = totalAssigned > 0 ? Math.round((totalSubmitted / totalAssigned) * 100) : 0;
+
+          return `
+            <tr>
+              <td>
+                <div style="font-weight: 700; color: #1e3a8a; font-size: 0.95rem;">${a.title}</div>
+                <div style="font-size: 0.775rem; color: #64748b; margin-top: 3px;">
+                  Tạo ngày: ${formatDateTime(a.created_at)}
+                </div>
+              </td>
+              <td>
+                ${a.time_limit_minutes 
+                  ? `<span class="badge badge-amber">⏱️ ${a.time_limit_minutes} phút</span>` 
+                  : '<span class="badge badge-gray">⏳ Không giới hạn</span>'}
+              </td>
+              <td>${formatDateTime(a.due_date)}</td>
+              <td style="min-width: 150px;">
+                <div style="font-size: 0.825rem; font-weight: 600; margin-bottom: 4px;">
+                  ${totalSubmitted}/${totalAssigned} học sinh (${percent}%)
+                </div>
+                <div style="background: #e2e8f0; height: 6px; border-radius: 4px; overflow: hidden;">
+                  <div style="background: #10b981; width: ${percent}%; height: 100%;"></div>
+                </div>
+              </td>
+              <td>
+                <span class="badge ${totalGraded === totalSubmitted && totalSubmitted > 0 ? 'badge-green' : 'badge-blue'}">
+                  ${totalGraded} / ${totalSubmitted}
+                </span>
+              </td>
+              <td>
+                <div style="display: flex; gap: 6px; align-items: center;">
+                  <a href="/teacher/grade.html?id=${a.id}" class="btn btn-primary btn-sm">
+                    📝 Xem & Nhận xét
+                  </a>
+                  <button class="btn btn-secondary btn-sm" title="Xuất danh sách nộp bài ra file Excel" onclick="exportExcel(${a.id})">
+                    📥 Excel
+                  </button>
+                  <button class="btn btn-danger btn-sm" title="Xóa bài tập" onclick="deleteAssignment(${a.id})">
+                    🗑️
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
+
+        renderMath(tbody);
+      } catch (err) {
+        showToast('Lỗi tải bài tập: ' + err.message, 'error');
+      }
+    }
+
+    async function exportExcel(id) {
+      try {
+        showToast('Đang tạo file Excel bảng điểm...', 'info');
+        const blob = await apiRequest(`/api/grading/assignments/${id}/export`);
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Bang_Diem_Bai_Tap_${id}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        showToast('Đã tải bảng điểm Excel thành công!', 'success');
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    async function deleteAssignment(id) {
+      const ok = await showConfirm('Xóa bài tập', 'Thầy/Cô có chắc chắn muốn xóa bài tập này không? Toàn bộ bài làm của học sinh sẽ bị xóa vĩnh viễn.');
+      if (!ok) return;
+      try {
+        await apiRequest(`/api/assignments/${id}`, { method: 'DELETE' });
+        showToast('Đã xóa bài tập thành công.', 'success');
+        await loadAssignments();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    loadAssignments();
+  </script>
+</body>
+</html>

@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Làm bài thi Tự luận Toán - Cổng Học Sinh</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/toast.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <style>
+    /* Thanh chọn câu hỏi nằm ngang */
+    .question-nav-bar {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding: 12px 0 16px;
+      border-bottom: 2px solid #e2e8f0;
+      margin-bottom: 20px;
+    }
+    .question-nav-btn {
+      padding: 10px 18px;
+      border-radius: 9999px;
+      background: #ffffff;
+      border: 1.5px solid #cbd5e1;
+      font-size: 0.925rem;
+      font-weight: 700;
+      color: #334155;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .question-nav-btn:hover {
+      border-color: #3b82f6;
+      background: #eff6ff;
+    }
+    .question-nav-btn.active {
+      background: #2563eb;
+      color: #ffffff;
+      border-color: #1d4ed8;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+    .question-nav-btn.completed {
+      border-color: #10b981;
+      color: #047857;
+      background: #ecfdf5;
+    }
+    .question-nav-btn.completed.active {
+      background: #059669;
+      color: #ffffff;
+      border-color: #047857;
+    }
+
+    /* Thẻ câu hỏi che gần ngang màn hình */
+    .wide-question-container {
+      width: 100%;
+      background: #ffffff;
+      border: 1.5px solid var(--border-color);
+      border-radius: 22px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+      overflow: hidden;
+      margin-bottom: 30px;
+    }
+
+    .wide-question-header {
+      background: linear-gradient(135deg, #1e3a8a, #2563eb);
+      color: #ffffff;
+      padding: 18px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .wide-question-body {
+      padding: 24px;
+    }
+
+    .question-prompt-box {
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
+      border-left: 5px solid #2563eb;
+      border-radius: 18px;
+      padding: 20px;
+      font-size: 1.1rem;
+      line-height: 1.8;
+      color: #0f172a;
+      margin-bottom: 24px;
+    }
+
+    /* Khung chèn ảnh bài làm ngay dưới đề */
+    .photo-upload-banner {
+      background: #f0fdf4;
+      border: 2px dashed #86efac;
+      border-radius: 20px;
+      padding: 20px;
+      margin-top: 18px;
+    }
+
+    .timer-sticky {
+      position: sticky;
+      top: 68px;
+      z-index: 100;
+      background: #ffffff;
+      border-bottom: 1px solid var(--border-color);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      padding: 10px 20px;
+    }
+  </style>
+</head>
+<body>
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="/student/index.html" class="nav-brand">
+        <div class="brand-logo" style="background: linear-gradient(135deg, #10b981, #059669);">∑</div>
+        <div class="brand-text">
+          <h1>TOÁN THCS</h1>
+          <p>Phòng Làm Bài Trực Tuyến</p>
+        </div>
+      </a>
+
+      <div class="nav-user">
+        <div class="user-badge">
+          <div class="user-avatar" style="background: #10b981;">HS</div>
+          <div class="user-info">
+            <span class="user-name">Học sinh</span>
+            <span class="user-role">Học sinh</span>
+          </div>
+        </div>
+        <a href="/student/index.html" class="btn btn-secondary btn-sm">Thoát</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- THANH CÔNG CỤ ĐỒNG HỒ & NỘP BÀI CỐ ĐỊNH -->
+  <div class="timer-sticky">
+    <div class="nav-container" style="height: auto; padding: 0;">
+      <div>
+        <h3 id="exam-title" style="font-size: 1.15rem; font-weight: 800; color: #1e3a8a;">Đang tải bài thi...</h3>
+        <div id="exam-meta" style="font-size: 0.8rem; color: #64748b;"></div>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+        <!-- Đồng hồ đếm ngược -->
+        <div id="timer-box" style="display: none; background: #eff6ff; padding: 6px 14px; border-radius: 12px; font-weight: 800; font-size: 1.15rem; color: #1d4ed8; border: 1.5px solid #bfdbfe;">
+          ⏱️ <span id="countdown-text">--:--</span>
+        </div>
+
+        <span id="autosave-indicator" style="font-size: 0.825rem; color: #10b981; font-weight: 600;">
+          💾 Tự lưu nháp 30s
+        </span>
+
+        <button class="btn btn-success" style="padding: 9px 20px; font-weight: 700; border-radius: 12px;" onclick="confirmSubmit()">
+          📤 Nộp Bài Thi
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <main class="main-wrapper" style="padding-top: 14px;">
+    <!-- THANH CHUYỂN CÂU HỎI NGANG TRÊN CÙNG -->
+    <div class="question-nav-bar" id="question-tabs-nav"></div>
+
+    <!-- KHUNG HIỂN THỊ CÂU HỎI HIỆN TẠI (CHE GẦN NGANG MÀN HÌNH) -->
+    <div class="wide-question-container">
+      <div class="wide-question-header">
+        <div>
+          <span id="current-q-badge" class="badge" style="background: rgba(255,255,255,0.2); color: #fff; font-size: 0.85rem; margin-bottom: 4px; border-radius: 9999px;">
+            Câu 1 / 1
+          </span>
+          <h2 id="current-q-title" style="font-size: 1.35rem; font-weight: 800; margin: 0;">
+            Tiêu đề câu hỏi
+          </h2>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+          <button type="button" class="btn btn-ai btn-sm" id="btn-open-tutor" onclick="openAiTutorDrawer()" style="border-radius: 12px;">
+            🎓 Chat với Anh Gia Sư (Toàn màn hình)
+          </button>
+          <button type="button" class="btn btn-outline btn-sm" id="btn-hint-idea" onclick="toggleHintBox('idea')" style="font-weight: 700; border-color: #3b82f6; color: #1d4ed8; background: #eff6ff; border-radius: 12px;">
+            💡 Gợi ý Ý tưởng
+          </button>
+          <button type="button" class="btn btn-outline btn-sm" id="btn-hint-steps" onclick="toggleHintBox('steps')" style="font-weight: 700; border-color: #10b981; color: #047857; background: #ecfdf5; border-radius: 12px;">
+            📋 Gợi ý Cách làm
+          </button>
+        </div>
+      </div>
+
+      <div class="wide-question-body">
+        <!-- ĐỀ BÀI CÂU HỎI -->
+        <div class="question-prompt-box" id="current-q-content">
+          Nội dung đề bài...
+        </div>
+
+        <!-- KHUNG GỢI Ý 2 CHẾ ĐỘ: Ý TƯỞNG & CÁCH LÀM -->
+        <div id="current-q-hint-box" class="ai-hint-box" style="display: none; margin-bottom: 22px; border-radius: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 10px; margin-bottom: 12px;">
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button type="button" id="tab-hint-idea" class="btn btn-sm" onclick="switchHintTab('idea')" style="font-weight: 700; border-radius: 9999px; padding: 6px 16px; background: #2563eb; color: #fff;">
+                💡 Chế độ 1: Gợi ý Ý tưởng
+              </button>
+              <button type="button" id="tab-hint-steps" class="btn btn-sm btn-outline" onclick="switchHintTab('steps')" style="font-weight: 700; border-radius: 9999px; padding: 6px 16px; background: #fff; color: #047857; border-color: #10b981;">
+                📋 Chế độ 2: Gợi ý Cách làm (các bước)
+              </button>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 0.775rem; color: #b45309; background: #fef3c7; border: 1px solid #fde68a; padding: 4px 12px; border-radius: 9999px; font-weight: 600;">
+                🛡️ Không làm trực tiếp để em tự rèn tính toán
+              </span>
+              <button type="button" onclick="closeHintBox()" title="Ẩn khung gợi ý" style="background: none; border: none; font-size: 1.2rem; color: #64748b; cursor: pointer; padding: 0 4px;">&times;</button>
+            </div>
+          </div>
+          <div id="current-q-hint-text" style="font-size: 0.95rem; line-height: 1.6; color: #1e293b;"></div>
+          <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+            <small style="color: #64748b; font-style: italic;">
+              * Anh chỉ gợi mở định hướng, em hãy tự đặt bút tính toán từng bước để hiểu sâu bài toán nhé!
+            </small>
+            <button type="button" class="btn btn-sm btn-outline" style="border-color: #8b5cf6; color: #6d28d9; font-weight: 700; background: #fff;" onclick="openAiTutorDrawer()">
+              💬 Cần trao đổi sâu hơn? Mở Toàn màn hình hỏi Gia sư AI &rarr;
+            </button>
+          </div>
+        </div>
+
+        <!-- VĂN BẢN LỜI GIẢI / GHI CHÚ CHO CÂU NÀY -->
+        <div style="margin-bottom: 18px;">
+          <label class="form-label" style="display: flex; justify-content: space-between;">
+            <span>✍️ Lời giải / Ghi chú cho câu này (tùy chọn nếu đã chụp ảnh bên dưới):</span>
+            <span id="q-word-count" style="font-size: 0.8rem; color: #64748b;">0 từ</span>
+          </label>
+          <textarea id="current-q-answer-text" class="form-control" style="min-height: 100px; font-size: 1rem;"
+                    placeholder="Bạn có thể gõ thêm lời giải hoặc ghi chú tại đây..."></textarea>
+        </div>
+
+        <!-- KHU VỰC CHÈN ẢNH BÀI LÀM VIẾT TAY CHO RIÊNG CÂU NÀY -->
+        <div class="photo-upload-banner">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+            <div>
+              <h4 style="font-size: 1rem; font-weight: 800; color: #065f46; display: flex; align-items: center; gap: 6px;">
+                📸 Ảnh chụp bài giải viết tay & Hình vẽ cho <span id="upload-label-q">Câu này</span>:
+              </h4>
+              <p style="font-size: 0.825rem; color: #047857; margin-top: 2px;">
+                Làm ra giấy, dùng điện thoại chụp rõ nét trang làm bài của câu này và tải lên đây.
+              </p>
+            </div>
+
+            <label class="btn btn-success" style="cursor: pointer; padding: 10px 18px; font-weight: 700;">
+              ➕ Tải ảnh bài giải câu này lên
+              <input type="file" id="photo-file-input" accept="image/*,application/pdf" style="display: none;" onchange="handleUploadPhotoForCurrentQ(event)">
+            </label>
+          </div>
+
+          <!-- Lưới ảnh của câu này -->
+          <div id="current-q-photos-grid" class="attachment-grid" style="margin-top: 10px;"></div>
+        </div>
+
+        <!-- NÚT ĐIỀU HƯỚNG CÂU TRƯỚC / CÂU SAU -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 24px; padding-top: 16px; border-top: 1px solid #e2e8f0;">
+          <button type="button" class="btn btn-secondary" id="btn-prev-q" onclick="goToPrevQuestion()">
+            ⬅️ Câu trước
+          </button>
+          <button type="button" class="btn btn-primary" id="btn-next-q" onclick="goToNextQuestion()">
+            Sang câu tiếp theo ➡️
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- NÚT NỔI GIA SƯ AI TOÁN -->
+  <button class="ai-tutor-fab" id="fab-open-tutor" onclick="openAiTutorDrawer()" title="Hỏi Thầy/Cô gia sư AI về câu này (Toàn màn hình)">
+    <span style="font-size: 1.25rem;">🎓</span>
+    <span>Hỏi Gia Sư AI</span>
+  </button>
+
+  <!-- GIA SƯ AI TOÀN MÀN HÌNH WORKSPACE -->
+  <div class="ai-tutor-overlay" id="tutor-overlay" onclick="closeAiTutorDrawer()"></div>
+  <div class="ai-tutor-drawer" id="tutor-drawer">
+    <!-- HEADER BAR TOÀN MÀN HÌNH -->
+    <div class="ai-tutor-header">
+      <div class="ai-tutor-header-title">
+        <div class="tutor-avatar">🎓</div>
+        <div>
+          <h3>GIA SƯ AI TOÁN THCS <span style="font-size: 0.75rem; background: rgba(255,255,255,0.2); padding: 3px 10px; border-radius: 9999px; font-weight: normal; margin-left: 6px;">Toàn màn hình</span></h3>
+          <p>Người anh đồng hành gợi mở tư duy Socratic & công thức giải toán</p>
+        </div>
+      </div>
+
+      <!-- ĐIỀU HƯỚNG CÂU & ĐỒNG HỒ TRONG PHÒNG HỎI AI -->
+      <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <button type="button" class="btn btn-sm" style="background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.25); border-radius: 10px; font-weight: 700;" onclick="toggleTutorLeftPanel()" id="btn-toggle-left-panel" title="Ẩn hoặc hiện cột đề bài">
+          📋 Ẩn/Hiện Đề bài
+        </button>
+
+        <div style="display: flex; align-items: center; background: rgba(255,255,255,0.15); border-radius: 9999px; padding: 2px 8px; gap: 4px; border: 1px solid rgba(255,255,255,0.25);">
+          <button type="button" class="btn btn-sm" style="background: none; border: none; color: #fff; padding: 4px 6px; cursor: pointer;" onclick="switchTutorQuestion(-1)" title="Chuyển sang câu trước">⬅️</button>
+          <span id="tutor-header-q-badge" style="font-weight: 700; font-size: 0.85rem; color: #fff; padding: 0 4px; white-space: nowrap;">Câu 1 / 1</span>
+          <button type="button" class="btn btn-sm" style="background: none; border: none; color: #fff; padding: 4px 6px; cursor: pointer;" onclick="switchTutorQuestion(1)" title="Chuyển sang câu tiếp theo">➡️</button>
+        </div>
+
+        <div class="timer-badge" id="tutor-timer-badge" style="background: #ef4444; color: #fff; font-size: 0.825rem; font-weight: 800; padding: 6px 14px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 4px;">
+          ⏱️ <span id="tutor-countdown-text">--:--</span>
+        </div>
+
+        <button type="button" class="btn btn-sm" style="background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.25); border-radius: 10px; font-weight: 700;" onclick="toggleTutorFullscreenMode()" id="btn-toggle-fullscreen" title="Phóng to / Thu nhỏ">
+          ⛶ Cửa sổ
+        </button>
+
+        <button class="btn btn-danger btn-sm" onclick="closeAiTutorDrawer()" style="font-weight: 700; border-radius: 12px; padding: 8px 16px;">
+          ✕ Đóng & Làm bài
+        </button>
+      </div>
+    </div>
+
+    <!-- BODY 2 CỘT -->
+    <div class="ai-tutor-body-split">
+      <!-- CỘT TRÁI: ĐỀ BÀI & BÀI LÀM ĐỐI CHIẾU -->
+      <aside class="ai-tutor-left-panel" id="tutor-left-panel">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h4 style="margin: 0; font-size: 1rem; font-weight: 800; color: #1e3a8a; display: flex; align-items: center; gap: 6px;">
+            📌 Đề bài đang xem: <span id="tutor-panel-q-title">Câu 1</span>
+          </h4>
+        </div>
+
+        <!-- NỘI DUNG ĐỀ BÀI -->
+        <div class="tutor-question-card" id="tutor-panel-q-content">
+          Đang tải đề bài...
+        </div>
+
+        <!-- BÀI LÀM HIỆN TẠI CỦA HỌC SINH -->
+        <div style="margin-top: 10px;">
+          <h5 style="margin: 0 0 8px 0; font-size: 0.9rem; font-weight: 700; color: #334155;">
+            ✍️ Lời giải bạn đang làm cho câu này:
+          </h5>
+          <div class="tutor-student-answer-card" id="tutor-panel-student-answer">
+            (Chưa có bài làm)
+          </div>
+        </div>
+
+        <!-- ẢNH CHỤP BÀI LÀM -->
+        <div style="margin-top: 16px;" id="tutor-panel-photos-section">
+          <h5 style="margin: 0 0 8px 0; font-size: 0.9rem; font-weight: 700; color: #065f46;">
+            📸 Ảnh chụp bài giải viết tay:
+          </h5>
+          <div class="attachment-grid" id="tutor-panel-photos-grid"></div>
+        </div>
+      </aside>
+
+      <!-- CỘT PHẢI: KHUNG CHAT GIA SƯ AI TOÀN MÀN HÌNH -->
+      <main class="ai-tutor-right-panel">
+        <!-- CAM KẾT SOCRATIC CỦA GIA SƯ -->
+        <div class="ai-tutor-disclaimer">
+          <span style="font-size: 1.25rem;">🛡️</span>
+          <div>
+            <strong>Cam kết đồng hành từ Anh Gia Sư:</strong> Anh hướng dẫn phương pháp, công thức và gợi mở tư duy để em hiểu bản chất — <em>Tuyệt đối không giải hộ hay cho đáp số bài thi.</em>
+          </div>
+        </div>
+
+        <!-- GỢI Ý CÂU HỎI NHANH (CHIPS) -->
+        <div class="ai-tutor-chips">
+          <button type="button" class="ai-tutor-chip" style="font-weight: 700; color: #1d4ed8; border-color: #93c5fd; background: #eff6ff;" onclick="sendTutorQuickPrompt('Anh ơi, gợi ý cho em ý tưởng để tiếp cận câu này với! (Chỉ gợi ý ý tưởng thôi nhé, chưa cần các bước chi tiết ạ)')">
+            💡 1. Gợi ý Ý tưởng tiếp cận
+          </button>
+          <button type="button" class="ai-tutor-chip" style="font-weight: 700; color: #047857; border-color: #6ee7b7; background: #ecfdf5;" onclick="sendTutorQuickPrompt('Anh ơi, gợi ý cho em cách làm theo các bước 1, 2, 3 với! Lưu ý chỉ nêu khung sườn các bước thôi chứ không được làm trực tiếp hộ em nhé!')">
+            📋 2. Gợi ý Cách làm (các bước 1, 2, 3)
+          </button>
+          <button type="button" class="ai-tutor-chip" onclick="sendTutorQuickPrompt('Anh nhắc lại giúp em các công thức và định lý quan trọng cần dùng trong câu này với ạ.')">
+            📐 Công thức & định lý
+          </button>
+          <button type="button" class="ai-tutor-chip" onclick="sendTutorQuickPrompt('Bài này có những điều kiện xác định (ĐKXĐ) hay bẫy tính toán nào dễ nhầm lẫn không anh?')">
+            ⚠️ ĐKXĐ & Bẫy tính toán
+          </button>
+        </div>
+
+        <!-- DANH SÁCH TIN NHẮN TRAO ĐỔI -->
+        <div class="ai-tutor-messages" id="tutor-messages-container">
+          <!-- Render động bằng JS -->
+        </div>
+
+        <!-- KHUNG NHẬP TIN NHẮN GỬI GIA SƯ -->
+        <div class="ai-tutor-footer">
+          <div class="ai-tutor-input-row">
+            <textarea id="tutor-input-text" class="ai-tutor-input" rows="1"
+                      placeholder="Hỏi anh gia sư về phương hướng giải, công thức hoặc bước làm tiếp theo..."
+                      onkeydown="handleTutorInputKey(event)"></textarea>
+            <button type="button" class="ai-tutor-send-btn" id="tutor-send-btn" onclick="sendTutorMessage()">
+              <span>Gửi cho Anh Gia Sư 🚀</span>
+            </button>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.775rem; color: #64748b;">
+            <span>💡 Nhấn <strong>Enter</strong> để gửi (<strong>Shift + Enter</strong> để xuống dòng). Hỗ trợ công thức Toán học KaTeX ($...$).</span>
+            <span>🔒 Mọi câu hỏi được lưu vết phục vụ việc học tập</span>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/common.js"></script>
+  <script>
+    let assignmentId = null;
+    let submissionData = null;
+    let questionsList = [];
+    let currentQIndex = 1; // 1-indexed: 1, 2, 3...
+    let answersMap = {}; // { 1: "lời giải text...", 2: "..." }
+    let hintsMap = {}; // { 1: "gợi ý của AI cho câu 1...", 2: "..." }
+    let tutorChatHistory = {}; // { 1: [ { sender: 'tutor'|'user', text: '...' } ] }
+    let timerInterval = null;
+    let autoSaveInterval = null;
+    let remainingSeconds = null;
+
+    async function initExamRoom() {
+      const user = await checkAuthAndLoad('student');
+      if (!user) return;
+
+      const urlParams = new URLSearchParams(window.location.search);
+      assignmentId = urlParams.get('id');
+
+      if (!assignmentId) {
+        showToast('Không tìm thấy bài tập!', 'error');
+        setTimeout(() => window.location.href = '/student/index.html', 1500);
+        return;
+      }
+
+      try {
+        const res = await apiRequest(`/api/submissions/start/${assignmentId}`);
+        const assign = res.assignment;
+        submissionData = res.submission;
+
+        // Nếu đã nộp trước đó -> chuyển sang trang kết quả
+        if (submissionData.status === 'submitted' || submissionData.status === 'graded') {
+          showToast('Bạn đã nộp bài tập này trước đó. Đang chuyển tới trang xem kết quả...', 'info');
+          setTimeout(() => window.location.href = `/student/result.html?id=${assignmentId}`, 1000);
+          return;
+        }
+
+        document.getElementById('exam-title').textContent = assign.title;
+        document.getElementById('exam-meta').textContent = `Hạn nộp: ${formatDateTime(assign.due_date)}`;
+
+        // Parse danh sách câu hỏi
+        parseQuestions(assign.content);
+
+        // Parse nội dung bài làm trước đó nếu có
+        parsePreviousAnswers(submissionData.content);
+
+        // Nạp lại toàn bộ lịch sử hỏi AI đã lưu trước đó nếu có
+        await loadMyAiHistory();
+
+        // Khởi tạo điều hướng câu
+        renderQuestionTabs();
+
+        // Hiển thị câu đầu tiên
+        displayQuestion(1);
+
+        // Đồng hồ đếm ngược
+        if (assign.time_limit_minutes) {
+          remainingSeconds = submissionData.remaining_seconds;
+          document.getElementById('timer-box').style.display = 'block';
+          startTimer();
+        }
+
+        // Tự động lưu nháp định kỳ 30s
+        autoSaveInterval = setInterval(triggerAutoSave, 30000);
+
+        // Tự lưu khi người dùng chuyển trang
+        window.addEventListener('beforeunload', () => {
+          saveCurrentQuestionAnswer();
+          triggerAutoSave(false);
+        });
+
+      } catch (err) {
+        showToast('Lỗi tải bài thi: ' + err.message, 'error');
+      }
+    }
+
+    function parseQuestions(rawContent) {
+      try {
+        if (rawContent && rawContent.trim().startsWith('[')) {
+          questionsList = JSON.parse(rawContent);
+        } else {
+          // Nếu đề cũ dạng HTML đơn lẻ -> coi như 1 câu
+          questionsList = [{
+            id: 1,
+            title: "Đề bài tự luận",
+            content: rawContent
+          }];
+        }
+      } catch (e) {
+        questionsList = [{
+          id: 1,
+          title: "Đề bài tự luận",
+          content: rawContent
+        }];
+      }
+    }
+
+    function parsePreviousAnswers(rawSubContent) {
+      if (!rawSubContent) return;
+      try {
+        if (rawSubContent.trim().startsWith('{')) {
+          const parsed = JSON.parse(rawSubContent);
+          answersMap = parsed.answers || {};
+        } else {
+          answersMap = { 1: rawSubContent.replace(/<br\s*[\/]?>/gi, '\n') };
+        }
+      } catch (e) {
+        answersMap = { 1: rawSubContent.replace(/<br\s*[\/]?>/gi, '\n') };
+      }
+    }
+
+    function renderQuestionTabs() {
+      const nav = document.getElementById('question-tabs-nav');
+      const attachments = submissionData.attachments || [];
+
+      nav.innerHTML = questionsList.map((q, idx) => {
+        const qNum = idx + 1;
+        const hasText = answersMap[qNum] && answersMap[qNum].trim().length > 0;
+        const hasPhoto = attachments.some(a => (a.question_index || 1) === qNum);
+        const isDone = hasText || hasPhoto;
+
+        return `
+          <button class="question-nav-btn ${qNum === currentQIndex ? 'active' : ''} ${isDone ? 'completed' : ''}"
+                  id="tab-btn-${qNum}" onclick="goToQuestion(${qNum})">
+            <span>${q.title || `Câu ${qNum}`}</span>
+            ${isDone ? '<span>✅</span>' : ''}
+          </button>
+        `;
+      }).join('');
+    }
+
+    function displayQuestion(qNum) {
+      currentQIndex = qNum;
+      const q = questionsList[qNum - 1] || questionsList[0];
+
+      // Cập nhật tab active
+      document.querySelectorAll('.question-nav-btn').forEach(b => b.classList.remove('active'));
+      const activeTab = document.getElementById(`tab-btn-${qNum}`);
+      if (activeTab) activeTab.classList.add('active');
+
+      // Cập nhật giao diện câu hỏi
+      document.getElementById('current-q-badge').textContent = `Câu ${qNum} / ${questionsList.length}`;
+      document.getElementById('current-q-title').textContent = q.title || `Câu hỏi số ${qNum}`;
+
+      const contentBox = document.getElementById('current-q-content');
+      contentBox.innerHTML = q.content;
+      renderMath(contentBox);
+
+      // Cập nhật lời giải text của câu này
+      const answerInput = document.getElementById('current-q-answer-text');
+      answerInput.value = answersMap[qNum] || '';
+      updateWordCount();
+      answerInput.oninput = () => {
+        answersMap[currentQIndex] = answerInput.value;
+        updateWordCount();
+        renderQuestionTabs();
+      };
+
+      // Cập nhật nhãn upload
+      document.getElementById('upload-label-q').textContent = `Câu ${qNum}`;
+
+      // Reset hoặc cập nhật gợi ý nếu đang mở
+      const hintBox = document.getElementById('current-q-hint-box');
+      if (hintBox && hintBox.style.display === 'block') {
+        openHintBox(currentHintMode);
+      } else {
+        closeHintBox();
+      }
+
+      // Lọc và hiển thị các ảnh của câu này
+      renderPhotosForQuestion(qNum);
+
+      // Cập nhật thông tin gia sư nếu drawer đang mở
+      const tutorDrawer = document.getElementById('tutor-drawer');
+      if (tutorDrawer && tutorDrawer.classList.contains('open')) {
+        updateTutorDrawerHeader();
+        initTutorChatForCurrentQ();
+        renderTutorMessages();
+      }
+
+      // Ẩn/Hiện nút Trước/Sau
+      document.getElementById('btn-prev-q').style.visibility = qNum === 1 ? 'hidden' : 'visible';
+      document.getElementById('btn-next-q').textContent = qNum === questionsList.length ? 'Đã xem hết các câu' : 'Sang câu tiếp theo ➡️';
+    }
+
+    async function loadMyAiHistory() {
+      try {
+        const res = await apiRequest(`/api/ai/interactions/my?assignmentId=${assignmentId}`);
+        const list = res.interactions || [];
+        list.forEach(item => {
+          const qIdx = item.question_index || 1;
+          if (!tutorChatHistory[qIdx]) tutorChatHistory[qIdx] = [];
+          if (!hintsMap[qIdx]) hintsMap[qIdx] = { idea: null, steps: null };
+
+          if (item.interaction_type === 'tutor_chat') {
+            tutorChatHistory[qIdx].push({ sender: 'user', text: item.prompt_text });
+            tutorChatHistory[qIdx].push({ sender: 'tutor', text: item.response_text });
+          } else if (item.interaction_type === 'hint_idea') {
+            hintsMap[qIdx].idea = item.response_text;
+          } else if (item.interaction_type === 'hint_steps') {
+            hintsMap[qIdx].steps = item.response_text;
+          }
+        });
+      } catch (e) {
+        console.warn('Không tải được lịch sử tương tác AI:', e);
+      }
+    }
+
+    // ==========================================
+    // GIA SƯ AI TOÁN SOCRATIC CHO HỌC SINH
+    // ==========================================
+
+    function initTutorChatForCurrentQ() {
+      if (!tutorChatHistory[currentQIndex] || tutorChatHistory[currentQIndex].length === 0) {
+        const q = questionsList[currentQIndex - 1] || questionsList[0];
+        tutorChatHistory[currentQIndex] = [{
+          sender: 'tutor',
+          text: `Chào em! Anh là **Gia sư AI Toán**. Anh đang cùng em xem **${q.title || `Câu ${currentQIndex}`}**.\n\nAnh sẽ đồng hành gợi ý phương pháp, nhắc lại công thức ($...$) và cùng em gỡ từng bước. Cứ hỏi anh nhé, anh em mình cùng trao đổi! ✨`
+        }];
+      }
+    }
+
+    function openAiTutorDrawer() {
+      const overlay = document.getElementById('tutor-overlay');
+      const drawer = document.getElementById('tutor-drawer');
+      if (!drawer || !overlay) return;
+
+      overlay.style.display = 'block';
+      setTimeout(() => drawer.classList.add('open'), 10);
+
+      updateTutorDrawerHeader();
+      initTutorChatForCurrentQ();
+      renderTutorMessages();
+
+      const input = document.getElementById('tutor-input-text');
+      if (input) setTimeout(() => input.focus(), 300);
+    }
+
+    function closeAiTutorDrawer() {
+      const overlay = document.getElementById('tutor-overlay');
+      const drawer = document.getElementById('tutor-drawer');
+      if (!drawer || !overlay) return;
+
+      drawer.classList.remove('open');
+      setTimeout(() => overlay.style.display = 'none', 300);
+    }
+
+    function updateTutorDrawerHeader() {
+      const q = questionsList[currentQIndex - 1] || questionsList[0];
+      const qNum = currentQIndex;
+
+      // Cập nhật nhãn câu trên header
+      const badge = document.getElementById('tutor-header-q-badge');
+      if (badge) badge.textContent = `Câu ${qNum} / ${questionsList.length}`;
+
+      // Cập nhật cột trái (Đề bài & bài làm học sinh)
+      const pTitle = document.getElementById('tutor-panel-q-title');
+      if (pTitle) pTitle.textContent = q ? (q.title || `Câu ${qNum}`) : `Câu ${qNum}`;
+
+      const pContent = document.getElementById('tutor-panel-q-content');
+      if (pContent && q) {
+        pContent.innerHTML = q.content || '';
+        renderMath(pContent);
+      }
+
+      // Cập nhật bài làm hiện tại của học sinh
+      saveCurrentQuestionAnswer();
+      const currentText = answersMap[qNum] || '';
+      const pAns = document.getElementById('tutor-panel-student-answer');
+      if (pAns) {
+        pAns.innerHTML = currentText.trim() ? escapeHtml(currentText).replace(/\n/g, '<br>') : '<em style="color: #94a3b8;">(Bạn chưa gõ lời giải nào cho câu này)</em>';
+      }
+
+      // Cập nhật ảnh bài làm của câu này
+      const pGrid = document.getElementById('tutor-panel-photos-grid');
+      const pSec = document.getElementById('tutor-panel-photos-section');
+      if (pGrid && submissionData) {
+        const atts = (submissionData.attachments || []).filter(a => (a.question_index || 1) === qNum);
+        if (atts.length > 0) {
+          pSec.style.display = 'block';
+          pGrid.innerHTML = atts.map(a => `
+            <div class="attachment-item" onclick="openLightbox('${a.file_path}')">
+              <img src="${a.file_path}" class="attachment-thumb" alt="Ảnh bài giải" />
+              <div class="attachment-name" title="${a.file_name}">${a.file_name}</div>
+            </div>
+          `).join('');
+        } else {
+          pSec.style.display = 'block';
+          pGrid.innerHTML = '<p style="color: #94a3b8; font-size: 0.8rem; margin: 0; font-style: italic;">Chưa có ảnh chụp cho câu này.</p>';
+        }
+      }
+
+      // Cập nhật đồng hồ đếm ngược trong phòng AI
+      updateTimer();
+    }
+
+    function switchTutorQuestion(delta) {
+      const newIdx = currentQIndex + delta;
+      if (newIdx >= 1 && newIdx <= questionsList.length) {
+        selectQuestion(newIdx);
+        updateTutorDrawerHeader();
+        initTutorChatForCurrentQ();
+        renderTutorMessages();
+      }
+    }
+
+    function toggleTutorLeftPanel() {
+      const panel = document.getElementById('tutor-left-panel');
+      const btn = document.getElementById('btn-toggle-left-panel');
+      if (!panel) return;
+      panel.classList.toggle('collapsed');
+      if (btn) {
+        btn.textContent = panel.classList.contains('collapsed') ? '📖 Hiện Đề bài' : '📋 Ẩn Đề bài';
+      }
+    }
+
+    function toggleTutorFullscreenMode() {
+      const drawer = document.getElementById('tutor-drawer');
+      const btn = document.getElementById('btn-toggle-fullscreen');
+      if (!drawer) return;
+      drawer.classList.toggle('compact-mode');
+      if (btn) {
+        btn.textContent = drawer.classList.contains('compact-mode') ? '⛶ Toàn màn hình' : '⛶ Cửa sổ';
+      }
+    }
+
+    function renderTutorMessages() {
+      const container = document.getElementById('tutor-messages-container');
+      if (!container) return;
+
+      const msgs = tutorChatHistory[currentQIndex] || [];
+
+      container.innerHTML = msgs.map(m => {
+        if (m.sender === 'user') {
+          return `
+            <div class="student-bubble-wrap">
+              <div class="student-bubble">
+                ${formatMathAndMarkdown(escapeHtml(m.text))}
+              </div>
+            </div>
+          `;
+        } else {
+          let formatted = formatMathAndMarkdown(m.text);
+
+          return `
+            <div class="tutor-bubble-wrap">
+              <div class="tutor-avatar">🎓</div>
+              <div class="tutor-bubble">
+                ${formatted}
+              </div>
+            </div>
+          `;
+        }
+      }).join('');
+
+      renderMath(container);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    async function sendTutorMessage(customText = null) {
+      const inputEl = document.getElementById('tutor-input-text');
+      const sendBtn = document.getElementById('tutor-send-btn');
+      const text = (customText !== null ? customText : (inputEl ? inputEl.value : '')).trim();
+
+      if (!text) return;
+
+      if (customText === null && inputEl) {
+        inputEl.value = '';
+        inputEl.style.height = '42px';
+      }
+
+      const q = questionsList[currentQIndex - 1] || questionsList[0];
+      initTutorChatForCurrentQ();
+
+      // 1. Thêm tin nhắn của học sinh vào lịch sử
+      tutorChatHistory[currentQIndex].push({
+        sender: 'user',
+        text: text
+      });
+
+      // 2. Thêm tin nhắn chờ "Anh gia sư đang suy nghĩ..."
+      const thinkingId = 'thinking-' + Date.now();
+      tutorChatHistory[currentQIndex].push({
+        sender: 'tutor',
+        isThinking: true,
+        id: thinkingId,
+        text: '⏳ *Anh gia sư đang suy nghĩ và chuẩn bị gợi ý cho em...*'
+      });
+
+      renderTutorMessages();
+
+      if (inputEl) inputEl.disabled = true;
+      if (sendBtn) sendBtn.disabled = true;
+
+      try {
+        const historyToSend = tutorChatHistory[currentQIndex]
+          .filter(m => !m.isThinking && m.text !== text);
+
+        const currentAnswer = answersMap[currentQIndex] || '';
+
+        const res = await apiRequest('/api/ai/tutor-chat', {
+          method: 'POST',
+          body: JSON.stringify({
+            assignmentId,
+            questionIndex: currentQIndex,
+            questionTitle: q.title,
+            questionContent: q.content,
+            studentMessage: text,
+            chatHistory: historyToSend,
+            studentAnswer: currentAnswer
+          })
+        });
+
+        // Xóa thinking và thêm reply
+        tutorChatHistory[currentQIndex] = tutorChatHistory[currentQIndex].filter(m => m.id !== thinkingId);
+        tutorChatHistory[currentQIndex].push({
+          sender: 'tutor',
+          text: res.reply || 'Anh chưa nhận được câu trả lời, em thử hỏi lại nhé!'
+        });
+      } catch (err) {
+        tutorChatHistory[currentQIndex] = tutorChatHistory[currentQIndex].filter(m => m.id !== thinkingId);
+        tutorChatHistory[currentQIndex].push({
+          sender: 'tutor',
+          text: `⚠️ *Lỗi trao đổi với gia sư:* ${err.message}. Em hãy kiểm tra lại câu hỏi hoặc thử lại sau nhé.`
+        });
+      } finally {
+        if (inputEl) inputEl.disabled = false;
+        if (sendBtn) sendBtn.disabled = false;
+        renderTutorMessages();
+        if (inputEl) inputEl.focus();
+      }
+    }
+
+    function sendTutorQuickPrompt(prompt) {
+      sendTutorMessage(prompt);
+    }
+
+    function handleTutorInputKey(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendTutorMessage();
+      }
+    }
+
+    function escapeHtml(str) {
+      return (str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    let currentHintMode = 'idea'; // 'idea' hoặc 'steps'
+
+    function toggleHintBox(mode) {
+      const hintBox = document.getElementById('current-q-hint-box');
+      if (hintBox && hintBox.style.display === 'block' && currentHintMode === mode) {
+        closeHintBox();
+      } else {
+        openHintBox(mode);
+      }
+    }
+
+    function switchHintTab(mode) {
+      openHintBox(mode);
+    }
+
+    function closeHintBox() {
+      const hintBox = document.getElementById('current-q-hint-box');
+      if (hintBox) hintBox.style.display = 'none';
+      const btnIdea = document.getElementById('btn-hint-idea');
+      const btnSteps = document.getElementById('btn-hint-steps');
+      if (btnIdea) {
+        btnIdea.style.background = '#eff6ff';
+        btnIdea.style.color = '#1d4ed8';
+      }
+      if (btnSteps) {
+        btnSteps.style.background = '#ecfdf5';
+        btnSteps.style.color = '#047857';
+      }
+    }
+
+    async function openHintBox(mode = 'idea') {
+      currentHintMode = mode;
+      const hintBox = document.getElementById('current-q-hint-box');
+      const hintText = document.getElementById('current-q-hint-text');
+      const tabIdea = document.getElementById('tab-hint-idea');
+      const tabSteps = document.getElementById('tab-hint-steps');
+      const btnIdea = document.getElementById('btn-hint-idea');
+      const btnSteps = document.getElementById('btn-hint-steps');
+
+      if (!hintBox || !hintText) return;
+
+      hintBox.style.display = 'block';
+
+      // Cập nhật giao diện Tab đang chọn
+      if (mode === 'idea') {
+        if (tabIdea) {
+          tabIdea.style.background = '#2563eb';
+          tabIdea.style.color = '#fff';
+          tabIdea.className = 'btn btn-sm';
+        }
+        if (tabSteps) {
+          tabSteps.style.background = '#fff';
+          tabSteps.style.color = '#047857';
+          tabSteps.className = 'btn btn-sm btn-outline';
+        }
+        if (btnIdea) {
+          btnIdea.style.background = '#2563eb';
+          btnIdea.style.color = '#fff';
+        }
+        if (btnSteps) {
+          btnSteps.style.background = '#ecfdf5';
+          btnSteps.style.color = '#047857';
+        }
+      } else {
+        if (tabSteps) {
+          tabSteps.style.background = '#059669';
+          tabSteps.style.color = '#fff';
+          tabSteps.className = 'btn btn-sm';
+        }
+        if (tabIdea) {
+          tabIdea.style.background = '#fff';
+          tabIdea.style.color = '#1d4ed8';
+          tabIdea.className = 'btn btn-sm btn-outline';
+        }
+        if (btnSteps) {
+          btnSteps.style.background = '#059669';
+          btnSteps.style.color = '#fff';
+        }
+        if (btnIdea) {
+          btnIdea.style.background = '#eff6ff';
+          btnIdea.style.color = '#1d4ed8';
+        }
+      }
+
+      // Khởi tạo object cache cho câu này nếu chưa có
+      if (!hintsMap[currentQIndex] || typeof hintsMap[currentQIndex] !== 'object') {
+        hintsMap[currentQIndex] = { idea: null, steps: null };
+      }
+
+      // Nếu đã có cache cho mode này -> hiển thị ngay
+      if (hintsMap[currentQIndex][mode]) {
+        hintText.innerHTML = formatMathAndMarkdown(hintsMap[currentQIndex][mode]);
+        renderMath(hintText);
+        return;
+      }
+
+      // Hiển thị trạng thái đang suy nghĩ
+      hintText.innerHTML = `
+        <div style="padding: 12px; color: #475569; display: flex; align-items: center; gap: 8px;">
+          <span class="ai-pulse-spin" style="font-size: 1.2rem;">✨</span>
+          <span>Anh gia sư đang chuẩn bị ${mode === 'idea' ? 'gợi ý ý tưởng tiếp cận' : 'sơ đồ các bước làm bài'} cho em...</span>
+        </div>
+      `;
+
+      const q = questionsList[currentQIndex - 1] || questionsList[0];
+      const currentAnswer = answersMap[currentQIndex] || '';
+
+      try {
+        const res = await apiRequest('/api/ai/hint', {
+          method: 'POST',
+          body: JSON.stringify({
+            assignmentId,
+            questionIndex: currentQIndex,
+            questionTitle: q.title,
+            questionContent: q.content,
+            studentAnswer: currentAnswer,
+            hintType: mode
+          })
+        });
+
+        if (res.hint) {
+          hintsMap[currentQIndex][mode] = res.hint;
+          // Chỉ render nếu người dùng vẫn đang ở đúng mode này
+          if (currentHintMode === mode) {
+            hintText.innerHTML = formatMathAndMarkdown(res.hint);
+            renderMath(hintText);
+            showToast(`Đã nhận ${mode === 'idea' ? 'Gợi ý Ý tưởng' : 'Gợi ý Cách làm'} từ Anh Gia sư!`, 'info');
+          }
+        } else {
+          hintText.innerHTML = '<span style="color: #b91c1c;">Chưa tải được gợi ý, em hãy thử lại nhé.</span>';
+        }
+      } catch (err) {
+        hintText.innerHTML = `<span style="color: #b91c1c;">Lỗi lấy gợi ý: ${err.message}. Em hãy thử lại sau nhé.</span>`;
+        showToast('Lỗi lấy gợi ý: ' + err.message, 'error');
+      }
+    }
+
+    function saveCurrentQuestionAnswer() {
+      const text = document.getElementById('current-q-answer-text').value;
+      answersMap[currentQIndex] = text;
+    }
+
+    function goToQuestion(qNum) {
+      saveCurrentQuestionAnswer();
+      displayQuestion(qNum);
+    }
+
+    function goToPrevQuestion() {
+      if (currentQIndex > 1) {
+        goToQuestion(currentQIndex - 1);
+      }
+    }
+
+    function goToNextQuestion() {
+      if (currentQIndex < questionsList.length) {
+        goToQuestion(currentQIndex + 1);
+      }
+    }
+
+    function updateWordCount() {
+      const text = document.getElementById('current-q-answer-text').value;
+      const count = countWords(text);
+      document.getElementById('q-word-count').textContent = `${count} từ`;
+    }
+
+    // HIỂN THỊ ẢNH CỦA CÂU HIỆN TẠI
+    function renderPhotosForQuestion(qNum) {
+      const grid = document.getElementById('current-q-photos-grid');
+      const attachments = (submissionData.attachments || []).filter(a => (a.question_index || 1) === qNum);
+
+      if (attachments.length === 0) {
+        grid.innerHTML = '<span style="color: #64748b; font-size: 0.85rem; grid-column: 1/-1;">Chưa có ảnh bài làm nào cho câu này. Hãy bấm nút màu xanh ở trên để tải ảnh vào đây!</span>';
+        return;
+      }
+
+      grid.innerHTML = attachments.map(att => {
+        const isImg = att.mime_type.startsWith('image/');
+        return `
+          <div class="attachment-item">
+            <div onclick="${isImg ? `openLightbox('${att.file_path}')` : `window.open('${att.file_path}', '_blank')`}">
+              ${isImg 
+                ? `<img src="${att.file_path}" class="attachment-thumb" alt="Ảnh bài giải" />` 
+                : `<div style="height: 110px; display: flex; align-items: center; justify-content: center; font-size: 2rem;">📎</div>`}
+              <div class="attachment-name">${att.file_name}</div>
+            </div>
+            <button type="button" class="btn btn-danger btn-sm" style="width: 100%; border-radius: 0; padding: 4px;" onclick="deletePhoto(${att.id})">
+              Xóa ảnh
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // TẢI ẢNH CHO CÂU HIỆN TẠI
+    async function handleUploadPhotoForCurrentQ(e) {
+      const fileInput = e.target;
+      if (!fileInput.files || fileInput.files.length === 0) return;
+
+      const file = fileInput.files[0];
+      const formData = new FormData();
+      formData.append('submission_id', submissionData.id);
+      formData.append('question_index', currentQIndex); // Gắn với câu hỏi hiện tại!
+      formData.append('file', file);
+
+      showToast(`Đang tải ảnh bài giải cho Câu ${currentQIndex}...`, 'info');
+
+      try {
+        const res = await apiRequest('/api/submissions/attachments', {
+          method: 'POST',
+          body: formData
+        });
+
+        showToast(`Tải ảnh cho Câu ${currentQIndex} thành công!`, 'success');
+        if (!submissionData.attachments) submissionData.attachments = [];
+        submissionData.attachments.push(res.attachment);
+
+        renderPhotosForQuestion(currentQIndex);
+        renderQuestionTabs();
+      } catch (err) {
+        showToast('Lỗi tải ảnh: ' + err.message, 'error');
+      } finally {
+        fileInput.value = '';
+      }
+    }
+
+    async function deletePhoto(attId) {
+      const ok = await showConfirm('Xóa ảnh', 'Bạn có chắc muốn xóa ảnh này khỏi bài làm?');
+      if (!ok) return;
+
+      try {
+        await apiRequest(`/api/submissions/attachments/${attId}`, { method: 'DELETE' });
+        showToast('Đã xóa ảnh.', 'success');
+        submissionData.attachments = submissionData.attachments.filter(a => a.id !== attId);
+        renderPhotosForQuestion(currentQIndex);
+        renderQuestionTabs();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    // TỰ ĐỘNG LƯU NHÁP
+    async function triggerAutoSave(notify = true) {
+      if (!submissionData || submissionData.status !== 'draft') return;
+      saveCurrentQuestionAnswer();
+
+      const payload = {
+        answers: answersMap
+      };
+
+      try {
+        const res = await apiRequest('/api/submissions/auto-save', {
+          method: 'POST',
+          body: JSON.stringify({
+            submission_id: submissionData.id,
+            content: JSON.stringify(payload),
+            word_count: Object.values(answersMap).reduce((acc, t) => acc + countWords(t), 0)
+          })
+        });
+
+        if (notify) {
+          document.getElementById('autosave-indicator').textContent = `💾 Đã lưu nháp lúc ${res.savedAt}`;
+        }
+      } catch (err) {
+        console.error('Lỗi tự động lưu nháp:', err);
+      }
+    }
+
+    // ĐỒNG HỒ ĐẾM NGƯỢC
+    function startTimer() {
+      updateTimer();
+      timerInterval = setInterval(() => {
+        if (remainingSeconds <= 0) {
+          clearInterval(timerInterval);
+          showToast('HẾT GIỜ LÀM BÀI! Hệ thống đang tự động nộp bài thi...', 'warning');
+          submitExamNow();
+          return;
+        }
+        remainingSeconds--;
+        updateTimer();
+      }, 1000);
+    }
+
+    function updateTimer() {
+      const minutes = Math.floor(remainingSeconds / 60);
+      const seconds = remainingSeconds % 60;
+      const formatted = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+      const examTimer = document.getElementById('countdown-text');
+      if (examTimer) examTimer.textContent = formatted;
+      const tutorTimer = document.getElementById('tutor-countdown-text');
+      if (tutorTimer) tutorTimer.textContent = formatted;
+    }
+
+    // Lắng nghe phím ESC để đóng phòng AI toàn màn hình
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeAiTutorDrawer();
+      }
+    });
+
+    // NỘP BÀI THI
+    async function confirmSubmit() {
+      saveCurrentQuestionAnswer();
+
+      // Kiểm tra xem đã làm câu nào chưa
+      const attachments = submissionData.attachments || [];
+      const totalPhotos = attachments.length;
+      const totalAnswers = Object.values(answersMap).filter(t => t.trim().length > 0).length;
+
+      let msg = 'Bạn có chắc chắn muốn nộp bài thi không? Sau khi nộp sẽ không thể chỉnh sửa.';
+      if (totalPhotos === 0 && totalAnswers === 0) {
+        msg = '⚠️ BẠN CHƯA TẢI ẢNH BÀI LÀM VÀ CHƯA GÕ LỜI GIẢI NÀO! Bạn có thực sự muốn nộp bài trắng không?';
+      }
+
+      const ok = await showConfirm('Xác nhận nộp bài thi', msg);
+      if (ok) {
+        await submitExamNow();
+      }
+    }
+
+    async function submitExamNow() {
+      clearInterval(autoSaveInterval);
+      if (timerInterval) clearInterval(timerInterval);
+      saveCurrentQuestionAnswer();
+
+      const payload = { answers: answersMap };
+
+      try {
+        const res = await apiRequest('/api/submissions/submit', {
+          method: 'POST',
+          body: JSON.stringify({
+            submission_id: submissionData.id,
+            content: JSON.stringify(payload),
+            word_count: Object.values(answersMap).reduce((acc, t) => acc + countWords(t), 0)
+          })
+        });
+
+        showToast(res.message, res.is_late ? 'warning' : 'success');
+        setTimeout(() => {
+          window.location.href = `/student/result.html?id=${assignmentId}`;
+        }, 1200);
+      } catch (err) {
+        showToast('Lỗi khi nộp bài: ' + err.message, 'error');
+      }
+    }
+
+    initExamRoom();
+  </script>
+</body>
+</html>

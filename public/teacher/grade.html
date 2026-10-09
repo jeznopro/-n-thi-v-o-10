@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nhận xét bài làm Tự luận Toán - Hệ thống Tự luận Toán THCS</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/toast.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <style>
+    .grade-question-card {
+      background: #ffffff;
+      border: 1.5px solid var(--border-color);
+      border-radius: 22px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      border-left: 6px solid #2563eb;
+    }
+  </style>
+</head>
+<body>
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="/teacher/index.html" class="nav-brand">
+        <div class="brand-logo">∑</div>
+        <div class="brand-text">
+          <h1>TOÁN THCS</h1>
+          <p>Cổng Giáo Viên</p>
+        </div>
+      </a>
+
+      <button class="mobile-toggle" aria-label="Menu">&#9776;</button>
+
+      <nav>
+        <ul class="nav-menu">
+          <li><a href="/teacher/index.html" class="nav-link">📊 Tổng quan</a></li>
+          <li><a href="/teacher/classes.html" class="nav-link">👥 Lớp & Học sinh</a></li>
+          <li><a href="/teacher/assignments.html" class="nav-link active">📝 Quản lý bài tập</a></li>
+          <li><a href="/teacher/logs.html" class="nav-link">📜 Nhật ký</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-user">
+        <div class="user-badge">
+          <div class="user-avatar">GV</div>
+          <div class="user-info">
+            <span class="user-name">Giáo viên</span>
+            <span class="user-role">Giáo viên Toán</span>
+          </div>
+        </div>
+        <button id="logout-btn" class="btn btn-secondary btn-sm">Đăng xuất</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="main-wrapper">
+    <div class="page-header">
+      <div class="page-title">
+        <h2 id="assign-title-header">Xem & Nhận xét bài làm học sinh</h2>
+        <p id="assign-meta-header">Đang tải thông tin bài tập...</p>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-success" onclick="exportCurrentGradebook()">
+          📥 Xuất danh sách Excel
+        </button>
+        <a href="/teacher/assignments.html" class="btn btn-secondary">
+          ⬅️ Danh sách bài tập
+        </a>
+      </div>
+    </div>
+
+    <!-- DANH SÁCH BÀI NỘP -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">📋 Danh sách học sinh nộp bài</h3>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <label style="font-size: 0.85rem; font-weight: 600; color: #475569;">Lọc trạng thái:</label>
+          <select id="filter-submission-status" class="form-control" style="width: 180px; padding: 6px 10px;" onchange="loadSubmissions()">
+            <option value="all">-- Tất cả --</option>
+            <option value="submitted">Chờ nhận xét</option>
+            <option value="graded">Đã nhận xét</option>
+            <option value="late">Nộp trễ hạn</option>
+            <option value="not_submitted">Chưa nộp</option>
+          </select>
+        </div>
+      </div>
+      <div class="card-body" style="padding: 0;">
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>STT</th>
+                <th>Học sinh</th>
+                <th>Lớp</th>
+                <th>Thời gian nộp</th>
+                <th>Trạng thái</th>
+                <th>Nhận xét của Giáo viên</th>
+                <th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="submissions-tbody">
+              <tr>
+                <td colspan="7" style="text-align: center; padding: 28px; color: #94a3b8;">Đang tải danh sách bài làm...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- MODAL XEM & NHẬN XÉT BÀI LÀM -->
+  <div id="modal-grading" class="custom-modal-overlay">
+    <div class="custom-modal" style="max-width: 1100px; max-height: 94vh; display: flex; flex-direction: column;">
+      <div class="custom-modal-header">
+        <div>
+          <h3 class="custom-modal-title" id="grading-student-title">Xem bài làm của học sinh</h3>
+          <p id="grading-student-sub" style="font-size: 0.8rem; color: #64748b; margin-top: 2px;"></p>
+        </div>
+        <button class="toast-close" onclick="closeGradingModal()">&times;</button>
+      </div>
+
+      <div class="custom-modal-body" style="flex: 1; overflow-y: auto; padding: 24px;">
+        <!-- DANH SÁCH TỪNG CÂU HỎI KÈM ẢNH HỌC SINH NỘP -->
+        <div id="grading-questions-list"></div>
+
+        <!-- BANNER CẢNH BÁO LỖ HỔNG KIẾN THỨC TỪ AI (NẾU CÓ) -->
+        <div id="grading-ai-diagnostic-banner" style="display: none; border-radius: var(--radius-md); padding: 16px 20px; margin-top: 20px;"></div>
+
+        <!-- Ô NHẬP NHẬN XÉT CỦA GIÁO VIÊN -->
+        <div style="background: #f8fafc; border: 2px solid #cbd5e1; border-radius: var(--radius-md); padding: 20px; margin-top: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 8px;">
+            <h4 style="font-size: 1.1rem; font-weight: 800; color: #1e3a8a; margin: 0;">
+              💬 Lời phê / Nhận xét của Thầy Cô dành cho học sinh:
+            </h4>
+            <button type="button" class="btn btn-ai btn-sm" id="btn-ai-review" onclick="generateAiReviewFeedback()">
+              ✨ AI Phân tích bài làm & Gợi ý lời phê
+            </button>
+          </div>
+          <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 10px;">
+            AI sẽ đọc nội dung các câu hỏi, lời giải và ảnh chụp bài viết tay của học sinh để gợi ý lời phê sư phạm. Thầy Cô có thể chỉnh sửa trước khi lưu.
+          </p>
+          <div class="form-group" style="margin-bottom: 0;">
+            <textarea id="grade-feedback" class="form-control" style="min-height: 110px; font-size: 1rem;"
+                      placeholder="Ví dụ: Em giải câu 1 và câu 2 rất tốt, cách trình bày rõ ràng. Câu 3 hình vẽ cần chú ý đánh dấu góc vuông..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="custom-modal-footer" style="justify-content: space-between;">
+        <button type="button" class="btn btn-outline" onclick="handleRequestResubmission()">
+          🔄 Yêu cầu học sinh làm lại (Lần 2)
+        </button>
+        <div style="display: flex; gap: 10px;">
+          <button type="button" class="btn btn-secondary" onclick="closeGradingModal()">Đóng</button>
+          <button type="button" id="btn-save-grade" class="btn btn-primary" onclick="handleSaveGrade()">
+            💾 Hoàn tất nhận xét & Trả bài
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/common.js"></script>
+  <script src="/js/ai-helper.js"></script>
+  <script>
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    let assignmentId = null;
+    let currentSubmissionId = null;
+    let assignmentQuestions = [];
+
+    async function initGradePage() {
+      const user = await checkAuthAndLoad('teacher');
+      if (!user) return;
+
+      const urlParams = new URLSearchParams(window.location.search);
+      assignmentId = urlParams.get('id');
+
+      if (!assignmentId) {
+        showToast('Không tìm thấy bài tập!', 'error');
+        setTimeout(() => window.location.href = '/teacher/assignments.html', 1500);
+        return;
+      }
+
+      await loadSubmissions();
+    }
+
+    async function loadSubmissions() {
+      const statusFilter = document.getElementById('filter-submission-status').value;
+      const tbody = document.getElementById('submissions-tbody');
+
+      try {
+        const res = await apiRequest(`/api/grading/assignments/${assignmentId}?status=${statusFilter}`);
+        const assign = res.assignment;
+        const submissions = res.submissions || [];
+
+        document.getElementById('assign-title-header').textContent = `Bài tập: ${assign.title}`;
+        document.getElementById('assign-meta-header').textContent = `Hạn nộp: ${formatDateTime(assign.due_date)} | ${assign.time_limit_minutes ? `Thời gian: ${assign.time_limit_minutes} phút` : 'Không giới hạn giờ'}`;
+
+        // Parse danh sách câu hỏi
+        try {
+          if (assign.content && assign.content.trim().startsWith('[')) {
+            assignmentQuestions = JSON.parse(assign.content);
+          } else {
+            assignmentQuestions = [{ id: 1, title: "Đề bài tự luận", content: assign.content }];
+          }
+        } catch (e) {
+          assignmentQuestions = [{ id: 1, title: "Đề bài tự luận", content: assign.content }];
+        }
+
+        if (submissions.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="7" style="text-align: center; padding: 28px; color: #94a3b8;">
+                Không có bài nộp nào trong mục này.
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        tbody.innerHTML = submissions.map((s, index) => {
+          let badgeHtml = '';
+          if (s.status_code === 'graded') badgeHtml = '<span class="badge badge-green">Đã nhận xét</span>';
+          else if (s.status_code === 'submitted') badgeHtml = '<span class="badge badge-blue">Chờ nhận xét</span>';
+          else if (s.status_code === 'late') badgeHtml = '<span class="badge badge-amber">Nộp trễ hạn</span>';
+          else if (s.status_code === 'resubmission_requested') badgeHtml = '<span class="badge badge-amber">Yêu cầu làm lại</span>';
+          else if (s.status_code === 'in_progress') badgeHtml = '<span class="badge badge-gray">Đang làm (Nháp)</span>';
+          else badgeHtml = '<span class="badge badge-gray">Chưa nộp bài</span>';
+
+          const canReview = s.submission_id && (s.status_code === 'submitted' || s.status_code === 'graded' || s.status_code === 'late');
+
+          return `
+            <tr>
+              <td>${index + 1}</td>
+              <td style="font-weight: 700; color: #1e293b;">
+                ${s.full_name} <br>
+                <small style="color: #64748b; font-weight: normal;">${s.username}</small>
+              </td>
+              <td>${s.class_name}</td>
+              <td>${formatDateTime(s.submitted_at)}</td>
+              <td>${badgeHtml}</td>
+              <td style="max-width: 250px; font-size: 0.85rem; color: #475569; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                ${s.feedback || '—'}
+              </td>
+              <td>
+                ${canReview ? `
+                  <button class="btn btn-primary btn-sm" onclick="openGradingModal(${s.submission_id})">
+                    ✏️ Xem & Nhận xét
+                  </button>
+                ` : `
+                  <button class="btn btn-secondary btn-sm" disabled style="opacity: 0.5;">
+                    Chưa nộp
+                  </button>
+                `}
+              </td>
+            </tr>
+          `;
+        }).join('');
+
+        renderMath(document.getElementById('assign-title-header'));
+      } catch (err) {
+        showToast('Lỗi tải danh sách: ' + err.message, 'error');
+      }
+    }
+
+    async function openGradingModal(submissionId) {
+      currentSubmissionId = submissionId;
+      const modal = document.getElementById('modal-grading');
+
+      try {
+        const res = await apiRequest(`/api/grading/submissions/${submissionId}`);
+        const sub = res.submission;
+
+        // Thông tin học sinh kèm huy hiệu số lần hỏi AI
+        const totalAi = (sub.aiInteractions || []).length;
+        const aiSummaryBadge = totalAi > 0
+          ? `<span class="badge" style="background: #faf5ff; color: #7c3aed; border: 1.5px solid #d8b4fe; font-size: 0.8rem; margin-left: 8px;">🤖 Đã hỏi AI: ${totalAi} lần</span>`
+          : `<span class="badge badge-green" style="font-size: 0.8rem; margin-left: 8px;">🌟 Làm bài độc lập (0 lần hỏi AI)</span>`;
+
+        document.getElementById('grading-student-title').textContent = `Xem bài làm: ${sub.student_name} (${sub.student_username})`;
+        document.getElementById('grading-student-sub').innerHTML = `
+          <span>Nộp lúc: ${formatDateTime(sub.submitted_at)} ${sub.is_late ? '⚠️ (NỘP TRỄ HẠN)' : '✅ (Đúng hạn)'} | Lần nộp: ${sub.attempt_number}</span>
+          ${aiSummaryBadge}
+        `;
+
+        // Parse câu trả lời
+        let studentAnswers = {};
+        if (sub.content) {
+          try {
+            if (sub.content.trim().startsWith('{')) {
+              studentAnswers = JSON.parse(sub.content).answers || {};
+            } else {
+              studentAnswers = { 1: sub.content };
+            }
+          } catch (e) {
+            studentAnswers = { 1: sub.content };
+          }
+        }
+
+        const attachments = sub.attachments || [];
+        const container = document.getElementById('grading-questions-list');
+
+        // Render từng câu hỏi kèm ảnh và lịch sử hỏi AI của câu đó
+        container.innerHTML = assignmentQuestions.map((q, idx) => {
+          const qNum = idx + 1;
+          const textAns = studentAnswers[qNum] || '';
+          const qPhotos = attachments.filter(a => (a.question_index || 1) === qNum);
+          const qInteractions = (sub.aiInteractions || []).filter(a => (a.question_index || 1) === qNum);
+
+          let aiHistoryHtml = '';
+          if (qInteractions.length > 0) {
+            aiHistoryHtml = `
+              <div style="background: #fdf4ff; border: 1.5px solid #e879f9; border-radius: 18px; padding: 18px 20px; margin-top: 18px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                  <h5 style="color: #86198f; font-weight: 800; font-size: 0.975rem; margin: 0; display: flex; align-items: center; gap: 8px;">
+                    🤖 Lịch sử học sinh đã hỏi AI trong Câu ${qNum} (${qInteractions.length} lần):
+                  </h5>
+                  <span style="font-size: 0.775rem; background: #fae8ff; color: #a21caf; padding: 3px 12px; border-radius: 9999px; font-weight: 700; border: 1px solid #f0abfc;">
+                    Hệ thống lưu vết tự động
+                  </span>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                  ${qInteractions.map((item, i) => {
+                    let badgeLabel = '💬 Chat Gia sư';
+                    let badgeStyle = 'background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;';
+                    if (item.interaction_type === 'hint_idea') {
+                      badgeLabel = '💡 Gợi ý Ý tưởng';
+                      badgeStyle = 'background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;';
+                    } else if (item.interaction_type === 'hint_steps') {
+                      badgeLabel = '📋 Gợi ý Cách làm';
+                      badgeStyle = 'background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0;';
+                    } else if (item.interaction_type === 'explanation') {
+                      badgeLabel = '📖 Xem Giải thích';
+                      badgeStyle = 'background: #fef3c7; color: #b45309; border: 1px solid #fde68a;';
+                    }
+
+                    return `
+                      <div style="background: #ffffff; border: 1.5px solid #f5d0fe; border-radius: 14px; padding: 14px 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
+                          <span style="font-size: 0.775rem; font-weight: 700; padding: 3px 10px; border-radius: 9999px; ${badgeStyle}">
+                            ${badgeLabel} #${i + 1}
+                          </span>
+                          <span style="font-size: 0.775rem; color: #64748b;">
+                            ⏱️ ${formatDateTime(item.created_at)}
+                          </span>
+                        </div>
+
+                        <div style="margin-bottom: 8px;">
+                          <strong style="color: #0f172a; font-size: 0.85rem;">👤 Học sinh hỏi:</strong>
+                          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 12px; margin-top: 4px; font-size: 0.925rem; color: #1e293b;">
+                            ${escapeHtml(item.prompt_text).replace(/\n/g, '<br>')}
+                          </div>
+                        </div>
+
+                        <div>
+                          <strong style="color: #701a75; font-size: 0.85rem;">🤖 Gia sư AI phản hồi / gợi ý:</strong>
+                          <div style="background: #fdf4ff; border: 1px solid #f0abfc; border-radius: 10px; padding: 10px 14px; margin-top: 4px; font-size: 0.925rem; color: #3b0764; line-height: 1.6;">
+                            ${formatMathAndMarkdown(item.response_text)}
+                          </div>
+                        </div>
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+            `;
+          } else {
+            aiHistoryHtml = `
+              <div style="margin-top: 14px; padding: 10px 14px; background: #f0fdf4; border: 1.5px solid #bbf7d0; border-radius: 14px; font-size: 0.85rem; color: #166534; display: flex; align-items: center; gap: 8px;">
+                <span>🌟</span>
+                <span>Học sinh <strong>không hỏi AI</strong> câu này (tự suy nghĩ và làm bài độc lập).</span>
+              </div>
+            `;
+          }
+
+          return `
+            <div class="grade-question-card">
+              <div style="border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 12px;">
+                <h4 style="font-size: 1.1rem; font-weight: 800; color: #1e3a8a;">
+                  📌 ${q.title || `Câu hỏi số ${qNum}`}
+                </h4>
+              </div>
+
+              <!-- ĐỀ BÀI CỦA CÂU NÀY -->
+              <div style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 14px; padding: 14px; margin-bottom: 14px; font-size: 0.975rem;">
+                <strong>Đề bài:</strong><br>
+                ${q.content}
+              </div>
+
+              <!-- LỜI GIẢI HỌC SINH GÕ (NẾU CÓ) -->
+              ${textAns ? `
+                <div style="margin-bottom: 14px;">
+                  <strong style="color: #1e293b; font-size: 0.9rem;">✍️ Lời giải văn bản học sinh gõ:</strong>
+                  <div style="background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 14px; padding: 12px; margin-top: 4px; font-size: 0.95rem;">
+                    ${textAns.replace(/\n/g, '<br>')}
+                  </div>
+                </div>
+              ` : ''}
+
+              <!-- ẢNH BÀI LÀM VIẾT TAY HỌC SINH TẢI CHO CÂU NÀY -->
+              <div>
+                <strong style="color: #065f46; font-size: 0.9rem;">📸 Ảnh chụp bài giải viết tay / vẽ hình cho Câu ${qNum} (${qPhotos.length} ảnh):</strong>
+                ${qPhotos.length > 0 ? `
+                  <div class="attachment-grid" style="margin-top: 8px;">
+                    ${qPhotos.map(att => `
+                      <div class="attachment-item" onclick="openLightbox('${att.file_path}')">
+                        <img src="${att.file_path}" class="attachment-thumb" alt="Ảnh bài làm" />
+                        <div class="attachment-name" title="${att.file_name}">${att.file_name}</div>
+                      </div>
+                    `).join('')}
+                  </div>
+                ` : `
+                  <p style="color: #94a3b8; font-size: 0.825rem; margin-top: 4px; font-style: italic;">
+                    Học sinh không đính kèm ảnh nào cho câu này.
+                  </p>
+                `}
+              </div>
+
+              <!-- LỊCH SỬ HỌC SINH HỎI AI CHO CÂU NÀY -->
+              ${aiHistoryHtml}
+            </div>
+          `;
+        }).join('');
+
+        renderMath(container);
+
+        // Kiểm tra cảnh báo Lỗ hổng kiến thức từ AI
+        const diagBanner = document.getElementById('grading-ai-diagnostic-banner');
+        diagBanner.style.display = 'none';
+
+        try {
+          const diagRes = await apiRequest(`/api/ai/diagnostics?assignmentId=${sub.assignment_id}&studentId=${sub.student_id}`);
+          if (diagRes && diagRes.diagnostics && diagRes.diagnostics.length > 0) {
+            const d = diagRes.diagnostics[0];
+            diagBanner.style.display = 'block';
+
+            if (d.severity === 'high') {
+              diagBanner.style.background = '#fef2f2';
+              diagBanner.style.border = '2px solid #f87171';
+              diagBanner.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 8px;">
+                  <strong style="color: #991b1b; font-size: 1.025rem; display: flex; align-items: center; gap: 8px;">
+                    🚨 Cảnh báo Sư phạm từ Gia sư AI: Phát hiện lỗ hổng kiến thức nền tảng!
+                  </strong>
+                  <span class="badge badge-severity-high" style="font-size: 0.8rem;">🔴 BÁO ĐỘNG ĐỎ</span>
+                </div>
+                <div style="font-size: 0.925rem; color: #7f1d1d; margin-bottom: 6px;">
+                  <strong>Chuyên đề bị hổng:</strong> ${escapeHtml(d.mainTopic)} — <em>${escapeHtml(d.specificGap)}</em>
+                </div>
+                <div style="font-size: 0.85rem; color: #991b1b; background: #ffffff; padding: 10px 14px; border-radius: 10px; border: 1px dashed #fca5a5; line-height: 1.5;">
+                  <strong>💡 Khuyến nghị cho Thầy Cô khi nhận xét:</strong> ${Array.isArray(d.actionPlan) ? d.actionPlan.join(' • ') : d.actionPlan}
+                </div>
+              `;
+            } else if (d.severity === 'medium') {
+              diagBanner.style.background = '#fffbeb';
+              diagBanner.style.border = '2px solid #fcd34d';
+              diagBanner.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 6px;">
+                  <strong style="color: #92400e; font-size: 0.975rem;">
+                    ⚠️ Lưu ý từ Gia sư AI: Học sinh cần hỗ trợ ở bước biến đổi
+                  </strong>
+                  <span class="badge badge-severity-medium" style="font-size: 0.8rem;">🟡 CẦN THEO DÕI</span>
+                </div>
+                <div style="font-size: 0.875rem; color: #78350f;">
+                  ${escapeHtml(d.specificGap || 'Cần chú ý đối chiếu điều kiện và tính toán cẩn thận.')}
+                </div>
+              `;
+            } else {
+              diagBanner.style.background = '#f0fdf4';
+              diagBanner.style.border = '1.5px solid #86efac';
+              diagBanner.innerHTML = `
+                <div style="color: #166534; font-size: 0.875rem; display: flex; align-items: center; gap: 8px;">
+                  <span>🟢</span>
+                  <span><strong>Gia sư AI đánh giá:</strong> Học sinh này chỉ xin gợi ý nhẹ (${d.hintCount} lần), tư duy tự lực tốt, không gặp bế tắc nền tảng.</span>
+                </div>
+              `;
+            }
+          }
+        } catch (diagErr) {
+          console.warn('Lỗi lấy chẩn đoán AI trong trang chấm:', diagErr.message);
+        }
+
+        // Lời phê chung
+        document.getElementById('grade-feedback').value = (sub.grade && sub.grade.feedback) ? sub.grade.feedback : '';
+
+        modal.classList.add('active');
+      } catch (err) {
+        showToast('Lỗi xem bài làm: ' + err.message, 'error');
+      }
+    }
+
+    function closeGradingModal() {
+      document.getElementById('modal-grading').classList.remove('active');
+    }
+
+    async function handleSaveGrade() {
+      const feedback = document.getElementById('grade-feedback').value.trim();
+      const saveBtn = document.getElementById('btn-save-grade');
+
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Đang lưu nhận xét...';
+
+      try {
+        const res = await apiRequest(`/api/grading/submissions/${currentSubmissionId}/grade`, {
+          method: 'POST',
+          body: JSON.stringify({ rubric_scores: [], feedback })
+        });
+
+        showToast(res.message, 'success');
+        closeGradingModal();
+        await loadSubmissions();
+      } catch (err) {
+        showToast(err.message, 'error');
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = '💾 Hoàn tất nhận xét & Trả bài';
+      }
+    }
+
+    async function handleRequestResubmission() {
+      const ok = await showConfirm(
+        'Yêu cầu học sinh làm lại bài',
+        'Thầy/Cô có chắc chắn muốn yêu cầu học sinh làm lại bài này không? Học sinh sẽ được mở quyền làm bài lần 2.'
+      );
+      if (!ok) return;
+
+      const reason = prompt('Nhập lý do yêu cầu làm lại (tùy chọn):', 'Ảnh chụp bị mờ / thiếu bài');
+
+      try {
+        await apiRequest(`/api/grading/submissions/${currentSubmissionId}/request-resubmission`, {
+          method: 'POST',
+          body: JSON.stringify({ reason: reason || '' })
+        });
+
+        showToast('Đã mở quyền cho học sinh làm lại bài.', 'success');
+        closeGradingModal();
+        await loadSubmissions();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    async function exportCurrentGradebook() {
+      try {
+        showToast('Đang tạo file danh sách Excel...', 'info');
+        const blob = await apiRequest(`/api/grading/assignments/${assignmentId}/export`);
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Danh_Sach_Nop_Bai_${assignmentId}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        showToast('Đã tải file Excel thành công!', 'success');
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    async function generateAiReviewFeedback() {
+      if (!currentSubmissionId) {
+        showToast('Chưa chọn bài làm của học sinh.', 'warning');
+        return;
+      }
+
+      const feedbackArea = document.getElementById('grade-feedback');
+      if (feedbackArea.value.trim().length > 10) {
+        const ok = await showConfirm(
+          'Gợi ý lời phê bằng AI',
+          'Ô nhận xét hiện đã có nội dung. Bạn có muốn để AI phân tích và thay thế bằng gợi ý mới không?'
+        );
+        if (!ok) return;
+      }
+
+      const btn = document.getElementById('btn-ai-review');
+      btn.disabled = true;
+      btn.innerHTML = '⏳ <span class="ai-pulse-spin">✨</span> AI đang đọc bài làm & ảnh viết tay...';
+
+      try {
+        const res = await apiRequest('/api/ai/review-submission', {
+          method: 'POST',
+          body: JSON.stringify({ submissionId: currentSubmissionId })
+        });
+
+        if (res.feedback) {
+          feedbackArea.value = res.feedback;
+          showToast(
+            res.source === 'gemini' 
+              ? `Gemini đã phân tích xong bài làm (gồm ${res.attachmentCount || 0} ảnh đính kèm)!`
+              : 'Hệ thống đã gợi ý mẫu lời phê sư phạm chuẩn mực!',
+            'success'
+          );
+          feedbackArea.scrollIntoView({ behavior: 'smooth' });
+        }
+      } catch (err) {
+        showToast('Lỗi phân tích AI: ' + err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '✨ AI Phân tích bài làm & Gợi ý lời phê';
+      }
+    }
+
+    initGradePage();
+  </script>
+</body>
+</html>

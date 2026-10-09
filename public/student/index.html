@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bài tập của tôi - Cổng Học Sinh Toán THCS</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/toast.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <style>
+    .filter-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 24px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+    }
+    .filter-tab {
+      padding: 9px 20px;
+      border-radius: 9999px;
+      background: #ffffff;
+      border: 1.5px solid var(--border-color);
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #475569;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .filter-tab:hover {
+      border-color: #cbd5e1;
+      background: #f8fafc;
+    }
+    .filter-tab.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+    }
+    .assignment-card {
+      background: #ffffff;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 22px;
+      padding: 24px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .assignment-card:hover {
+      transform: translateY(-2px);
+      border-color: #3b82f6;
+      box-shadow: 0 8px 24px rgba(37, 99, 235, 0.08);
+    }
+  </style>
+</head>
+<body>
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="/student/index.html" class="nav-brand">
+        <div class="brand-logo" style="background: linear-gradient(135deg, #10b981, #059669);">∑</div>
+        <div class="brand-text">
+          <h1>TOÁN THCS</h1>
+          <p>Cổng Học Sinh</p>
+        </div>
+      </a>
+
+      <button class="mobile-toggle" aria-label="Menu">&#9776;</button>
+
+      <div class="nav-user">
+        <div class="user-badge">
+          <div class="user-avatar" style="background: #10b981;">HS</div>
+          <div class="user-info">
+            <span class="user-name">Học sinh</span>
+            <span class="user-role">Học sinh</span>
+          </div>
+        </div>
+        <button id="logout-btn" class="btn btn-secondary btn-sm">Đăng xuất</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="main-wrapper">
+    <div class="page-header">
+      <div class="page-title">
+        <h2>Xin chào, <span id="student-name">Học sinh</span> 👋</h2>
+        <p>Danh sách các bài tập tự luận môn Toán được thầy cô giao cho bạn</p>
+      </div>
+    </div>
+
+    <!-- FILTER TABS -->
+    <div class="filter-tabs">
+      <button class="filter-tab active" data-status="" onclick="setFilter('')">Tất cả bài tập</button>
+      <button class="filter-tab" data-status="not_started" onclick="setFilter('not_started')">Chưa làm</button>
+      <button class="filter-tab" data-status="in_progress" onclick="setFilter('in_progress')">Đang làm dở</button>
+      <button class="filter-tab" data-status="submitted" onclick="setFilter('submitted')">Đã nộp bài</button>
+      <button class="filter-tab" data-status="graded" onclick="setFilter('graded')">Đã có nhận xét</button>
+    </div>
+
+    <!-- DANH SÁCH BÀI TẬP DẠNG GRID -->
+    <div id="assignments-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;">
+      <p style="color: #94a3b8;">Đang tải danh sách bài tập...</p>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/common.js"></script>
+  <script>
+    let currentFilter = '';
+
+    async function initStudentPage() {
+      const user = await checkAuthAndLoad('student');
+      if (!user) return;
+
+      document.getElementById('student-name').textContent = user.full_name;
+      await loadAssignments();
+    }
+
+    function setFilter(status) {
+      currentFilter = status;
+      document.querySelectorAll('.filter-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.status === status);
+      });
+      loadAssignments();
+    }
+
+    async function loadAssignments() {
+      const grid = document.getElementById('assignments-grid');
+
+      try {
+        let endpoint = '/api/assignments/student';
+        if (currentFilter) endpoint += `?status=${currentFilter}`;
+
+        const res = await apiRequest(endpoint);
+        const assignments = res.assignments || [];
+
+        if (assignments.length === 0) {
+          grid.innerHTML = `
+            <div style="grid-column: 1/-1; text-align: center; padding: 48px; background: #fff; border-radius: 22px; border: 1.5px dashed #cbd5e1;">
+              <div style="font-size: 2.5rem; margin-bottom: 8px;">🎉</div>
+              <h3 style="color: #1e293b; font-size: 1.15rem; font-weight: 700;">Không có bài tập nào trong mục này</h3>
+              <p style="color: #64748b; font-size: 0.875rem; margin-top: 4px;">Hiện tại bạn đã hoàn thành hoặc chưa có bài tập mới.</p>
+            </div>
+          `;
+          return;
+        }
+
+        grid.innerHTML = assignments.map(a => {
+          let badgeHtml = '';
+          let actionBtnHtml = '';
+
+          if (a.computed_status === 'graded') {
+            badgeHtml = `<span class="badge badge-green">Đã có nhận xét</span>`;
+            actionBtnHtml = `<a href="/student/result.html?id=${a.id}" class="btn btn-secondary" style="width: 100%; border-radius: 14px; font-weight: 700; padding: 11px 18px;">👁️ Xem nhận xét của thầy cô</a>`;
+          } else if (a.computed_status === 'submitted') {
+            badgeHtml = `<span class="badge badge-blue">Đã nộp (${a.is_late ? 'Trễ hạn' : 'Đúng hạn'})</span>`;
+            actionBtnHtml = `<a href="/student/result.html?id=${a.id}" class="btn btn-secondary" style="width: 100%; border-radius: 14px; font-weight: 700; padding: 11px 18px;">👁️ Xem lại bài đã nộp</a>`;
+          } else if (a.computed_status === 'resubmission_requested') {
+            badgeHtml = `<span class="badge badge-amber">⚠️ Thầy cô yêu cầu làm lại</span>`;
+            actionBtnHtml = `<a href="/student/exam.html?id=${a.id}" class="btn btn-primary" style="width: 100%; border-radius: 14px; font-weight: 700; padding: 11px 18px;">✏️ Làm lại bài thi</a>`;
+          } else if (a.computed_status === 'in_progress') {
+            badgeHtml = `<span class="badge badge-amber">Đang làm dở (Đã lưu)</span>`;
+            actionBtnHtml = `<a href="/student/exam.html?id=${a.id}" class="btn btn-primary" style="width: 100%; border-radius: 14px; font-weight: 700; padding: 11px 18px;">✏️ Tiếp tục làm bài</a>`;
+          } else {
+            badgeHtml = `<span class="badge badge-gray">Chưa làm</span>`;
+            actionBtnHtml = `<a href="/student/exam.html?id=${a.id}" class="btn btn-primary" style="width: 100%; border-radius: 14px; font-weight: 700; padding: 11px 18px;">🚀 Bắt đầu làm bài</a>`;
+          }
+
+          const isOverdue = a.is_past_due;
+
+          return `
+            <div class="assignment-card">
+              <div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 12px;">
+                  <h3 style="font-size: 1.1rem; font-weight: 700; color: #0f172a; line-height: 1.4; margin: 0;">
+                    ${a.title}
+                  </h3>
+                  <div style="flex-shrink: 0;">
+                    ${badgeHtml}
+                  </div>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 20px;">
+                  <span style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.8rem; font-weight: 600; color: #475569; background: #f1f5f9; padding: 4px 12px; border-radius: 9999px; border: 1px solid #e2e8f0;">
+                    ${a.time_limit_minutes ? `⏱️ ${a.time_limit_minutes} phút` : '⏳ Không giới hạn'}
+                  </span>
+                  <span style="font-size: 0.8rem; color: ${isOverdue ? '#dc2626' : '#64748b'}; font-weight: ${isOverdue ? '700' : '500'};">
+                    📅 Hạn: ${formatDateTime(a.due_date)} ${isOverdue ? '(Đã hết hạn)' : ''}
+                  </span>
+                </div>
+              </div>
+
+              <div style="margin-top: auto;">
+                ${actionBtnHtml}
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        renderMath(grid);
+      } catch (err) {
+        showToast('Lỗi tải bài tập: ' + err.message, 'error');
+      }
+    }
+
+    initStudentPage();
+  </script>
+</body>
+</html>

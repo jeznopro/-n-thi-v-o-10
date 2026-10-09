@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Soạn đề bài tập tự luận Toán theo từng câu - Hệ thống Tự luận Toán THCS</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/toast.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <style>
+    .question-builder-card {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      margin-bottom: 20px;
+      border-left: 5px solid var(--primary);
+      box-shadow: var(--shadow-sm);
+    }
+  </style>
+</head>
+<body>
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="/teacher/index.html" class="nav-brand">
+        <div class="brand-logo">∑</div>
+        <div class="brand-text">
+          <h1>TOÁN THCS</h1>
+          <p>Cổng Giáo Viên</p>
+        </div>
+      </a>
+
+      <button class="mobile-toggle" aria-label="Menu">&#9776;</button>
+
+      <nav>
+        <ul class="nav-menu">
+          <li><a href="/teacher/index.html" class="nav-link">📊 Tổng quan</a></li>
+          <li><a href="/teacher/classes.html" class="nav-link">👥 Lớp & Học sinh</a></li>
+          <li><a href="/teacher/assignments.html" class="nav-link active">📝 Quản lý bài tập</a></li>
+          <li><a href="/teacher/logs.html" class="nav-link">📜 Nhật ký</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-user">
+        <div class="user-badge">
+          <div class="user-avatar">GV</div>
+          <div class="user-info">
+            <span class="user-name">Giáo viên</span>
+            <span class="user-role">Giáo viên Toán</span>
+          </div>
+        </div>
+        <button id="logout-btn" class="btn btn-secondary btn-sm">Đăng xuất</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="main-wrapper">
+    <div class="page-header">
+      <div class="page-title">
+        <h2>Soạn bài tập tự luận Toán (Nhập theo từng câu)</h2>
+        <p>Hệ thống hiển thị từng câu ngang màn hình trên máy học sinh kèm ô chèn ảnh bài giải riêng cho từng câu</p>
+      </div>
+      <div class="page-actions" style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <button type="button" class="btn btn-secondary" onclick="triggerWordImport()" style="font-weight: 700; background: #f0fdf4; color: #166534; border: 1.5px solid #86efac; border-radius: 12px; display: inline-flex; align-items: center; gap: 6px;">
+          📄 Nhập đề từ file Word (.docx)
+        </button>
+        <button type="button" class="btn btn-ai" onclick="openAiQuestionGeneratorModal()">
+          ✨ Trợ lý AI Soạn Đề Toán
+        </button>
+        <a href="/teacher/assignments.html" class="btn btn-secondary">
+          ⬅️ Quay lại danh sách
+        </a>
+      </div>
+    </div>
+
+    <form id="create-assignment-form" onsubmit="handleSubmitAssignment(event)">
+      <!-- 1. THÔNG TIN CHUNG CỦA ĐỀ THI -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">1️⃣ Thông tin chung bài tập</h3>
+        </div>
+        <div class="card-body">
+          <div class="form-group">
+            <label class="form-label">Tên bài tập / Tiêu đề <span class="req">*</span></label>
+            <input type="text" id="assign-title" class="form-control" placeholder="Ví dụ: Bài tập tự luận Toán 9: Căn thức và Hình học" required>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Thời gian làm bài (phút)</label>
+              <input type="number" id="assign-time-limit" class="form-control" placeholder="Để trống nếu không giới hạn phút" min="1">
+              <small style="color: #64748b;">Nếu nhập, học sinh sẽ có đồng hồ đếm ngược và tự nộp khi hết giờ.</small>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Hạn chót nộp bài <span class="req">*</span></label>
+              <input type="datetime-local" id="assign-due-date" class="form-control" required>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top: 10px;">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.95rem;">
+              <input type="checkbox" id="assign-allow-resubmit" checked>
+              <span>Cho phép học sinh nộp lại (làm lần 2) nếu được giáo viên yêu cầu</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. DANH SÁCH CÁC CÂU HỎI -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">2️⃣ Nhập danh sách các câu hỏi</h3>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="triggerWordImport()" style="font-weight: 700; background: #f0fdf4; color: #166534; border: 1px solid #86efac; border-radius: 8px; display: inline-flex; align-items: center; gap: 4px;">
+              📄 Nhập từ file Word
+            </button>
+            <button type="button" class="btn btn-ai btn-sm" onclick="openAiQuestionGeneratorModal()">
+              ✨ AI Soạn Đề Tự Động
+            </button>
+            <button type="button" class="btn btn-primary btn-sm" onclick="addQuestionCard()">
+              ➕ Thêm câu hỏi
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <!-- THANH KÝ HIỆU TOÁN NHANH -->
+          <div class="math-toolbar" style="margin-bottom: 16px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+            <span style="font-size: 0.8rem; font-weight: 700; color: #475569; align-self: center; margin-right: 6px;">
+              Chèn ký hiệu Toán:
+            </span>
+            <button type="button" class="math-btn" onclick="insertSymbolToActive('\\frac{a}{b}')">Phân số</button>
+            <button type="button" class="math-btn" onclick="insertSymbolToActive('\\sqrt{x}')">Căn \(\sqrt{x}\)</button>
+            <button type="button" class="math-btn" onclick="insertSymbolToActive('x^2')">Mũ \(x^2\)</button>
+            <button type="button" class="math-btn" onclick="insertSymbolToActive('\\widehat{ABC}')">Góc \(\widehat{ABC}\)</button>
+            <button type="button" class="math-btn" onclick="insertSymbolToActive('\\Delta ABC')">Tam giác \(\Delta\)</button>
+            <button type="button" class="math-btn" onclick="insertSymbolToActive('\\perp')">\(\perp\)</button>
+            <button type="button" class="math-btn" onclick="insertSymbolToActive('\\parallel')">\(\parallel\)</button>
+            <button type="button" class="math-btn" onclick="insertSymbolToActive('\\Leftrightarrow')">\(\Leftrightarrow\)</button>
+            <button type="button" class="math-btn" onclick="insertSymbolToActive('\\Rightarrow')">\(\Rightarrow\)</button>
+            <button type="button" class="math-btn" onclick="insertSymbolToActive('(O; R)')">Đường tròn (O;R)</button>
+          </div>
+
+          <div id="questions-list-container"></div>
+
+          <div style="text-align: center; margin-top: 14px;">
+            <button type="button" class="btn btn-outline" onclick="addQuestionCard()">
+              ➕ Thêm một câu hỏi nữa
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. ĐỐI TƯỢNG GIAO BÀI -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">3️⃣ Đối tượng giao bài</h3>
+        </div>
+        <div class="card-body">
+          <div style="display: flex; gap: 20px; margin-bottom: 16px;">
+            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 600;">
+              <input type="radio" name="target-mode" value="class" checked onchange="toggleTargetMode()"> Giao cho cả lớp học
+            </label>
+            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 600;">
+              <input type="radio" name="target-mode" value="student" onchange="toggleTargetMode()"> Chọn học sinh cụ thể
+            </label>
+          </div>
+
+          <div id="target-classes-box" style="display: block;">
+            <label class="form-label">Chọn lớp: <span class="req">*</span></label>
+            <div id="classes-checkbox-list" style="display: flex; gap: 12px; flex-wrap: wrap;"></div>
+          </div>
+
+          <div id="target-students-box" style="display: none;">
+            <label class="form-label">Chọn học sinh: <span class="req">*</span></label>
+            <div id="students-checkbox-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; max-height: 200px; overflow-y: auto;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- NÚT GỬI -->
+      <div style="display: flex; justify-content: flex-end; gap: 14px; margin-bottom: 40px;">
+        <a href="/teacher/assignments.html" class="btn btn-secondary">Hủy bỏ</a>
+        <button type="submit" id="btn-create-submit" class="btn btn-primary" style="padding: 12px 30px; font-size: 1.05rem;">
+          🚀 Xuất bản & Giao bài tập
+        </button>
+      </div>
+    </form>
+  </main>
+
+  <!-- MODAL TRỢ LÝ AI SOẠN ĐỀ TOÁN -->
+  <div id="modal-ai-generator" class="custom-modal-overlay">
+    <div class="custom-modal" style="max-width: 860px; max-height: 92vh; display: flex; flex-direction: column;">
+      <div class="custom-modal-header" style="background: linear-gradient(135deg, #4f46e5, #7c3aed); color: #fff;">
+        <div>
+          <h3 class="custom-modal-title" style="color: #fff; display: flex; align-items: center; gap: 8px;">
+            ✨ Trợ lý AI Soạn Đề Tự Luận Toán THCS
+          </h3>
+          <p style="font-size: 0.825rem; color: #e9d5ff; margin-top: 2px;">
+            Tự động sinh câu hỏi chuẩn chương trình GDPT, đầy đủ công thức KaTeX & dạng toán thực tế
+          </p>
+        </div>
+        <button class="toast-close" style="color: #fff;" onclick="closeAiQuestionGeneratorModal()">&times;</button>
+      </div>
+
+      <div class="custom-modal-body" style="padding: 24px; overflow-y: auto; flex: 1;">
+        <!-- KHUNG THIẾT LẬP YÊU CẦU ĐỀ BÀI -->
+        <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 18px; margin-bottom: 20px;">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Khối lớp:</label>
+              <select id="ai-gen-grade" class="form-control" onchange="updateAiTopicsList()">
+                <option value="9" selected>Toán Lớp 9 (Ôn thi vào 10 & Học kỳ)</option>
+                <option value="8">Toán Lớp 8</option>
+                <option value="7">Toán Lớp 7</option>
+                <option value="6">Toán Lớp 6</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Số lượng câu:</label>
+              <select id="ai-gen-count" class="form-control">
+                <option value="2">2 câu ngắn</option>
+                <option value="3" selected>3 câu (Chuẩn một đề tự luận)</option>
+                <option value="4">4 câu</option>
+                <option value="5">5 câu (Đề thi đầy đủ các dạng)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Chuyên đề Toán:</label>
+              <select id="ai-gen-topic" class="form-control"></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Mức độ nhận thức:</label>
+              <select id="ai-gen-difficulty" class="form-control">
+                <option value="Nhận biết đến Thông hiểu">Cơ bản: Nhận biết & Thông hiểu</option>
+                <option value="Thông hiểu và Vận dụng" selected>Tiêu chuẩn: Thông hiểu & Vận dụng</option>
+                <option value="Vận dụng và Vận dụng cao (Học sinh khá giỏi)">Nâng cao: Vận dụng & Vận dụng cao</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">Yêu cầu bổ sung của Thầy/Cô (Tùy chọn):</label>
+            <input type="text" id="ai-gen-notes" class="form-control" placeholder="Ví dụ: Có bài toán lập hệ PT liên quan đến chuyển động, bài hình học có 2 ý...">
+          </div>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 18px;">
+          <button type="button" class="btn btn-ai" id="btn-start-ai-gen" onclick="executeGenerateAiQuestions()" style="padding: 11px 28px; font-size: 1rem;">
+            ✨ Bắt đầu Tạo Đề bằng AI
+          </button>
+        </div>
+
+        <!-- KHU VỰC KẾT QUẢ ĐỀ BÀI DO AI SINH RA -->
+        <div id="ai-gen-results-area" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+            <h4 style="color: #4338ca; font-weight: 800; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
+              📄 Bản xem trước các câu hỏi được tạo ra:
+            </h4>
+            <span id="ai-source-badge" class="ai-badge">Google Gemini</span>
+          </div>
+
+          <div id="ai-preview-questions-list" style="display: flex; flex-direction: column; gap: 14px;"></div>
+
+          <!-- LỰA CHỌN CHÈN VÀO ĐỀ -->
+          <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 14px 18px; margin-top: 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <div style="display: flex; gap: 16px;">
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem;">
+                <input type="radio" name="ai-insert-mode" value="replace" checked>
+                Thay thế toàn bộ câu hỏi hiện tại
+              </label>
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem;">
+                <input type="radio" name="ai-insert-mode" value="append">
+                Thêm tiếp vào sau câu hỏi đã có
+              </label>
+            </div>
+
+            <button type="button" class="btn btn-success" onclick="applyAiQuestionsToForm()" style="font-weight: 700; padding: 9px 20px;">
+              ✅ Áp dụng vào đề thi ngay
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="custom-modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeAiQuestionGeneratorModal()">Đóng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- INPUT FILE ẨN ĐỂ CHỌN FILE WORD -->
+  <input type="file" id="word-import-input" accept=".docx,.doc" style="display: none;" onchange="handleWordFileChosen(event)">
+
+  <!-- MODAL XEM TRƯỚC VÀ XÁC NHẬN CÂU HỎI TỪ FILE WORD -->
+  <div id="modal-word-preview" class="custom-modal-overlay">
+    <div class="custom-modal" style="max-width: 840px;">
+      <div class="custom-modal-header" style="background: linear-gradient(135deg, #065f46, #059669); color: #fff;">
+        <h3 class="custom-modal-title" style="color: #fff; display: flex; align-items: center; gap: 8px;">
+          📄 Nhập đề bài tự luận từ file Word (.docx)
+        </h3>
+        <button class="toast-close" style="color: #fff;" onclick="closeWordPreviewModal()">&times;</button>
+      </div>
+
+      <div class="custom-modal-body">
+        <div style="background: #ecfdf5; border: 1.5px solid #a7f3d0; border-radius: 14px; padding: 14px 18px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <strong style="color: #065f46; font-size: 1rem;" id="word-filename-display">📁 Tên file: math_exam.docx</strong>
+            <div style="font-size: 0.825rem; color: #047857; margin-top: 3px;">
+              Hệ thống đã tự động nhận diện danh sách câu hỏi, tiêu đề và thang điểm.
+            </div>
+          </div>
+          <span class="badge badge-green" id="word-questions-count-badge" style="font-size: 0.875rem; padding: 6px 14px; font-weight: 700;">
+            0 câu hỏi
+          </span>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label class="form-label" style="font-weight: 700; color: #1e3a8a;">📌 Tiêu đề bài tập phát hiện được:</label>
+          <input type="text" id="word-preview-title" class="form-control" style="font-weight: 700; font-size: 1.05rem;" placeholder="Nhập hoặc chỉnh sửa tiêu đề bài tập...">
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <label class="form-label" style="font-weight: 700; color: #1e3a8a; margin: 0;">
+            📝 Danh sách câu hỏi trích xuất (Bạn có thể kiểm tra & sửa trực tiếp):
+          </label>
+          <small style="color: #64748b; font-style: italic;">* Công thức toán tự động render KaTeX</small>
+        </div>
+
+        <div id="word-preview-list" style="max-height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; padding-right: 6px;">
+          <!-- Các câu hỏi render tại đây -->
+        </div>
+
+        <!-- TÙY CHỌN ÁP DỤNG VÀO FORM -->
+        <div style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 16px; padding: 14px 20px; margin-top: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+          <div style="display: flex; gap: 20px;">
+            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 700; font-size: 0.9rem; color: #1e293b;">
+              <input type="radio" name="word-insert-mode" value="replace" checked>
+              <span>Thay thế toàn bộ câu hỏi hiện tại</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 700; font-size: 0.9rem; color: #1e293b;">
+              <input type="radio" name="word-insert-mode" value="append">
+              <span>Thêm tiếp vào sau câu hỏi đã có</span>
+            </label>
+          </div>
+
+          <button type="button" class="btn btn-success" onclick="applyWordQuestionsToForm()" style="font-weight: 800; padding: 10px 24px; border-radius: 12px; font-size: 0.95rem;">
+            ✅ Áp dụng vào đề thi ngay
+          </button>
+        </div>
+      </div>
+
+      <div class="custom-modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeWordPreviewModal()">Đóng / Hủy</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/common.js"></script>
+  <script src="/js/ai-helper.js"></script>
+  <script>
+    let questionCounter = 0;
+    let activeTextareaId = null;
+
+    async function initCreatePage() {
+      const user = await checkAuthAndLoad('teacher');
+      if (!user) return;
+
+      const defaultDue = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);
+      defaultDue.setHours(23, 59, 0, 0);
+      const isoLocal = new Date(defaultDue.getTime() - defaultDue.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+      document.getElementById('assign-due-date').value = isoLocal;
+
+      await loadTargetOptions();
+
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('action') === 'import-word') {
+        setTimeout(() => triggerWordImport(), 350);
+      } else {
+        // Mẫu 3 câu hỏi mặc định
+        addQuestionCard('Câu 1: Rút gọn biểu thức chứa căn', 'Cho biểu thức $P = \\left( \\frac{\\sqrt{x}}{\\sqrt{x}-1} - \\frac{1}{x-\\sqrt{x}} \\right) : \\frac{\\sqrt{x}+1}{x-1}$ với $x > 0, x \\neq 1$.<br>a) Rút gọn $P$.<br>b) Tìm $x$ để $P = 1/2$.');
+        addQuestionCard('Câu 2: Giải bài toán bằng cách lập hệ phương trình', 'Hai tổ công nhân cùng làm chung một công việc thì hoàn thành trong 12 giờ. Nếu tổ một làm trong 4 giờ rồi tổ hai làm tiếp một mình trong 7 giờ thì cả hai tổ hoàn thành được $5/12$ công việc. Hỏi mỗi tổ làm một mình thì sau bao lâu sẽ hoàn thành công việc?');
+        addQuestionCard('Câu 3: Bài toán Hình học đường tròn', 'Từ điểm $A$ ngoài đường tròn $(O; R)$, kẻ hai tiếp tuyến $AB, AC$ với đường tròn ($B, C$ là các tiếp điểm).<br>a) Chứng minh bốn điểm $A, B, O, C$ cùng thuộc một đường tròn.<br>b) Kẻ đường kính $BD$. Đoạn thẳng $AD$ cắt $(O)$ tại $E$. Chứng minh $AH \\cdot AO = AE \\cdot AD$.');
+      }
+    }
+
+    async function loadTargetOptions() {
+      try {
+        const [cRes, sRes] = await Promise.all([
+          apiRequest('/api/classes'),
+          apiRequest('/api/students')
+        ]);
+
+        const cBox = document.getElementById('classes-checkbox-list');
+        cBox.innerHTML = (cRes.classes || []).map((c, i) => `
+          <label style="display: flex; align-items: center; gap: 6px; background: #fff; padding: 8px 14px; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer;">
+            <input type="checkbox" name="target-class" value="${c.id}" ${i === 0 ? 'checked' : ''}>
+            <span>${c.name} (${c.code})</span>
+          </label>
+        `).join('');
+
+        const sBox = document.getElementById('students-checkbox-list');
+        sBox.innerHTML = (sRes.students || []).map(s => `
+          <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+            <input type="checkbox" name="target-student" value="${s.id}">
+            <span>${s.full_name} (${s.username})</span>
+          </label>
+        `).join('');
+      } catch (err) {
+        showToast('Lỗi tải danh sách lớp: ' + err.message, 'error');
+      }
+    }
+
+    function toggleTargetMode() {
+      const mode = document.querySelector('input[name="target-mode"]:checked').value;
+      document.getElementById('target-classes-box').style.display = mode === 'class' ? 'block' : 'none';
+      document.getElementById('target-students-box').style.display = mode === 'student' ? 'block' : 'none';
+    }
+
+    function addQuestionCard(title = '', content = '') {
+      questionCounter++;
+      const id = questionCounter;
+      const defaultTitle = title || `Câu ${id}`;
+
+      const container = document.getElementById('questions-list-container');
+      const card = document.createElement('div');
+      card.className = 'question-builder-card';
+      card.id = `q-card-${id}`;
+      card.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h4 style="font-size: 1.05rem; font-weight: 700; color: #1e3a8a;">
+            📌 Câu hỏi số ${id}
+          </h4>
+          <button type="button" class="btn btn-danger btn-sm" onclick="removeQuestionCard(${id})">
+            🗑️ Xóa câu này
+          </button>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Tên / Tiêu đề câu hỏi <span class="req">*</span></label>
+          <input type="text" class="form-control q-title" value="${defaultTitle}" required placeholder="Ví dụ: Câu 1">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Nội dung đề bài câu này <span class="req">*</span> (Công thức đặt trong $...$)</label>
+          <textarea id="q-content-${id}" class="form-control q-content" style="min-height: 110px;" required
+                    onfocus="activeTextareaId = 'q-content-${id}'" oninput="updateQPreview(${id})" placeholder="Nhập nội dung đề bài của câu này...">${content}</textarea>
+        </div>
+
+        <div>
+          <label style="font-size: 0.8rem; font-weight: 600; color: #64748b;">👁️ Xem trước công thức Toán câu ${id}:</label>
+          <div id="q-preview-${id}" class="math-preview-box" style="margin-top: 4px; padding: 10px 14px; font-size: 0.95rem;">
+            <em>Chưa có nội dung xem trước...</em>
+          </div>
+        </div>
+      `;
+
+      container.appendChild(card);
+      updateQPreview(id);
+    }
+
+    function removeQuestionCard(id) {
+      const card = document.getElementById(`q-card-${id}`);
+      if (card) card.remove();
+    }
+
+    function updateQPreview(id) {
+      const textarea = document.getElementById(`q-content-${id}`);
+      const preview = document.getElementById(`q-preview-${id}`);
+      if (!textarea || !preview) return;
+
+      const val = textarea.value.trim();
+      if (!val) {
+        preview.innerHTML = '<em style="color: #94a3b8;">Chưa có nội dung xem trước...</em>';
+        return;
+      }
+
+      preview.innerHTML = val.replace(/\n/g, '<br>');
+      renderMath(preview);
+    }
+
+    function insertSymbolToActive(code) {
+      if (!activeTextareaId) {
+        const first = document.querySelector('.q-content');
+        if (first) activeTextareaId = first.id;
+        else return;
+      }
+
+      const textarea = document.getElementById(activeTextareaId);
+      if (!textarea) return;
+
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const val = textarea.value;
+
+      const insertText = `$${code}$`;
+      textarea.value = val.substring(0, start) + insertText + val.substring(end);
+      textarea.focus();
+      textarea.selectionStart = textarea.selectionEnd = start + insertText.length;
+
+      const id = activeTextareaId.replace('q-content-', '');
+      updateQPreview(id);
+    }
+
+    async function handleSubmitAssignment(e) {
+      e.preventDefault();
+
+      const title = document.getElementById('assign-title').value.trim();
+      const time_limit_minutes = document.getElementById('assign-time-limit').value.trim() || null;
+      const due_date = document.getElementById('assign-due-date').value;
+      const allow_resubmit = document.getElementById('assign-allow-resubmit').checked ? 1 : 0;
+
+      const cards = document.querySelectorAll('.question-builder-card');
+      if (cards.length === 0) {
+        showToast('Vui lòng thêm ít nhất một câu hỏi cho đề bài.', 'warning');
+        return;
+      }
+
+      const questions = [];
+      cards.forEach((card, index) => {
+        const qTitle = card.querySelector('.q-title').value.trim();
+        const qContent = card.querySelector('.q-content').value.trim();
+
+        questions.push({
+          id: index + 1,
+          title: qTitle,
+          content: qContent.replace(/\n/g, '<br>')
+        });
+      });
+
+      const targetMode = document.querySelector('input[name="target-mode"]:checked').value;
+      const targets = [];
+      if (targetMode === 'class') {
+        document.querySelectorAll('input[name="target-class"]:checked').forEach(cb => {
+          targets.push({ type: 'class', id: cb.value });
+        });
+      } else {
+        document.querySelectorAll('input[name="target-student"]:checked').forEach(cb => {
+          targets.push({ type: 'student', id: cb.value });
+        });
+      }
+
+      if (targets.length === 0) {
+        showToast('Vui lòng chọn ít nhất một lớp học hoặc một học sinh.', 'warning');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('title', title);
+      formData.append('content', JSON.stringify(questions));
+      formData.append('max_score', 10);
+      if (time_limit_minutes) formData.append('time_limit_minutes', time_limit_minutes);
+      formData.append('due_date', due_date);
+      formData.append('allow_resubmit', allow_resubmit);
+      formData.append('rubrics', JSON.stringify([]));
+      formData.append('targets', JSON.stringify(targets));
+
+      const submitBtn = document.getElementById('btn-create-submit');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Đang xuất bản đề bài...';
+
+      try {
+        await apiRequest('/api/assignments', {
+          method: 'POST',
+          body: formData
+        });
+
+        showToast('Xuất bản bài tập thành công!', 'success');
+        setTimeout(() => {
+          window.location.href = '/teacher/assignments.html';
+        }, 800);
+      } catch (err) {
+        showToast(err.message, 'error');
+        submitBtn.disabled = false;
+        submitBtn.textContent = '🚀 Xuất bản & Giao bài tập';
+      }
+    }
+
+    // ==========================================
+    // LOGIC TRỢ LÝ AI SOẠN ĐỀ TOÁN THCS
+    // ==========================================
+    const TOPICS_BY_GRADE = {
+      9: [
+        'Rút gọn biểu thức chứa căn bậc hai',
+        'Giải bài toán bằng cách lập hệ phương trình',
+        'Phương trình bậc hai & Định lý Vi-ét',
+        'Hình học: Đường tròn và tiếp tuyến',
+        'Góc với đường tròn & Tứ giác nội tiếp',
+        'Bất đẳng thức & Cực trị đại số'
+      ],
+      8: [
+        'Hằng đẳng thức & Phân tích đa thức thành nhân tử',
+        'Rút gọn phân thức đại số',
+        'Giải bài toán bằng cách lập phương trình bậc nhất',
+        'Tam giác đồng dạng & Định lý Ta-lét',
+        'Hình chóp tam giác đều & tứ giác đều'
+      ],
+      7: [
+        'Thực hiện phép tính số hữu tỉ & số thực',
+        'Tỉ lệ thức & Dãy tỉ số bằng nhau',
+        'Biểu thức đại số & Đa thức một biến',
+        'Tam giác bằng nhau & Tam giác cân',
+        'Đường trung trực & Định lý Pytago'
+      ],
+      6: [
+        'Thực hiện phép tính số tự nhiên & Lũy thừa',
+        'Tính chia hết, Ước chung lớn nhất & Bội chung nhỏ nhất',
+        'Số nguyên & Phép tính số nguyên',
+        'Phân số & Số thập phân',
+        'Hình học trực quan (Hình chữ nhật, tam giác đều, hình thoi)'
+      ]
+    };
+
+    let generatedAiQuestions = [];
+
+    function updateAiTopicsList() {
+      const grade = document.getElementById('ai-gen-grade').value;
+      const select = document.getElementById('ai-gen-topic');
+      const list = TOPICS_BY_GRADE[grade] || TOPICS_BY_GRADE[9];
+      select.innerHTML = list.map(t => `<option value="${t}">${t}</option>`).join('');
+    }
+
+    function openAiQuestionGeneratorModal() {
+      const modal = document.getElementById('modal-ai-generator');
+      if (modal) {
+        updateAiTopicsList();
+        modal.classList.add('active');
+      }
+    }
+
+    function closeAiQuestionGeneratorModal() {
+      const modal = document.getElementById('modal-ai-generator');
+      if (modal) {
+        modal.classList.remove('active');
+      }
+    }
+
+    async function executeGenerateAiQuestions() {
+      const grade = document.getElementById('ai-gen-grade').value;
+      const topic = document.getElementById('ai-gen-topic').value;
+      const difficulty = document.getElementById('ai-gen-difficulty').value;
+      const count = document.getElementById('ai-gen-count').value;
+      const notes = document.getElementById('ai-gen-notes').value.trim();
+
+      const btn = document.getElementById('btn-start-ai-gen');
+      const resultsArea = document.getElementById('ai-gen-results-area');
+      const previewList = document.getElementById('ai-preview-questions-list');
+      const sourceBadge = document.getElementById('ai-source-badge');
+
+      btn.disabled = true;
+      btn.innerHTML = '⏳ <span class="ai-pulse-spin">✨</span> AI đang suy nghĩ và biên soạn đề Toán...';
+
+      try {
+        const res = await apiRequest('/api/ai/generate-questions', {
+          method: 'POST',
+          body: JSON.stringify({
+            grade,
+            topic,
+            difficulty,
+            count,
+            notes
+          })
+        });
+
+        if (!res.success || !res.questions || res.questions.length === 0) {
+          throw new Error('Không thể tạo câu hỏi, vui lòng thử lại.');
+        }
+
+        generatedAiQuestions = res.questions;
+
+        sourceBadge.textContent = res.source === 'gemini' ? 'Google Gemini 2.0' : 'Mẫu Toán THCS Tuyển Chọn';
+        sourceBadge.style.background = res.source === 'gemini' ? 'linear-gradient(135deg, #ede9fe, #fce7f3)' : '#fef3c7';
+
+        previewList.innerHTML = generatedAiQuestions.map((q, idx) => `
+          <div style="background: #ffffff; border: 1px solid #e2e8f0; border-left: 4px solid #7c3aed; border-radius: 6px; padding: 14px 16px;">
+            <h5 style="color: #4338ca; font-weight: 700; margin-bottom: 6px;">
+              📌 ${q.title || `Câu ${idx + 1}`}
+            </h5>
+            <div class="katex-render-target" style="font-size: 0.95rem; line-height: 1.6; color: #1e293b;">
+              ${q.content}
+            </div>
+          </div>
+        `).join('');
+
+        renderMath(previewList);
+
+        resultsArea.style.display = 'block';
+        showToast(`Đã tạo thành công ${generatedAiQuestions.length} câu hỏi!`, 'success');
+      } catch (err) {
+        showToast('Lỗi tạo đề: ' + err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '✨ Bắt đầu Tạo Đề bằng AI';
+      }
+    }
+
+    function applyAiQuestionsToForm() {
+      if (!generatedAiQuestions || generatedAiQuestions.length === 0) {
+        showToast('Chưa có câu hỏi nào để áp dụng.', 'warning');
+        return;
+      }
+
+      const mode = document.querySelector('input[name="ai-insert-mode"]:checked').value;
+      const container = document.getElementById('questions-list-container');
+
+      if (mode === 'replace') {
+        container.innerHTML = '';
+        questionCounter = 0;
+      }
+
+      generatedAiQuestions.forEach(q => {
+        addQuestionCard(q.title, q.content.replace(/<br\s*[\/]?>/gi, '\n'));
+      });
+
+      // Nếu tiêu đề bài tập đang trống hoặc mặc định, tự động điền gợi ý hay
+      const titleInput = document.getElementById('assign-title');
+      if (!titleInput.value.trim() || titleInput.value.includes('Bài tập tự luận')) {
+        const grade = document.getElementById('ai-gen-grade').value;
+        const topic = document.getElementById('ai-gen-topic').value;
+        titleInput.value = `Bài tập Tự luận Toán ${grade}: ${topic}`;
+      }
+
+      closeAiQuestionGeneratorModal();
+      showToast(`Đã áp dụng ${generatedAiQuestions.length} câu hỏi vào đề bài!`, 'success');
+
+      // Cuộn tới danh sách câu hỏi
+      document.getElementById('questions-list-container').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // ==========================================
+    // LOGIC NHẬP ĐỀ THI TỪ FILE WORD (.DOCX)
+    // ==========================================
+    let wordParsedData = null;
+
+    function triggerWordImport() {
+      const input = document.getElementById('word-import-input');
+      if (input) {
+        input.value = '';
+        input.click();
+      }
+    }
+
+    async function handleWordFileChosen(event) {
+      const file = event.target.files ? event.target.files[0] : null;
+      if (!file) return;
+
+      const ext = file.name.split('.').pop().toLowerCase();
+      if (ext !== 'docx' && ext !== 'doc') {
+        showToast('Chỉ hỗ trợ file Word định dạng .docx hoặc .doc', 'error');
+        return;
+      }
+
+      showToast(`⏳ Đang tải và phân tích cấu trúc đề từ file "${file.name}"...`, 'info');
+
+      const formData = new FormData();
+      formData.append('wordFile', file);
+
+      try {
+        const token = getToken();
+        const res = await fetch('/api/assignments/import-word', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + token
+          },
+          body: formData
+        });
+
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          throw new Error(data.message || 'Lỗi khi nhập file Word.');
+        }
+
+        wordParsedData = data.data;
+        openWordPreviewModal(file.name, wordParsedData);
+        showToast(`Đã nhận diện ${wordParsedData.questions.length} câu hỏi từ file Word!`, 'success');
+      } catch (err) {
+        showToast('Lỗi nhập file Word: ' + err.message, 'error');
+      }
+    }
+
+    function openWordPreviewModal(filename, parsed) {
+      const modal = document.getElementById('modal-word-preview');
+      if (!modal) return;
+
+      document.getElementById('word-filename-display').textContent = `📁 Tệp: ${filename}`;
+      document.getElementById('word-questions-count-badge').textContent = `${parsed.questions.length} câu hỏi`;
+      document.getElementById('word-preview-title').value = parsed.title || filename.replace(/\.(docx|doc)$/i, '');
+
+      const listContainer = document.getElementById('word-preview-list');
+      if (!parsed.questions || parsed.questions.length === 0) {
+        listContainer.innerHTML = '<p style="text-align: center; color: #94a3b8; padding: 24px;">Không tìm thấy câu hỏi nào trong file Word. Vui lòng kiểm tra lại cấu trúc file.</p>';
+      } else {
+        listContainer.innerHTML = parsed.questions.map((q, idx) => `
+          <div class="word-preview-item" style="background: #ffffff; border: 1.5px solid #cbd5e1; border-left: 5px solid #10b981; border-radius: 14px; padding: 14px 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+              <div style="flex: 1; min-width: 220px;">
+                <input type="text" class="form-control word-item-title" value="${escapeHtml(q.title || `Câu ${idx + 1}`)}" style="font-weight: 700; color: #1e3a8a;" placeholder="Tiêu đề câu hỏi">
+              </div>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <label style="font-size: 0.8rem; font-weight: 600; color: #64748b;">Điểm:</label>
+                <input type="number" class="form-control word-item-score" value="${q.score || 2}" min="0.25" step="0.25" style="width: 75px; text-align: center; font-weight: 700;">
+              </div>
+            </div>
+
+            <div style="margin-bottom: 6px;">
+              <textarea class="form-control word-item-content" rows="3" style="font-size: 0.95rem; line-height: 1.5;" oninput="updateWordItemPreview(this)" placeholder="Nội dung câu hỏi...">${escapeHtml(q.content || '')}</textarea>
+            </div>
+
+            <div class="word-item-katex-preview math-preview-box" style="margin-top: 6px; padding: 8px 12px; font-size: 0.9rem; border-radius: 8px;">
+              ${escapeHtml(q.content || '')}
+            </div>
+          </div>
+        `).join('');
+
+        renderMath(listContainer);
+      }
+
+      modal.classList.add('active');
+    }
+
+    function updateWordItemPreview(textarea) {
+      const parent = textarea.closest('.word-preview-item');
+      if (!parent) return;
+      const preview = parent.querySelector('.word-item-katex-preview');
+      if (preview) {
+        preview.innerHTML = escapeHtml(textarea.value).replace(/\n/g, '<br>');
+        renderMath(preview);
+      }
+    }
+
+    function closeWordPreviewModal() {
+      const modal = document.getElementById('modal-word-preview');
+      if (modal) modal.classList.remove('active');
+    }
+
+    function applyWordQuestionsToForm() {
+      const items = document.querySelectorAll('.word-preview-item');
+      if (items.length === 0) {
+        showToast('Không có câu hỏi nào để áp dụng.', 'warning');
+        return;
+      }
+
+      const mode = document.querySelector('input[name="word-insert-mode"]:checked').value;
+      const container = document.getElementById('questions-list-container');
+
+      if (mode === 'replace') {
+        container.innerHTML = '';
+        questionCounter = 0;
+      }
+
+      items.forEach(item => {
+        const title = item.querySelector('.word-item-title').value.trim();
+        const content = item.querySelector('.word-item-content').value.trim();
+        addQuestionCard(title, content);
+      });
+
+      // Cập nhật tiêu đề bài tập
+      const titleVal = document.getElementById('word-preview-title').value.trim();
+      if (titleVal) {
+        document.getElementById('assign-title').value = titleVal;
+      }
+
+      closeWordPreviewModal();
+      showToast(`🎉 Đã nhập thành công ${items.length} câu hỏi từ file Word vào đề thi!`, 'success');
+
+      // Cuộn tới danh sách câu hỏi
+      document.getElementById('questions-list-container').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    initCreatePage();
+  </script>
+</body>
+</html>

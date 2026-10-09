@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quản lý Lớp & Học sinh - Hệ thống Tự luận Toán THCS</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/toast.css">
+</head>
+<body>
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="/teacher/index.html" class="nav-brand">
+        <div class="brand-logo">∑</div>
+        <div class="brand-text">
+          <h1>TOÁN THCS</h1>
+          <p>Cổng Giáo Viên</p>
+        </div>
+      </a>
+
+      <button class="mobile-toggle" aria-label="Menu">&#9776;</button>
+
+      <nav>
+        <ul class="nav-menu">
+          <li><a href="/teacher/index.html" class="nav-link">📊 Tổng quan</a></li>
+          <li><a href="/teacher/classes.html" class="nav-link active">👥 Lớp & Học sinh</a></li>
+          <li><a href="/teacher/assignments.html" class="nav-link">📝 Quản lý bài tập</a></li>
+          <li><a href="/teacher/logs.html" class="nav-link">📜 Nhật ký</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-user">
+        <div class="user-badge">
+          <div class="user-avatar">GV</div>
+          <div class="user-info">
+            <span class="user-name">Giáo viên</span>
+            <span class="user-role">Giáo viên Toán</span>
+          </div>
+        </div>
+        <button id="logout-btn" class="btn btn-secondary btn-sm">Đăng xuất</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="main-wrapper">
+    <div class="page-header">
+      <div class="page-title">
+        <h2>Quản lý Lớp học & Danh sách Học sinh</h2>
+        <p>Thêm mới, nhập từ Excel, phân lớp và quản trị tài khoản học sinh</p>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-primary" onclick="openCreateStudentModal()">
+          ➕ Thêm 1 học sinh
+        </button>
+        <button class="btn btn-secondary" onclick="openImportModal()">
+          📤 Nhập Excel hàng loạt
+        </button>
+        <a href="/api/students/template/download" class="btn btn-outline" download>
+          📥 Tải file Excel mẫu
+        </a>
+        <button class="btn btn-primary" onclick="openCreateClassModal()">
+          🏫 Tạo lớp mới
+        </button>
+      </div>
+    </div>
+
+    <!-- DANH SÁCH LỚP HỌC -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">🏫 Danh sách Lớp học Toán</h3>
+        <button class="btn btn-primary btn-sm" onclick="openCreateClassModal()">
+          ➕ Tạo Lớp Học Mới
+        </button>
+      </div>
+      <div class="card-body">
+        <div id="classes-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
+          <p style="color: #94a3b8;">Đang tải danh sách lớp...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- DANH SÁCH HỌC SINH -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">🎒 Danh sách Học sinh</h3>
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+          <select id="filter-class" class="form-control" style="width: 170px; padding: 7px 10px;" onchange="loadStudents()">
+            <option value="">-- Tất cả các lớp --</option>
+          </select>
+          <input type="text" id="search-student" class="form-control" placeholder="Tìm tên hoặc username..." style="width: 200px; padding: 7px 10px;" oninput="debounceSearch()">
+          <button class="btn btn-primary btn-sm" style="background: #16a34a; border-color: #16a34a;" onclick="openCreateStudentModal()">
+            ➕ Thêm 1 học sinh
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="openImportModal()">
+            📤 Nhập Excel
+          </button>
+        </div>
+      </div>
+      <div class="card-body" style="padding: 0;">
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>STT</th>
+                <th>Họ và tên</th>
+                <th>Tên đăng nhập</th>
+                <th>Lớp</th>
+                <th>Trạng thái</th>
+                <th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="students-tbody">
+              <tr>
+                <td colspan="6" style="text-align: center; padding: 24px; color: #94a3b8;">Đang tải...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- MODAL TẠO & SỬA LỚP HỌC -->
+  <div id="modal-class" class="custom-modal-overlay">
+    <div class="custom-modal">
+      <div class="custom-modal-header">
+        <h3 class="custom-modal-title" id="class-modal-title">Tạo Lớp học mới</h3>
+        <button class="toast-close" onclick="closeModal('modal-class')">&times;</button>
+      </div>
+      <form id="form-class" onsubmit="handleCreateClass(event)">
+        <input type="hidden" id="class-edit-id">
+        <div class="custom-modal-body">
+          <div class="form-group">
+            <label class="form-label">Tên lớp học <span class="req">*</span></label>
+            <input type="text" id="class-name" class="form-control" placeholder="Ví dụ: Lớp 9A2 - Đại số & Hình học" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Mã lớp <span class="req">*</span></label>
+            <input type="text" id="class-code" class="form-control" placeholder="Ví dụ: TOAN9A2" required style="text-transform: uppercase;">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Mô tả lớp</label>
+            <textarea id="class-desc" class="form-control" placeholder="Mô tả mục tiêu lớp học..."></textarea>
+          </div>
+        </div>
+        <div class="custom-modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-class')">Hủy</button>
+          <button type="submit" id="btn-submit-class" class="btn btn-primary">Lưu lớp học</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL THÊM & SỬA HỌC SINH -->
+  <div id="modal-student" class="custom-modal-overlay">
+    <div class="custom-modal">
+      <div class="custom-modal-header">
+        <h3 class="custom-modal-title" id="student-modal-title">Thêm Học sinh mới</h3>
+        <button class="toast-close" onclick="closeModal('modal-student')">&times;</button>
+      </div>
+      <form id="form-student" onsubmit="handleSaveStudent(event)">
+        <input type="hidden" id="student-edit-id">
+        <div class="custom-modal-body">
+          <div class="form-group">
+            <label class="form-label">Họ và tên học sinh <span class="req">*</span></label>
+            <input type="text" id="student-fullname" class="form-control" placeholder="Ví dụ: Nguyễn Văn Hoàng" required oninput="autoSuggestUsername()">
+          </div>
+          <div class="form-group" id="grp-username">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <label class="form-label" style="margin-bottom: 0;">Tên đăng nhập <span class="req">*</span></label>
+              <button type="button" style="background: none; border: none; color: #2563eb; font-size: 0.8rem; cursor: pointer; text-decoration: underline;" onclick="autoSuggestUsername(true)">
+                ⚡ Tự động tạo username
+              </button>
+            </div>
+            <input type="text" id="student-username" class="form-control" placeholder="Ví dụ: hs_hoangnv" required>
+            <small style="color: #64748b; font-size: 0.775rem;">Viết liền không dấu, dùng để học sinh đăng nhập vào hệ thống.</small>
+          </div>
+          <div class="form-group" id="grp-password">
+            <label class="form-label">Mật khẩu (mặc định: Hocsinh@123)</label>
+            <input type="text" id="student-password" class="form-control" value="Hocsinh@123" placeholder="Mặc định: Hocsinh@123">
+          </div>
+          <div class="form-group">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <label class="form-label" style="margin-bottom: 0;">Chọn lớp học</label>
+              <button type="button" class="btn btn-outline btn-sm" style="font-size: 0.8rem; padding: 2px 8px;" onclick="toggleQuickCreateClassInline()">
+                ➕ Tạo lớp mới ngay
+              </button>
+            </div>
+            <select id="student-class-select" class="form-control">
+              <option value="">-- Chưa xếp lớp --</option>
+            </select>
+
+            <!-- Khung tạo lớp nhanh tích hợp ngay trong modal -->
+            <div id="quick-create-class-box" style="display: none; margin-top: 10px; background: #f0f7ff; border: 1px dashed #93c5fd; border-radius: 6px; padding: 12px;">
+              <div style="font-weight: 700; color: #1e40af; font-size: 0.85rem; margin-bottom: 8px;">
+                🏫 Tạo nhanh lớp học mới và chọn cho học sinh này:
+              </div>
+              <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 8px; margin-bottom: 8px;">
+                <input type="text" id="quick-class-name" class="form-control" placeholder="Tên lớp (VD: Lớp 9A4)" style="font-size: 0.85rem; padding: 6px 10px;">
+                <input type="text" id="quick-class-code" class="form-control" placeholder="Mã (TOAN9A4)" style="font-size: 0.85rem; padding: 6px 10px; text-transform: uppercase;">
+              </div>
+              <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="toggleQuickCreateClassInline(false)">Hủy</button>
+                <button type="button" id="btn-quick-create-class" class="btn btn-primary btn-sm" onclick="handleQuickCreateClassInline()">Tạo & Chọn lớp này</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="custom-modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-student')">Hủy</button>
+          <button type="submit" id="btn-submit-student" class="btn btn-primary">Lưu thông tin</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL IMPORT EXCEL -->
+  <div id="modal-import" class="custom-modal-overlay">
+    <div class="custom-modal">
+      <div class="custom-modal-header">
+        <h3 class="custom-modal-title">Nhập danh sách học sinh từ Excel / CSV</h3>
+        <button class="toast-close" onclick="closeModal('modal-import')">&times;</button>
+      </div>
+      <form id="form-import" onsubmit="handleImportExcel(event)">
+        <div class="custom-modal-body">
+          <p style="font-size: 0.9rem; color: #475569; margin-bottom: 14px;">
+            Hãy đảm bảo file của bạn theo đúng định dạng mẫu. Cột: <strong>Họ và tên, Tên đăng nhập, Mật khẩu, Mã lớp</strong>.
+          </p>
+          <div class="form-group">
+            <label class="form-label">Chọn file Excel (.xlsx) hoặc CSV <span class="req">*</span></label>
+            <input type="file" id="import-file" class="form-control" accept=".xlsx, .csv" required>
+          </div>
+          <div id="import-result" style="display: none; padding: 12px; border-radius: 6px; font-size: 0.9rem;"></div>
+        </div>
+        <div class="custom-modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-import')">Đóng</button>
+          <button type="submit" id="btn-import-submit" class="btn btn-primary">Bắt đầu nhập dữ liệu</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/common.js"></script>
+  <script src="/js/ai-helper.js"></script>
+  <script>
+    let globalClasses = [];
+    let searchTimeout = null;
+
+    async function initPage() {
+      const user = await checkAuthAndLoad('teacher');
+      if (!user) return;
+
+      await loadClasses();
+      await loadStudents();
+    }
+
+    async function loadClasses() {
+      try {
+        const res = await apiRequest('/api/classes');
+        globalClasses = res.classes || [];
+
+        // Render card lớp học
+        const container = document.getElementById('classes-list');
+        const filterSelect = document.getElementById('filter-class');
+        const studentSelect = document.getElementById('student-class-select');
+
+        filterSelect.innerHTML = '<option value="">-- Tất cả các lớp --</option>';
+        studentSelect.innerHTML = '<option value="">-- Chưa xếp lớp --</option>';
+
+        const createCardHtml = `
+          <div onclick="openCreateClassModal()" style="border: 2px dashed #93c5fd; background: #f0f7ff; border-radius: 8px; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; text-align: center; min-height: 140px; transition: all 0.2s;" onmouseover="this.style.background='#e0f2fe'" onmouseout="this.style.background='#f0f7ff'">
+            <div style="font-size: 2.2rem; margin-bottom: 6px;">➕</div>
+            <div style="font-weight: 700; color: #1d4ed8; font-size: 1.05rem;">Tạo Lớp Học Mới</div>
+            <div style="font-size: 0.8rem; color: #64748b; margin-top: 4px;">Bấm vào đây để thêm lớp học</div>
+          </div>
+        `;
+
+        container.innerHTML = createCardHtml + globalClasses.map(c => `
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <div>
+                <h4 style="font-size: 1.05rem; font-weight: 700; color: #1e3a8a;">${c.name}</h4>
+                <div style="font-size: 0.8rem; color: #64748b; margin-top: 2px;">Mã lớp: <strong>${c.code}</strong></div>
+              </div>
+              <span class="badge badge-blue">${c.student_count || 0} học sinh</span>
+            </div>
+            <p style="font-size: 0.85rem; color: #475569; margin: 10px 0 14px;">${c.description || 'Không có mô tả'}</p>
+            <div style="display: flex; gap: 6px;">
+              <button class="btn btn-secondary btn-sm" onclick="filterByClass(${c.id})">Xem HS</button>
+              <button class="btn btn-secondary btn-sm" title="Sửa tên hoặc mã lớp" onclick="openEditClassModal(${JSON.stringify(c).replace(/"/g, '&quot;')})">✏️ Sửa</button>
+              <button class="btn btn-danger btn-sm" title="Xóa lớp học" onclick="deleteClass(${c.id})">🗑️</button>
+            </div>
+          </div>
+        `).join('');
+
+        globalClasses.forEach(c => {
+          filterSelect.innerHTML += `<option value="${c.id}">${c.name} (${c.code})</option>`;
+          studentSelect.innerHTML += `<option value="${c.id}">${c.name} (${c.code})</option>`;
+        });
+      } catch (err) {
+        showToast('Lỗi tải danh sách lớp: ' + err.message, 'error');
+      }
+    }
+
+    function filterByClass(classId) {
+      document.getElementById('filter-class').value = classId;
+      loadStudents();
+    }
+
+    function debounceSearch() {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(loadStudents, 350);
+    }
+
+    async function loadStudents() {
+      const classId = document.getElementById('filter-class').value;
+      const search = document.getElementById('search-student').value.trim();
+      const tbody = document.getElementById('students-tbody');
+
+      try {
+        let endpoint = '/api/students?';
+        if (classId) endpoint += `class_id=${classId}&`;
+        if (search) endpoint += `search=${encodeURIComponent(search)}`;
+
+        const res = await apiRequest(endpoint);
+        const students = res.students || [];
+
+        if (students.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="6" style="text-align: center; padding: 28px; color: #94a3b8;">
+                Không tìm thấy học sinh nào phù hợp.
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        tbody.innerHTML = students.map((s, index) => `
+          <tr>
+            <td>${index + 1}</td>
+            <td style="font-weight: 700; color: #1e293b;">${s.full_name}</td>
+            <td><code>${s.username}</code></td>
+            <td>${s.class_name ? `<span class="badge badge-blue">${s.class_name}</span>` : '<span style="color: #94a3b8;">Chưa xếp lớp</span>'}</td>
+            <td>
+              ${s.status === 'active' 
+                ? '<span class="badge badge-green">Hoạt động</span>' 
+                : '<span class="badge badge-red">Đã khóa</span>'}
+            </td>
+            <td>
+              <div style="display: flex; gap: 6px;">
+                <button class="btn btn-secondary btn-sm" title="Sửa thông tin" onclick="openEditStudentModal(${JSON.stringify(s).replace(/"/g, '&quot;')})">
+                  ✏️ Sửa
+                </button>
+                <button class="btn btn-secondary btn-sm" title="Đặt lại mật khẩu" onclick="resetPassword(${s.id}, '${s.username}')">
+                  🔑 Reset MK
+                </button>
+                <button class="btn ${s.status === 'active' ? 'btn-danger' : 'btn-success'} btn-sm" onclick="toggleLock(${s.id})">
+                  ${s.status === 'active' ? '🔒 Khóa' : '🔓 Mở'}
+                </button>
+                <button class="btn btn-danger btn-sm" title="Xóa học sinh" onclick="deleteStudent(${s.id})">
+                  🗑️
+                </button>
+              </div>
+            </td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        showToast('Lỗi tải danh sách học sinh: ' + err.message, 'error');
+      }
+    }
+
+    // Modal Helpers
+    function openModal(id) { document.getElementById(id).classList.add('active'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+    function openCreateClassModal() {
+      document.getElementById('form-class').reset();
+      document.getElementById('class-edit-id').value = '';
+      document.getElementById('class-modal-title').textContent = 'Tạo Lớp học mới';
+      openModal('modal-class');
+    }
+
+    function openEditClassModal(c) {
+      document.getElementById('form-class').reset();
+      document.getElementById('class-edit-id').value = c.id;
+      document.getElementById('class-modal-title').textContent = 'Chỉnh sửa Lớp học';
+      document.getElementById('class-name').value = c.name;
+      document.getElementById('class-code').value = c.code;
+      document.getElementById('class-desc').value = c.description || '';
+      openModal('modal-class');
+    }
+
+    async function handleCreateClass(e) {
+      e.preventDefault();
+      const editId = document.getElementById('class-edit-id').value;
+      const name = document.getElementById('class-name').value.trim();
+      const code = document.getElementById('class-code').value.trim().toUpperCase();
+      const description = document.getElementById('class-desc').value.trim();
+      const btn = document.getElementById('btn-submit-class');
+
+      btn.disabled = true;
+      btn.textContent = 'Đang lưu...';
+
+      try {
+        if (editId) {
+          await apiRequest(`/api/classes/${editId}`, {
+            method: 'PUT',
+            body: JSON.stringify({ name, code, description })
+          });
+          showToast(`Cập nhật lớp "${name}" thành công!`, 'success');
+        } else {
+          await apiRequest('/api/classes', {
+            method: 'POST',
+            body: JSON.stringify({ name, code, description })
+          });
+          showToast(`Tạo lớp "${name}" thành công!`, 'success');
+        }
+        closeModal('modal-class');
+        await loadClasses();
+        await loadStudents();
+      } catch (err) {
+        showToast(err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Lưu lớp học';
+      }
+    }
+
+    async function deleteClass(id) {
+      const ok = await showConfirm('Xóa lớp học', 'Thầy/Cô có chắc chắn muốn xóa lớp này không?');
+      if (!ok) return;
+      try {
+        await apiRequest(`/api/classes/${id}`, { method: 'DELETE' });
+        showToast('Đã xóa lớp học thành công.', 'success');
+        await loadClasses();
+        await loadStudents();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    function removeVietnameseTones(str) {
+      str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, "a");
+      str = str.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g, "e");
+      str = str.replace(/ì|í|ị|ỉ|ĩ/g, "i");
+      str = str.replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g, "o");
+      str = str.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g, "u");
+      str = str.replace(/ỳ|ý|ỵ|ỷ|ỹ/g, "y");
+      str = str.replace(/đ/g, "d");
+      str = str.replace(/À|Á|Ạ|Ả|Ã|Â|Ầ|Ấ|Ậ|Ẩ|Ẫ|Ă|Ằ|Ắ|Ặ|Ẳ|Ẵ/g, "A");
+      str = str.replace(/È|É|Ẹ|Ẻ|Ẽ|Ê|Ề|Ế|Ệ|Ể|Ễ/g, "E");
+      str = str.replace(/Ì|Í|Ị|Ỉ|Ĩ/g, "I");
+      str = str.replace(/Ò|Ó|Ọ|Ỏ|Õ|Ô|Ồ|Ố|Ộ|Ổ|Ỗ|Ơ|Ờ|Ớ|Ợ|Ở|Ỡ/g, "O");
+      str = str.replace(/Ù|Ú|Ụ|Ủ|Ũ|Ư|Ứ|Ự|Ử|Ữ/g, "U");
+      str = str.replace(/Ỳ|Ý|Ỵ|Ỷ|Ỹ/g, "Y");
+      str = str.replace(/Đ/g, "D");
+      return str;
+    }
+
+    function autoSuggestUsername(force = false) {
+      const uInput = document.getElementById('student-username');
+      if (!force && uInput.value.trim().length > 0) return;
+      const fullName = document.getElementById('student-fullname').value.trim();
+      if (!fullName) return;
+
+      const clean = removeVietnameseTones(fullName).toLowerCase().replace(/[^a-z0-9\s]/g, '').trim();
+      const parts = clean.split(/\s+/);
+      if (parts.length === 1) {
+        uInput.value = 'hs_' + parts[0];
+      } else {
+        const lastName = parts[parts.length - 1];
+        const initials = parts.slice(0, parts.length - 1).map(p => p[0]).join('');
+        uInput.value = 'hs_' + lastName + initials;
+      }
+    }
+
+    function openCreateStudentModal() {
+      document.getElementById('form-student').reset();
+      document.getElementById('student-edit-id').value = '';
+      document.getElementById('student-modal-title').textContent = 'Thêm Học sinh mới';
+      document.getElementById('grp-username').style.display = 'block';
+      document.getElementById('grp-password').style.display = 'block';
+      document.getElementById('student-password').value = 'Hocsinh@123';
+      toggleQuickCreateClassInline(false);
+      const curFilterClass = document.getElementById('filter-class').value;
+      if (curFilterClass) {
+        document.getElementById('student-class-select').value = curFilterClass;
+      }
+      openModal('modal-student');
+    }
+
+    function openEditStudentModal(s) {
+      document.getElementById('form-student').reset();
+      document.getElementById('student-edit-id').value = s.id;
+      document.getElementById('student-modal-title').textContent = 'Chỉnh sửa Học sinh & Tên đăng nhập';
+      document.getElementById('student-fullname').value = s.full_name;
+      document.getElementById('student-username').value = s.username;
+      document.getElementById('student-class-select').value = s.class_id || '';
+      document.getElementById('grp-username').style.display = 'block';
+      document.getElementById('grp-password').style.display = 'none';
+      toggleQuickCreateClassInline(false);
+      openModal('modal-student');
+    }
+
+    async function handleSaveStudent(e) {
+      e.preventDefault();
+      const editId = document.getElementById('student-edit-id').value;
+      const full_name = document.getElementById('student-fullname').value.trim();
+      const username = document.getElementById('student-username').value.trim();
+      const class_id = document.getElementById('student-class-select').value || null;
+      const btn = document.getElementById('btn-submit-student');
+
+      btn.disabled = true;
+      btn.textContent = 'Đang lưu...';
+
+      try {
+        if (editId) {
+          // Sửa học sinh (cho phép sửa Tên đăng nhập, Họ tên, Lớp)
+          await apiRequest(`/api/students/${editId}`, {
+            method: 'PUT',
+            body: JSON.stringify({ username, full_name, class_id })
+          });
+          showToast(`Cập nhật thông tin học sinh "${full_name}" thành công!`, 'success');
+        } else {
+          // Tạo học sinh mới
+          const password = document.getElementById('student-password').value.trim();
+          await apiRequest('/api/students', {
+            method: 'POST',
+            body: JSON.stringify({ username, full_name, password, class_id })
+          });
+          showToast(`Thêm học sinh "${full_name}" thành công! TK: ${username}`, 'success');
+        }
+
+        closeModal('modal-student');
+        await loadStudents();
+        await loadClasses();
+      } catch (err) {
+        showToast(err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Lưu thông tin';
+      }
+    }
+
+    function toggleQuickCreateClassInline(show) {
+      const box = document.getElementById('quick-create-class-box');
+      if (!box) return;
+      if (show === undefined) {
+        box.style.display = box.style.display === 'none' ? 'block' : 'none';
+      } else {
+        box.style.display = show ? 'block' : 'none';
+      }
+      if (box.style.display === 'block') {
+        document.getElementById('quick-class-name').focus();
+      }
+    }
+
+    async function handleQuickCreateClassInline() {
+      const name = document.getElementById('quick-class-name').value.trim();
+      const code = document.getElementById('quick-class-code').value.trim().toUpperCase();
+      if (!name || !code) {
+        showToast('Vui lòng nhập cả Tên lớp và Mã lớp.', 'warning');
+        return;
+      }
+
+      const btn = document.getElementById('btn-quick-create-class');
+      btn.disabled = true;
+      btn.textContent = 'Đang tạo...';
+
+      try {
+        const res = await apiRequest('/api/classes', {
+          method: 'POST',
+          body: JSON.stringify({ name, code, description: '' })
+        });
+
+        showToast(`Tạo lớp "${name}" thành công! Đã tự động chọn lớp này.`, 'success');
+        document.getElementById('quick-class-name').value = '';
+        document.getElementById('quick-class-code').value = '';
+        toggleQuickCreateClassInline(false);
+
+        await loadClasses();
+
+        if (res.classId) {
+          document.getElementById('student-class-select').value = res.classId;
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Tạo & Chọn lớp này';
+      }
+    }
+
+    async function resetPassword(id, username) {
+      const ok = await showConfirm('Đặt lại mật khẩu', `Bạn có chắc muốn đặt lại mật khẩu của học sinh "${username}" về mặc định "Hocsinh@123"?`);
+      if (!ok) return;
+      try {
+        const res = await apiRequest(`/api/students/${id}/reset-password`, { method: 'POST' });
+        showToast(res.message, 'success');
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    async function toggleLock(id) {
+      try {
+        const res = await apiRequest(`/api/students/${id}/toggle-lock`, { method: 'PATCH' });
+        showToast(res.message, 'success');
+        await loadStudents();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    async function deleteStudent(id) {
+      const ok = await showConfirm('Xóa tài khoản', 'Hành động này sẽ xóa vĩnh viễn học sinh này và toàn bộ bài làm liên quan. Bạn có chắc chắn?');
+      if (!ok) return;
+      try {
+        await apiRequest(`/api/students/${id}`, { method: 'DELETE' });
+        showToast('Đã xóa học sinh thành công.', 'success');
+        await loadStudents();
+        await loadClasses();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    function openImportModal() {
+      document.getElementById('form-import').reset();
+      document.getElementById('import-result').style.display = 'none';
+      openModal('modal-import');
+    }
+
+    async function handleImportExcel(e) {
+      e.preventDefault();
+      const fileInput = document.getElementById('import-file');
+      if (!fileInput.files || fileInput.files.length === 0) return;
+
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+
+      const submitBtn = document.getElementById('btn-import-submit');
+      const resultBox = document.getElementById('import-result');
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Đang xử lý file...';
+
+      try {
+        const res = await apiRequest('/api/students/import', {
+          method: 'POST',
+          body: formData
+        });
+
+        resultBox.style.display = 'block';
+        resultBox.style.background = '#ecfdf5';
+        resultBox.style.color = '#065f46';
+        resultBox.innerHTML = `✅ <strong>Thành công:</strong> ${res.message}`;
+
+        showToast('Nhập danh sách học sinh thành công!', 'success');
+        await loadStudents();
+        await loadClasses();
+      } catch (err) {
+        resultBox.style.display = 'block';
+        resultBox.style.background = '#fef2f2';
+        resultBox.style.color = '#991b1b';
+        resultBox.innerHTML = `❌ <strong>Lỗi:</strong> ${err.message}`;
+        showToast(err.message, 'error');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Bắt đầu nhập dữ liệu';
+      }
+    }
+
+    initPage();
+  </script>
+</body>
+</html>

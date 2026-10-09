@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# SQLite Database files
+data/*.sqlite
+data/*.sqlite-wal
+data/*.sqlite-shm
+data/*.db
+data/*.db-wal
+data/*.db-shm
+
+# Uploaded student submissions and assignment files
+uploads/*
+!uploads/.gitkeep
+uploads/submissions/*
+!uploads/submissions/.gitkeep
+uploads/assignments/*
+!uploads/assignments/.gitkeep
+
+# Logs and temp files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+Thumbs.db
+test_*.js
+test_*.docx
+scratch/
+tmp/
