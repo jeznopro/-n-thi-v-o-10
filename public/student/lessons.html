@@ -212,9 +212,89 @@
       color: #334155;
     }
 
+    /* UNIVERSAL POPUP MODAL STYLES */
+    .modal {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      background: rgba(15, 23, 42, 0.72) !important;
+      backdrop-filter: blur(5px) !important;
+      -webkit-backdrop-filter: blur(5px) !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      z-index: 99999 !important;
+      opacity: 0 !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+      transition: opacity 0.25s ease, visibility 0.25s ease !important;
+      padding: 16px !important;
+    }
+    .modal.open, .modal.active {
+      opacity: 1 !important;
+      visibility: visible !important;
+      pointer-events: auto !important;
+    }
+    .modal-dialog {
+      background: #ffffff !important;
+      border-radius: 22px !important;
+      border: 1.5px solid #e2e8f0 !important;
+      width: 100% !important;
+      max-width: 650px;
+      max-height: 90vh !important;
+      box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.35) !important;
+      transform: scale(0.94);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+      overflow: hidden !important;
+      display: flex !important;
+      flex-direction: column !important;
+    }
+    .modal.open .modal-dialog, .modal.active .modal-dialog {
+      transform: scale(1) !important;
+    }
+    .modal-header {
+      padding: 18px 24px !important;
+      border-bottom: 1.5px solid #e2e8f0 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      background: #ffffff !important;
+      flex-shrink: 0 !important;
+    }
+    .modal-body {
+      padding: 24px !important;
+      overflow-y: auto !important;
+      flex: 1 !important;
+    }
+    .modal-footer {
+      padding: 16px 24px !important;
+      background: #f8fafc !important;
+      border-top: 1.5px solid #e2e8f0 !important;
+      display: flex !important;
+      justify-content: flex-end !important;
+      gap: 12px !important;
+      flex-shrink: 0 !important;
+    }
+    .modal-close {
+      background: none !important;
+      border: none !important;
+      font-size: 1.8rem !important;
+      color: #64748b !important;
+      cursor: pointer !important;
+      line-height: 1 !important;
+      padding: 4px 8px !important;
+      border-radius: 8px !important;
+      transition: all 0.2s !important;
+    }
+    .modal-close:hover {
+      background: #f1f5f9 !important;
+      color: #0f172a !important;
+    }
     .modal-lesson-view {
-      max-width: 950px;
-      width: 95%;
+      max-width: 950px !important;
+      width: 95% !important;
     }
 
     .video-wrapper {
@@ -675,15 +755,24 @@
 
     function findStudentLessonById(id) {
       for (const ch of chaptersData) {
-        const found = (ch.lessons || []).find(l => l.id === id);
+        const found = (ch.lessons || []).find(l => l.id == id);
         if (found) return found;
       }
-      return unassignedLessons.find(l => l.id === id);
+      return (unassignedLessons || []).find(l => l.id == id);
     }
 
-    function openLessonModal(id) {
-      const lesson = findStudentLessonById(id);
-      if (!lesson) return;
+    async function openLessonModal(id) {
+      let lesson = findStudentLessonById(id);
+      if (!lesson) {
+        try {
+          const res = await apiRequest(`/api/lessons/${id}`);
+          lesson = res.lesson;
+        } catch (e) {}
+      }
+      if (!lesson) {
+        showToast('Không tìm thấy bài giảng để xem.', 'error');
+        return;
+      }
       currentViewingLesson = lesson;
 
       document.getElementById('modal-title').textContent = lesson.title;
@@ -777,6 +866,19 @@
         .replace(/\n\n/g, '<p style="margin:12px 0;"></p>')
         .replace(/\n/g, '<br>');
     }
+
+    // Đóng modal khi bấm ra ngoài vùng dialog hoặc bấm phím Escape
+    window.addEventListener('click', (e) => {
+      if (e.target.classList && e.target.classList.contains('modal')) {
+        closeLessonModal();
+      }
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeLessonModal();
+      }
+    });
   </script>
 </body>
 </html>

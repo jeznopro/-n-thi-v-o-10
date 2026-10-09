@@ -145,20 +145,89 @@
     .filter-tab:hover { background: #f8fafc; border-color: #cbd5e1; }
     .filter-tab.active { background: #2563eb; color: #fff; border-color: #2563eb; }
 
-    .formula-preview-box {
-      background: #f8fafc;
-      border: 1px dashed #cbd5e1;
-      border-radius: 10px;
-      padding: 10px 14px;
-      margin-top: 10px;
-      font-size: 0.85rem;
-      color: #334155;
-      overflow-x: auto;
+    /* UNIVERSAL POPUP MODAL STYLES */
+    .modal {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      background: rgba(15, 23, 42, 0.72) !important;
+      backdrop-filter: blur(5px) !important;
+      -webkit-backdrop-filter: blur(5px) !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      z-index: 99999 !important;
+      opacity: 0 !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+      transition: opacity 0.25s ease, visibility 0.25s ease !important;
+      padding: 16px !important;
     }
-
+    .modal.open, .modal.active {
+      opacity: 1 !important;
+      visibility: visible !important;
+      pointer-events: auto !important;
+    }
+    .modal-dialog {
+      background: #ffffff !important;
+      border-radius: 22px !important;
+      border: 1.5px solid #e2e8f0 !important;
+      width: 100% !important;
+      max-width: 650px;
+      max-height: 90vh !important;
+      box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.35) !important;
+      transform: scale(0.94);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+      overflow: hidden !important;
+      display: flex !important;
+      flex-direction: column !important;
+    }
+    .modal.open .modal-dialog, .modal.active .modal-dialog {
+      transform: scale(1) !important;
+    }
+    .modal-header {
+      padding: 18px 24px !important;
+      border-bottom: 1.5px solid #e2e8f0 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      background: #ffffff !important;
+      flex-shrink: 0 !important;
+    }
+    .modal-body {
+      padding: 24px !important;
+      overflow-y: auto !important;
+      flex: 1 !important;
+    }
+    .modal-footer {
+      padding: 16px 24px !important;
+      background: #f8fafc !important;
+      border-top: 1.5px solid #e2e8f0 !important;
+      display: flex !important;
+      justify-content: flex-end !important;
+      gap: 12px !important;
+      flex-shrink: 0 !important;
+    }
+    .modal-close {
+      background: none !important;
+      border: none !important;
+      font-size: 1.8rem !important;
+      color: #64748b !important;
+      cursor: pointer !important;
+      line-height: 1 !important;
+      padding: 4px 8px !important;
+      border-radius: 8px !important;
+      transition: all 0.2s !important;
+    }
+    .modal-close:hover {
+      background: #f1f5f9 !important;
+      color: #0f172a !important;
+    }
     .modal-lesson {
-      max-width: 860px;
-      width: 95%;
+      max-width: 880px !important;
+      width: 95% !important;
     }
 
     .media-badge {
@@ -851,10 +920,10 @@
     // ==========================================
     function findLessonById(id) {
       for (const ch of chaptersData) {
-        const found = (ch.lessons || []).find(l => l.id === id);
+        const found = (ch.lessons || []).find(l => l.id == id);
         if (found) return found;
       }
-      return unassignedLessons.find(l => l.id === id);
+      return (unassignedLessons || []).find(l => l.id == id);
     }
 
     function openCreateLessonModal(chapterId) {
@@ -873,13 +942,22 @@
       document.getElementById('lesson-modal').classList.add('open');
     }
 
-    function openEditLessonModal(id) {
-      const lesson = findLessonById(id);
-      if (!lesson) return;
+    async function openEditLessonModal(id) {
+      let lesson = findLessonById(id);
+      if (!lesson) {
+        try {
+          const res = await apiRequest(`/api/lessons/${id}`);
+          lesson = res.lesson;
+        } catch (e) {}
+      }
+      if (!lesson) {
+        showToast('Không tìm thấy thông tin bài giảng để chỉnh sửa.', 'error');
+        return;
+      }
 
       document.getElementById('edit-lesson-id').value = lesson.id;
       document.getElementById('modal-lesson-title').textContent = '✏️ Chỉnh Sửa Bài Giảng Lý Thuyết';
-      document.getElementById('lesson-title').value = lesson.title;
+      document.getElementById('lesson-title').value = lesson.title || '';
       document.getElementById('lesson-chapter').value = lesson.chapter_id || '';
       document.getElementById('lesson-order').value = lesson.order_index || 1;
       document.getElementById('lesson-category').value = lesson.category || 'Đại số';
@@ -953,9 +1031,18 @@
     // ==========================================
     // XEM CHI TIẾT BÀI GIẢNG & MEDIA
     // ==========================================
-    function viewLessonDetail(id) {
-      const lesson = findLessonById(id);
-      if (!lesson) return;
+    async function viewLessonDetail(id) {
+      let lesson = findLessonById(id);
+      if (!lesson) {
+        try {
+          const res = await apiRequest(`/api/lessons/${id}`);
+          lesson = res.lesson;
+        } catch (e) {}
+      }
+      if (!lesson) {
+        showToast('Không tìm thấy thông tin bài giảng để xem.', 'error');
+        return;
+      }
 
       document.getElementById('view-lesson-title').textContent = lesson.title;
       const catBadge = document.getElementById('view-category-badge');
@@ -1061,6 +1148,23 @@
         .replace(/\n/g, '<br>');
       return html;
     }
+
+    // Đóng modal khi bấm ra ngoài vùng dialog hoặc bấm phím Escape
+    window.addEventListener('click', (e) => {
+      if (e.target.classList && e.target.classList.contains('modal')) {
+        e.target.classList.remove('open');
+        const vIframe = document.getElementById('view-video-iframe');
+        if (vIframe) vIframe.src = '';
+      }
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.modal').forEach(m => m.classList.remove('open'));
+        const vIframe = document.getElementById('view-video-iframe');
+        if (vIframe) vIframe.src = '';
+      }
+    });
   </script>
 </body>
 </html>
