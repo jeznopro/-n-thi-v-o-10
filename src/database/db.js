@@ -21,6 +21,8 @@ db.pragma('journal_mode = WAL');
 // Kích hoạt kiểm tra toàn vẹn khóa ngoại
 db.pragma('foreign_keys = ON');
 
+module.exports = db;
+
 // Đọc và khởi tạo schema nếu chưa có
 function initSchema() {
   const schemaPath = path.join(__dirname, 'schema.sql');
@@ -34,7 +36,7 @@ function initSchema() {
       console.log('🌱 Phát hiện cơ sở dữ liệu mới, đang tự động nạp dữ liệu mẫu...');
       const seedDatabase = require('./seed');
       if (typeof seedDatabase === 'function') {
-        seedDatabase();
+        seedDatabase(db);
       }
     }
   } catch (err) {
@@ -44,5 +46,3 @@ function initSchema() {
 
 // Khởi tạo bảng ngay khi load module
 initSchema();
-
-module.exports = db;

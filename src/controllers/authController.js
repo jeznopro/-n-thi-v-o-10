@@ -22,11 +22,55 @@ async function login(req, res, next) {
       });
     }
 
+    // Tự động kiểm tra và khởi tạo dữ liệu mẫu nếu database trên Render/VPS chưa có dữ liệu
+    try {
+      const userCount = db.prepare('SELECT COUNT(*) AS count FROM users').get().count;
+      if (userCount === 0) {
+        console.log('🌱 Bảng users trống, tự động nạp dữ liệu mẫu ban đầu...');
+        const seedDatabase = require('../database/seed');
+        if (typeof seedDatabase === 'function') {
+          seedDatabase(db);
+        }
+      }
+    } catch (e) {
+      console.warn('Lỗi kiểm tra userCount trong login:', e.message);
+    }
+
     const normUser = username.trim().toLowerCase();
-    const user = db.prepare(`
+    let user = db.prepare(`
       SELECT id, username, password_hash, full_name, role, status, must_change_password
       FROM users WHERE username = ?
     `).get(normUser);
+
+    // Tự động bảo đảm tài khoản giáo viên và học sinh mẫu luôn tồn tại
+    if (!user && (normUser === 'giaovien' || normUser === 'admin')) {
+      const hash = bcrypt.hashSync('123456', 10);
+      db.prepare(`
+        INSERT INTO users (username, password_hash, full_name, role, status, must_change_password)
+        VALUES (?, ?, ?, 'teacher', 'active', 0)
+      `).run('giaovien', hash, 'Thầy Nguyễn Văn Toán');
+      user = db.prepare(`
+        SELECT id, username, password_hash, full_name, role, status, must_change_password
+        FROM users WHERE username = 'giaovien'
+      `).get();
+    } else if (!user && (normUser === 'nguyenminhgiap123' || normUser === 'hs_giapnm' || normUser === 'hs_tranvanb' || normUser === 'hs_lethic' || normUser === 'hs_phamvand')) {
+      const hash = bcrypt.hashSync('123456', 10);
+      const studentNames = {
+        'nguyenminhgiap123': 'Nguyễn Minh Giáp',
+        'hs_giapnm': 'Nguyễn Minh Giáp',
+        'hs_tranvanb': 'Trần Văn Bình',
+        'hs_lethic': 'Lê Thị Cúc',
+        'hs_phamvand': 'Phạm Văn Dũng'
+      };
+      db.prepare(`
+        INSERT INTO users (username, password_hash, full_name, role, status, must_change_password)
+        VALUES (?, ?, ?, 'student', 'active', 0)
+      `).run(normUser, hash, studentNames[normUser] || 'Học sinh');
+      user = db.prepare(`
+        SELECT id, username, password_hash, full_name, role, status, must_change_password
+        FROM users WHERE username = ?
+      `).get(normUser);
+    }
 
     if (!user) {
       recordFailedLogin(normUser, ip);

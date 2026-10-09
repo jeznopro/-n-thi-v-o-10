@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs');
-const db = require('./db');
 
-function seedDatabase() {
+function seedDatabase(customDb) {
+  const db = customDb || require('./db');
   console.log('🔄 Bắt đầu nạp dữ liệu mẫu Môn TOÁN THCS theo TỪNG CÂU HỎI...');
 
   db.exec(`
@@ -59,13 +59,16 @@ function seedDatabase() {
 
   const runSeed = db.transaction(() => {
     // 1. Giáo viên Toán
-    insertUser.run('giaovien', teacherPasswordHash, 'Thầy Nguyễn Văn Toán', 'teacher', 'active', 1);
+    insertUser.run('giaovien', teacherPasswordHash, 'Thầy Nguyễn Văn Toán', 'teacher', 'active', 0);
     const teacher = db.prepare('SELECT id FROM users WHERE username = ?').get('giaovien');
 
-    // 2. 3 Học sinh THCS
+    // 2. Học sinh THCS
     insertUser.run('hs_tranvanb', studentPasswordHash, 'Trần Văn Bình', 'student', 'active', 0);
     insertUser.run('hs_lethic', studentPasswordHash, 'Lê Thị Cúc', 'student', 'active', 0);
     insertUser.run('hs_phamvand', studentPasswordHash, 'Phạm Văn Dũng', 'student', 'active', 0);
+    insertUser.run('nguyenminhgiap123', studentPasswordHash, 'Nguyễn Minh Giáp', 'student', 'active', 0);
+    insertUser.run('hs_giapnm', studentPasswordHash, 'Nguyễn Minh Giáp', 'student', 'active', 0);
+
 
     const studentB = db.prepare('SELECT id FROM users WHERE username = ?').get('hs_tranvanb');
     const studentC = db.prepare('SELECT id FROM users WHERE username = ?').get('hs_lethic');
