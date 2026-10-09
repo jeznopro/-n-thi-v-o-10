@@ -51,26 +51,6 @@
       font-size: 0.875rem;
       margin-top: 6px;
     }
-    .quick-login-section {
-      margin-top: 24px;
-      padding-top: 20px;
-      border-top: 1px dashed var(--border-color);
-      text-align: center;
-    }
-    .quick-login-title {
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      font-weight: 700;
-      color: var(--text-muted);
-      margin-bottom: 12px;
-      letter-spacing: 0.05em;
-    }
-    .quick-btn-group {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
   </style>
 </head>
 <body>
@@ -97,36 +77,11 @@
           Đăng Nhập
         </button>
       </form>
-
-      <div class="quick-login-section">
-        <div class="quick-login-title">⚡ Chọn tài khoản chạy thử nhanh (Click để tự điền)</div>
-        <div class="quick-btn-group">
-          <button type="button" class="btn btn-secondary btn-sm" onclick="fillAccount('giaovien', '123456')">
-            👨‍🏫 Giáo viên (giaovien)
-          </button>
-          <button type="button" class="btn btn-secondary btn-sm" onclick="fillAccount('nguyenminhgiap123', '123456')">
-            🎒 HS Nguyễn Minh Giáp
-          </button>
-          <button type="button" class="btn btn-secondary btn-sm" onclick="fillAccount('hs_tranvanb', '123456')">
-            🎒 HS Trần Văn Bình
-          </button>
-        </div>
-        <div style="margin-top: 10px; font-size: 0.82rem; color: #475569; background: #f1f5f9; padding: 8px 12px; border-radius: 6px; text-align: left; line-height: 1.5;">
-          🔑 <strong>Tài khoản Giáo viên:</strong> <code>giaovien</code> | MK: <code>123456</code><br>
-          🔑 <strong>Tài khoản Học sinh:</strong> <code>nguyenminhgiap123</code> | MK: <code>123456</code>
-        </div>
-      </div>
     </div>
   </div>
 
   <script src="/js/api.js"></script>
   <script>
-    // Điền nhanh tài khoản mẫu
-    function fillAccount(u, p) {
-      document.getElementById('username').value = u;
-      document.getElementById('password').value = p;
-    }
-
     // Kiểm tra thông báo phiên hết hạn từ URL
     if (new URLSearchParams(window.location.search).get('expired')) {
       showToast('Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại.', 'warning');
