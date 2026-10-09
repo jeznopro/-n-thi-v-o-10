@@ -33,6 +33,94 @@
       color: #2563eb;
       font-weight: 700;
     }
+    .chapter-accordion {
+      background: #ffffff;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 20px;
+      margin-bottom: 22px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+      transition: all 0.25s ease;
+    }
+    .chapter-accordion.expanded {
+      border-color: #3b82f6;
+      box-shadow: 0 10px 25px rgba(37,99,235,0.06);
+    }
+    .chapter-header {
+      background: linear-gradient(to right, #f8fafc, #ffffff);
+      padding: 18px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.2s ease;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .chapter-header:hover {
+      background: #f1f5f9;
+    }
+    .chapter-info {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .chapter-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: #eff6ff;
+      color: #2563eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(37,99,235,0.12);
+    }
+    .chapter-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .chapter-lessons-count {
+      font-size: 0.75rem;
+      padding: 3px 10px;
+      border-radius: 9999px;
+      background: #e0f2fe;
+      color: #0369a1;
+      font-weight: 700;
+    }
+    .chapter-desc {
+      font-size: 0.85rem;
+      color: #64748b;
+      margin-top: 4px;
+      margin-bottom: 0;
+    }
+    .chapter-chevron {
+      font-size: 1.1rem;
+      color: #64748b;
+      transition: transform 0.25s ease;
+      display: inline-block;
+    }
+    .chapter-accordion.expanded .chapter-chevron {
+      transform: rotate(180deg);
+      color: #2563eb;
+    }
+    .chapter-body {
+      padding: 22px 24px;
+      background: #fcfcfd;
+      border-top: 1.5px solid #f1f5f9;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 18px;
+    }
 
     .lesson-grid {
       display: grid;
@@ -238,10 +326,10 @@
       </div>
     </div>
 
-    <!-- DANH SÁCH BÀI GIẢNG -->
-    <div id="lessons-grid" class="lesson-grid">
-      <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #64748b;">
-        Đang tải chuyên đề bài giảng lý thuyết...
+    <!-- DANH SÁCH CÁC CHƯƠNG VÀ BÀI HỌC THEO CÂY THƯ MỤC -->
+    <div id="student-chapters-container" style="margin-top: 24px;">
+      <div style="text-align: center; padding: 48px; color: #64748b; background: #ffffff; border-radius: 20px; border: 1.5px dashed #cbd5e1;">
+        Đang tải chuyên đề bài giảng lý thuyết theo từng chương...
       </div>
     </div>
   </main>
@@ -324,14 +412,16 @@
   <script src="/js/api.js"></script>
   <script src="/js/common.js"></script>
   <script>
-    let lessonsList = [];
+    let chaptersData = [];
+    let unassignedLessons = [];
     let activeCategory = 'all';
     let searchTimer = null;
     let currentViewingLesson = null;
+    let expandedChapters = {}; // Lưu trạng thái mở/đóng của từng chương
 
     document.addEventListener('DOMContentLoaded', async () => {
       await loadStudentInfo();
-      await fetchStudentLessons();
+      await fetchStudentChaptersAndLessons();
     });
 
     async function loadStudentInfo() {
@@ -344,11 +434,19 @@
       } catch (err) {}
     }
 
-    async function fetchStudentLessons() {
+    async function fetchStudentChaptersAndLessons() {
       try {
-        const res = await apiRequest('/api/lessons');
-        lessonsList = res.lessons || [];
-        renderLessonsGrid();
+        const res = await apiRequest('/api/chapters/with-lessons');
+        chaptersData = res.chapters || [];
+        unassignedLessons = res.unassigned_lessons || [];
+        
+        // Mặc định mở tất cả các chương để học sinh dễ theo dõi
+        chaptersData.forEach(ch => {
+          expandedChapters[ch.id] = true;
+        });
+        expandedChapters['unassigned'] = true;
+
+        renderChaptersAccordion();
       } catch (err) {
         showToast(err.message, 'error');
       }
@@ -376,11 +474,88 @@
       return url;
     }
 
-    function renderLessonsGrid() {
-      const container = document.getElementById('lessons-grid');
+    function toggleChapter(chapterId) {
+      expandedChapters[chapterId] = !expandedChapters[chapterId];
+      const card = document.getElementById(`student-chapter-${chapterId}`);
+      const body = document.getElementById(`student-chapter-body-${chapterId}`);
+      if (card && body) {
+        if (expandedChapters[chapterId]) {
+          card.classList.add('expanded');
+          body.style.display = 'grid';
+        } else {
+          card.classList.remove('expanded');
+          body.style.display = 'none';
+        }
+      }
+    }
+
+    function renderChaptersAccordion() {
+      const container = document.getElementById('student-chapters-container');
       const search = (document.getElementById('student-lesson-search').value || '').toLowerCase().trim();
 
-      const filtered = lessonsList.filter(l => {
+      let html = '';
+
+      if (chaptersData.length === 0 && unassignedLessons.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 48px; background: #ffffff; border-radius: 22px; border: 1.5px dashed #cbd5e1;">
+            <div style="font-size: 3rem; margin-bottom: 12px;">📚</div>
+            <h4 style="font-size: 1.15rem; color: #1e293b; font-weight: 700;">Chưa có bài giảng lý thuyết nào</h4>
+            <p style="font-size: 0.9rem; color: #64748b; margin-top: 6px;">Thầy cô sẽ sớm cập nhật chương trình ôn tập cho các bạn.</p>
+          </div>
+        `;
+        return;
+      }
+
+      // Duyệt qua từng chương học
+      chaptersData.forEach(ch => {
+        const filteredLessons = (ch.lessons || []).filter(l => {
+          const matchCat = activeCategory === 'all' || l.category === activeCategory;
+          const matchSearch = !search ||
+            (l.title && l.title.toLowerCase().includes(search)) ||
+            (l.summary && l.summary.toLowerCase().includes(search)) ||
+            (l.content && l.content.toLowerCase().includes(search)) ||
+            (ch.title && ch.title.toLowerCase().includes(search));
+          return matchCat && matchSearch;
+        });
+
+        // Ẩn chương nếu đang tìm kiếm mà không có bài nào khớp
+        if (search && filteredLessons.length === 0 && !ch.title.toLowerCase().includes(search)) {
+          return;
+        }
+
+        const isExpanded = !!expandedChapters[ch.id];
+
+        html += `
+          <div class="chapter-accordion ${isExpanded ? 'expanded' : ''}" id="student-chapter-${ch.id}">
+            <div class="chapter-header" onclick="toggleChapter(${ch.id})">
+              <div class="chapter-info">
+                <div class="chapter-icon">📂</div>
+                <div>
+                  <h3 class="chapter-title">
+                    ${escapeHtml(ch.title)}
+                    <span class="chapter-lessons-count">${filteredLessons.length} bài học</span>
+                  </h3>
+                  ${ch.description ? `<p class="chapter-desc">${escapeHtml(ch.description)}</p>` : ''}
+                </div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="chapter-chevron">▼</span>
+              </div>
+            </div>
+
+            <div class="chapter-body" id="student-chapter-body-${ch.id}" style="display: ${isExpanded ? 'grid' : 'none'};">
+              ${filteredLessons.length > 0 ? filteredLessons.map(l => renderStudentLessonCard(l)).join('') : `
+                <div style="grid-column: 1 / -1; text-align: center; padding: 24px; color: #64748b; background: #ffffff; border-radius: 12px; border: 1px dashed #e2e8f0;">
+                  Chưa có bài học nào trong chuyên đề này của chương.
+                </div>
+              `}
+            </div>
+          </div>
+        `;
+      });
+
+      // Bài học tự do / Chưa phân chương
+      const filteredUnassigned = unassignedLessons.filter(l => {
         const matchCat = activeCategory === 'all' || l.category === activeCategory;
         const matchSearch = !search ||
           (l.title && l.title.toLowerCase().includes(search)) ||
@@ -389,61 +564,34 @@
         return matchCat && matchSearch;
       });
 
-      if (filtered.length === 0) {
-        container.innerHTML = `
-          <div style="grid-column: 1 / -1; text-align: center; padding: 48px; background: #ffffff; border-radius: 22px; border: 1.5px dashed #cbd5e1;">
-            <div style="font-size: 3rem; margin-bottom: 12px;">📚</div>
-            <h4 style="font-size: 1.1rem; color: #1e293b; font-weight: 700;">Chưa có bài giảng lý thuyết nào trong mục này</h4>
-            <p style="font-size: 0.875rem; color: #64748b; margin-top: 6px;">Thầy cô sẽ sớm cập nhật bài học lý thuyết cho chuyên đề này.</p>
+      if (filteredUnassigned.length > 0) {
+        const isExpanded = !!expandedChapters['unassigned'];
+        html += `
+          <div class="chapter-accordion ${isExpanded ? 'expanded' : ''}" id="student-chapter-unassigned" style="border-color: #f59e0b;">
+            <div class="chapter-header" style="background: #fffbeb;" onclick="toggleChapter('unassigned')">
+              <div class="chapter-info">
+                <div class="chapter-icon" style="background: #fef3c7; color: #d97706;">📁</div>
+                <div>
+                  <h3 class="chapter-title" style="color: #92400e;">
+                    Bài giảng tự do & Chuyên đề bổ trợ
+                    <span class="chapter-lessons-count" style="background: #fef3c7; color: #b45309;">${filteredUnassigned.length} bài</span>
+                  </h3>
+                  <p class="chapter-desc">Các bài giảng mở rộng phục vụ ôn tập</p>
+                </div>
+              </div>
+              <div>
+                <span class="chapter-chevron">▼</span>
+              </div>
+            </div>
+
+            <div class="chapter-body" id="student-chapter-body-unassigned" style="display: ${isExpanded ? 'grid' : 'none'};">
+              ${filteredUnassigned.map(l => renderStudentLessonCard(l)).join('')}
+            </div>
           </div>
         `;
-        return;
       }
 
-      container.innerHTML = filtered.map(l => {
-        let catClass = 'cat-daiso';
-        if (l.category === 'Hình học') catClass = 'cat-hinhhoc';
-        else if (l.category === 'Hệ thức Vi-ét') catClass = 'cat-viet';
-        else if (l.category === 'Bất đẳng thức & Cực trị') catClass = 'cat-bdt';
-        else if (l.category === 'Toán thực tế') catClass = 'cat-thucte';
-
-        return `
-          <div class="lesson-card">
-            <div>
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                <span class="category-badge ${catClass}">${escapeHtml(l.category || 'Đại số')}</span>
-                <span style="font-size: 0.8rem; color: #64748b;">${l.author_name || 'Thầy Toán'}</span>
-              </div>
-
-              <h3 style="font-size: 1.15rem; font-weight: 800; color: #0f172a; line-height: 1.4; margin-bottom: 10px;">
-                ${escapeHtml(l.title)}
-              </h3>
-
-              <div style="display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap;">
-                ${l.video_url ? '<span class="media-badge badge-video">🎬 Video Drive</span>' : ''}
-                ${l.document_url ? '<span class="media-badge badge-doc">📄 Tài liệu Drive</span>' : ''}
-              </div>
-
-              <p style="font-size: 0.9rem; color: #475569; line-height: 1.55; margin-bottom: 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-                ${escapeHtml(l.summary || 'Không có mô tả tóm tắt.')}
-              </p>
-
-              ${l.key_formulas ? `
-                <div class="formula-preview-box">
-                  <strong style="color: #1e40af;">⚡ Công thức cốt lõi:</strong>
-                  <div style="margin-top: 6px; white-space: pre-wrap; font-size: 0.85rem;">${escapeHtml(l.key_formulas)}</div>
-                </div>
-              ` : ''}
-            </div>
-
-            <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid #f1f5f9;">
-              <button type="button" class="btn btn-primary" style="width: 100%; border-radius: 12px; font-weight: 700; padding: 11px;" onclick="openLessonModal(${l.id})">
-                📖 Học ngay & Xem Video
-              </button>
-            </div>
-          </div>
-        `;
-      }).join('');
+      container.innerHTML = html;
 
       renderMathInElement(container, {
         delimiters: [
@@ -454,17 +602,63 @@
       });
     }
 
+    function renderStudentLessonCard(l) {
+      let catClass = 'cat-daiso';
+      if (l.category === 'Hình học') catClass = 'cat-hinhhoc';
+      else if (l.category === 'Hệ thức Vi-ét') catClass = 'cat-viet';
+      else if (l.category === 'Bất đẳng thức & Cực trị') catClass = 'cat-bdt';
+      else if (l.category === 'Toán thực tế') catClass = 'cat-thucte';
+
+      return `
+        <div class="lesson-card">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <span class="category-badge ${catClass}">${escapeHtml(l.category || 'Đại số')}</span>
+              <span style="font-size: 0.8rem; color: #64748b;">${l.author_name || 'Thầy Toán'}</span>
+            </div>
+
+            <h3 style="font-size: 1.1rem; font-weight: 800; color: #0f172a; line-height: 1.4; margin-bottom: 10px;">
+              ${escapeHtml(l.title)}
+            </h3>
+
+            <div style="display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap;">
+              ${l.video_url ? '<span class="media-badge badge-video">🎬 Video Drive</span>' : ''}
+              ${l.document_url ? '<span class="media-badge badge-doc">📄 Tài liệu Drive</span>' : ''}
+              ${l.order_index ? `<span style="font-size: 0.75rem; background: #f1f5f9; padding: 2px 8px; border-radius: 4px; color: #475569; font-weight: 600;">Bài ${l.order_index}</span>` : ''}
+            </div>
+
+            <p style="font-size: 0.875rem; color: #475569; line-height: 1.55; margin-bottom: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+              ${escapeHtml(l.summary || 'Không có mô tả tóm tắt.')}
+            </p>
+
+            ${l.key_formulas ? `
+              <div class="formula-preview-box">
+                <strong style="color: #1e40af;">⚡ Công thức cốt lõi:</strong>
+                <div style="margin-top: 6px; white-space: pre-wrap; font-size: 0.825rem;">${escapeHtml(l.key_formulas)}</div>
+              </div>
+            ` : ''}
+          </div>
+
+          <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid #f1f5f9;">
+            <button type="button" class="btn btn-primary" style="width: 100%; border-radius: 12px; font-weight: 700; padding: 11px;" onclick="openLessonModal(${l.id})">
+              📖 Học ngay & Xem Video
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
     function filterCategory(cat, btn) {
       activeCategory = cat;
       document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      renderLessonsGrid();
+      renderChaptersAccordion();
     }
 
     function handleSearch() {
       clearTimeout(searchTimer);
       searchTimer = setTimeout(() => {
-        renderLessonsGrid();
+        renderChaptersAccordion();
       }, 250);
     }
 
@@ -479,8 +673,16 @@
       });
     }
 
+    function findStudentLessonById(id) {
+      for (const ch of chaptersData) {
+        const found = (ch.lessons || []).find(l => l.id === id);
+        if (found) return found;
+      }
+      return unassignedLessons.find(l => l.id === id);
+    }
+
     function openLessonModal(id) {
-      const lesson = lessonsList.find(l => l.id === id);
+      const lesson = findStudentLessonById(id);
       if (!lesson) return;
       currentViewingLesson = lesson;
 
@@ -558,7 +760,6 @@
     }
 
     function closeLessonModal() {
-      // Dừng video khi đóng modal
       const videoIframe = document.getElementById('modal-video-iframe');
       if (videoIframe) videoIframe.src = '';
       document.getElementById('lesson-modal').classList.remove('open');

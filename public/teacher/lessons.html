@@ -8,6 +8,84 @@
   <link rel="stylesheet" href="/css/toast.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
   <style>
+    .chapter-section {
+      background: #ffffff;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 20px;
+      margin-bottom: 24px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      transition: all 0.25s ease;
+    }
+    .chapter-header {
+      background: linear-gradient(to right, #f8fafc, #ffffff);
+      padding: 18px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1.5px solid #e2e8f0;
+      cursor: pointer;
+      user-select: none;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .chapter-header:hover {
+      background: #f1f5f9;
+    }
+    .chapter-title-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .chapter-folder-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: #eff6ff;
+      color: #2563eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(37,99,235,0.12);
+    }
+    .chapter-name {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .chapter-badge-count {
+      font-size: 0.75rem;
+      padding: 3px 10px;
+      border-radius: 9999px;
+      background: #e0f2fe;
+      color: #0369a1;
+      font-weight: 700;
+    }
+    .chapter-desc {
+      font-size: 0.85rem;
+      color: #64748b;
+      margin-top: 4px;
+      margin-bottom: 0;
+    }
+    .chapter-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .chapter-lessons-list {
+      padding: 20px 24px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 18px;
+      background: #fcfcfd;
+    }
     .lesson-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
@@ -168,7 +246,10 @@
         <p>Hệ thống chuyên đề kiến thức, video Google Drive/YouTube, tài liệu PDF và tóm tắt công thức trọng tâm</p>
       </div>
       <div class="page-actions" style="display: flex; gap: 8px; flex-wrap: wrap;">
-        <button class="btn btn-primary" onclick="openCreateLessonModal()">
+        <button class="btn btn-primary" onclick="openCreateChapterModal()">
+          📁 Thêm chương mới
+        </button>
+        <button class="btn btn-secondary" onclick="openCreateLessonModal()">
           ➕ Thêm bài giảng mới
         </button>
         <button class="btn btn-secondary" onclick="exportDataBackup()" title="Tải file sao lưu CSDL (.json)">
@@ -181,7 +262,7 @@
     <div style="background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 16px; padding: 18px 24px; margin-top: 16px;">
       <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
         <div style="flex: 1; min-width: 250px;">
-          <input type="text" id="lesson-search-input" class="form-control" placeholder="🔍 Tìm kiếm bài giảng theo tiêu đề, chuyên đề hoặc công thức..." oninput="handleSearchInput()">
+          <input type="text" id="lesson-search-input" class="form-control" placeholder="🔍 Tìm kiếm bài giảng theo tiêu đề, chương hoặc công thức..." oninput="handleSearchInput()">
         </div>
       </div>
 
@@ -195,13 +276,48 @@
       </div>
     </div>
 
-    <!-- DANH SÁCH BÀI GIẢNG -->
-    <div id="lessons-list-container" class="lesson-grid">
-      <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #64748b;">
-        Đang tải danh sách bài giảng...
+    <!-- DANH SÁCH CÁC CHƯƠNG VÀ BÀI GIẢNG BÊN TRONG -->
+    <div id="chapters-list-container" style="margin-top: 24px;">
+      <div style="text-align: center; padding: 40px; color: #64748b;">
+        Đang tải cấu trúc chương và bài giảng...
       </div>
     </div>
   </main>
+
+  <!-- MODAL THÊM / SỬA CHƯƠNG HỌC -->
+  <div class="modal" id="chapter-modal">
+    <div class="modal-dialog" style="max-width: 580px;">
+      <div class="modal-header">
+        <h3 id="modal-chapter-title">📁 Thêm Chương Học Mới</h3>
+        <button type="button" class="modal-close" onclick="closeChapterModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="chapter-form" onsubmit="saveChapter(event)">
+          <input type="hidden" id="edit-chapter-id">
+          
+          <div class="form-group">
+            <label class="form-label" for="chapter-title">Tên chương học <span class="req">*</span></label>
+            <input type="text" id="chapter-title" class="form-control" placeholder="Ví dụ: Chương 1: Phương trình và hệ phương trình bậc nhất hai ẩn" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="chapter-order">Thứ tự sắp xếp (Số)</label>
+            <input type="number" id="chapter-order" class="form-control" value="1" min="0">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="chapter-desc">Mô tả tóm tắt nội dung chương</label>
+            <textarea id="chapter-desc" class="form-control" rows="3" placeholder="Mô tả các nội dung kiến thức cốt lõi ôn thi vào 10 trong chương này..."></textarea>
+          </div>
+
+          <div class="modal-footer" style="padding: 16px 0 0 0; display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" class="btn btn-secondary" onclick="closeChapterModal()">Hủy bỏ</button>
+            <button type="submit" id="btn-save-chapter" class="btn btn-primary">Lưu chương học</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 
   <!-- MODAL THÊM / SỬA BÀI GIẢNG -->
   <div class="modal" id="lesson-modal">
@@ -214,14 +330,28 @@
         <form id="lesson-form" onsubmit="saveLesson(event)">
           <input type="hidden" id="edit-lesson-id">
 
+          <!-- CHỌN CHƯƠNG VÀ THỨ TỰ BÀI TRONG CHƯƠNG -->
+          <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 14px;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" for="lesson-chapter">📁 Thuộc Chương Học <span class="req">*</span></label>
+              <select id="lesson-chapter" class="form-control" required>
+                <option value="">-- Chọn chương học --</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" for="lesson-order">Thứ tự bài (Số)</label>
+              <input type="number" id="lesson-order" class="form-control" value="1" min="0">
+            </div>
+          </div>
+
           <div class="form-group">
             <label class="form-label" for="lesson-title">Tiêu đề bài giảng <span class="req">*</span></label>
-            <input type="text" id="lesson-title" class="form-control" placeholder="Ví dụ: Chuyên đề 1: Rút gọn biểu thức chứa căn bậc hai" required>
+            <input type="text" id="lesson-title" class="form-control" placeholder="Ví dụ: Bài 1: Rút gọn biểu thức chứa căn bậc hai" required>
           </div>
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
             <div class="form-group">
-              <label class="form-label" for="lesson-category">Chuyên đề <span class="req">*</span></label>
+              <label class="form-label" for="lesson-category">Chuyên đề phân loại <span class="req">*</span></label>
               <select id="lesson-category" class="form-control" required>
                 <option value="Đại số">Đại số & Căn thức</option>
                 <option value="Hệ thức Vi-ét">Phương trình & Hệ thức Vi-ét</option>
@@ -351,14 +481,15 @@
   <script src="/js/api.js"></script>
   <script src="/js/common.js"></script>
   <script>
-    let allLessons = [];
+    let chaptersData = [];
+    let unassignedLessons = [];
     let currentCategory = 'all';
     let searchDebounceTimer = null;
 
     document.addEventListener('DOMContentLoaded', async () => {
       await loadTeacherProfile();
       await loadClassesDropdown();
-      await fetchLessons();
+      await fetchChaptersAndLessons();
     });
 
     async function loadTeacherProfile() {
@@ -378,6 +509,7 @@
         const res = await apiRequest('/api/classes');
         const select = document.getElementById('lesson-class');
         if (res.classes && select) {
+          select.innerHTML = '<option value="">🌐 Công khai (Tất cả học sinh)</option>';
           res.classes.forEach(c => {
             const opt = document.createElement('option');
             opt.value = c.id;
@@ -388,15 +520,29 @@
       } catch (err) {}
     }
 
-    async function fetchLessons() {
+    // Tải cấu trúc chương và bài giảng từ Server
+    async function fetchChaptersAndLessons() {
       try {
-        const query = currentCategory !== 'all' ? `?category=${encodeURIComponent(currentCategory)}` : '';
-        const res = await apiRequest(`/api/lessons${query}`);
-        allLessons = res.lessons || [];
-        renderLessons();
+        const res = await apiRequest('/api/chapters/with-lessons');
+        chaptersData = res.chapters || [];
+        unassignedLessons = res.unassigned_lessons || [];
+        updateChapterDropdown();
+        renderChaptersAndLessons();
       } catch (err) {
         showToast(err.message, 'error');
       }
+    }
+
+    function updateChapterDropdown() {
+      const select = document.getElementById('lesson-chapter');
+      if (!select) return;
+      select.innerHTML = '<option value="">-- Chọn chương học --</option>';
+      chaptersData.forEach(ch => {
+        const opt = document.createElement('option');
+        opt.value = ch.id;
+        opt.textContent = `${ch.title}`;
+        select.appendChild(opt);
+      });
     }
 
     // Chuyển link Google Drive / YouTube thành link nhúng Embed
@@ -404,7 +550,6 @@
       if (!url) return '';
       url = url.trim();
 
-      // Google Drive file hoặc Docs
       const driveMatch = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) ||
                          url.match(/\/document\/d\/([a-zA-Z0-9_-]+)/) ||
                          url.match(/\/presentation\/d\/([a-zA-Z0-9_-]+)/) ||
@@ -414,7 +559,6 @@
         return `https://drive.google.com/file/d/${driveMatch[1]}/preview`;
       }
 
-      // YouTube
       const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
       if (ytMatch) {
         return `https://www.youtube.com/embed/${ytMatch[1]}`;
@@ -423,11 +567,84 @@
       return url;
     }
 
-    function renderLessons() {
-      const container = document.getElementById('lessons-list-container');
+    // Hiển thị toàn bộ chương và bài học
+    function renderChaptersAndLessons() {
+      const container = document.getElementById('chapters-list-container');
       const searchTerm = (document.getElementById('lesson-search-input').value || '').toLowerCase().trim();
 
-      const filtered = allLessons.filter(l => {
+      let html = '';
+
+      if (chaptersData.length === 0 && unassignedLessons.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 48px; background: #ffffff; border-radius: 20px; border: 1.5px dashed #cbd5e1;">
+            <div style="font-size: 3rem; margin-bottom: 12px;">📂</div>
+            <h4 style="font-size: 1.15rem; color: #1e293b; font-weight: 700;">Chưa có chương học nào</h4>
+            <p style="font-size: 0.9rem; color: #64748b; margin-top: 6px;">Thầy/Cô hãy nhấn "Thêm chương mới" để tổ chức các bài học theo cấu trúc chương ôn thi vào 10.</p>
+            <button class="btn btn-primary" style="margin-top: 14px;" onclick="openCreateChapterModal()">📁 Tạo chương đầu tiên</button>
+          </div>
+        `;
+        return;
+      }
+
+      // Duyệt qua từng chương
+      chaptersData.forEach(ch => {
+        const filteredLessons = (ch.lessons || []).filter(l => {
+          const matchCat = currentCategory === 'all' || l.category === currentCategory;
+          const matchSearch = !searchTerm ||
+            (l.title && l.title.toLowerCase().includes(searchTerm)) ||
+            (l.summary && l.summary.toLowerCase().includes(searchTerm)) ||
+            (l.content && l.content.toLowerCase().includes(searchTerm)) ||
+            (ch.title && ch.title.toLowerCase().includes(searchTerm));
+          return matchCat && matchSearch;
+        });
+
+        // Nếu có tìm kiếm mà chương này không có bài nào khớp
+        if (searchTerm && filteredLessons.length === 0 && !ch.title.toLowerCase().includes(searchTerm)) {
+          return;
+        }
+
+        html += `
+          <div class="chapter-section" id="chapter-card-${ch.id}">
+            <div class="chapter-header" onclick="toggleChapterBody(${ch.id})">
+              <div class="chapter-title-group">
+                <div class="chapter-folder-icon">📂</div>
+                <div>
+                  <h3 class="chapter-name">
+                    ${escapeHtml(ch.title)}
+                    <span class="chapter-badge-count">${filteredLessons.length} bài học</span>
+                  </h3>
+                  ${ch.description ? `<p class="chapter-desc">${escapeHtml(ch.description)}</p>` : ''}
+                </div>
+              </div>
+
+              <div class="chapter-actions" onclick="event.stopPropagation()">
+                <button type="button" class="btn btn-primary btn-sm" onclick="openCreateLessonModal(${ch.id})">
+                  ➕ Thêm bài vào chương
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm" title="Sửa chương" onclick="openEditChapterModal(${ch.id})">
+                  ✏️ Sửa
+                </button>
+                <button type="button" class="btn btn-danger btn-sm" title="Xóa chương" onclick="confirmDeleteChapter(${ch.id}, '${escapeHtml(ch.title)}')">
+                  🗑️
+                </button>
+                <span style="font-size: 1.1rem; color: #94a3b8; margin-left: 6px;">▼</span>
+              </div>
+            </div>
+
+            <div class="chapter-lessons-list" id="chapter-body-${ch.id}">
+              ${filteredLessons.length > 0 ? filteredLessons.map(l => renderSingleLessonCard(l)).join('') : `
+                <div style="grid-column: 1 / -1; text-align: center; padding: 28px; color: #64748b; background: #ffffff; border-radius: 14px; border: 1px dashed #e2e8f0;">
+                  Chưa có bài học nào trong chương này.
+                  <button type="button" class="btn btn-secondary btn-sm" style="margin-left: 10px;" onclick="openCreateLessonModal(${ch.id})">➕ Thêm bài ngay</button>
+                </div>
+              `}
+            </div>
+          </div>
+        `;
+      });
+
+      // Hiển thị bài giảng chưa phân vào chương nào (nếu có)
+      const filteredUnassigned = unassignedLessons.filter(l => {
         const matchCat = currentCategory === 'all' || l.category === currentCategory;
         const matchSearch = !searchTerm ||
           (l.title && l.title.toLowerCase().includes(searchTerm)) ||
@@ -436,70 +653,34 @@
         return matchCat && matchSearch;
       });
 
-      if (filtered.length === 0) {
-        container.innerHTML = `
-          <div style="grid-column: 1 / -1; text-align: center; padding: 48px; background: #ffffff; border-radius: 20px; border: 1.5px dashed #cbd5e1;">
-            <div style="font-size: 3rem; margin-bottom: 12px;">📚</div>
-            <h4 style="font-size: 1.1rem; color: #1e293b; font-weight: 700;">Chưa có bài giảng lý thuyết nào trong mục này</h4>
-            <p style="font-size: 0.875rem; color: #64748b; margin-top: 6px;">Thầy/Cô hãy nhấn nút "Thêm bài giảng mới" để soạn bài học ôn thi vào 10 cho học sinh.</p>
-            <button class="btn btn-primary btn-sm" style="margin-top: 14px;" onclick="openCreateLessonModal()">➕ Tạo bài giảng đầu tiên</button>
+      if (filteredUnassigned.length > 0) {
+        html += `
+          <div class="chapter-section" style="border-color: #f59e0b;">
+            <div class="chapter-header" style="background: #fffbeb;" onclick="toggleChapterBody('unassigned')">
+              <div class="chapter-title-group">
+                <div class="chapter-folder-icon" style="background: #fef3c7; color: #d97706;">📁</div>
+                <div>
+                  <h3 class="chapter-name" style="color: #92400e;">
+                    Bài giảng tự do / Chưa phân chương
+                    <span class="chapter-badge-count" style="background: #fef3c7; color: #b45309;">${filteredUnassigned.length} bài</span>
+                  </h3>
+                  <p class="chapter-desc">Các bài giảng chưa gắn vào chương học cụ thể</p>
+                </div>
+              </div>
+              <div class="chapter-actions" onclick="event.stopPropagation()">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="openCreateLessonModal()">
+                  ➕ Thêm bài giảng
+                </button>
+              </div>
+            </div>
+            <div class="chapter-lessons-list" id="chapter-body-unassigned">
+              ${filteredUnassigned.map(l => renderSingleLessonCard(l)).join('')}
+            </div>
           </div>
         `;
-        return;
       }
 
-      container.innerHTML = filtered.map(l => {
-        let catClass = 'cat-daiso';
-        if (l.category === 'Hình học') catClass = 'cat-hinhhoc';
-        else if (l.category === 'Hệ thức Vi-ét') catClass = 'cat-viet';
-        else if (l.category === 'Bất đẳng thức & Cực trị') catClass = 'cat-bdt';
-        else if (l.category === 'Toán thực tế') catClass = 'cat-thucte';
-
-        return `
-          <div class="lesson-card">
-            <div>
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <span class="category-badge ${catClass}">${escapeHtml(l.category || 'Đại số')}</span>
-                <span style="font-size: 0.8rem; color: #64748b;">${l.class_name ? `Lớp ${escapeHtml(l.class_name)}` : '🌐 Toàn bộ HS'}</span>
-              </div>
-
-              <h3 style="font-size: 1.1rem; font-weight: 800; color: #0f172a; line-height: 1.4; margin-bottom: 8px;">
-                ${escapeHtml(l.title)}
-              </h3>
-
-              <div style="display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap;">
-                ${l.video_url ? '<span class="media-badge badge-video">🎬 Video Drive</span>' : ''}
-                ${l.document_url ? '<span class="media-badge badge-doc">📄 Tài liệu Drive</span>' : ''}
-              </div>
-
-              <p style="font-size: 0.875rem; color: #475569; line-height: 1.5; margin-bottom: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-                ${escapeHtml(l.summary || 'Không có mô tả tóm tắt.')}
-              </p>
-
-              ${l.key_formulas ? `
-                <div class="formula-preview-box">
-                  <strong>⚡ Công thức:</strong>
-                  <div style="margin-top: 4px; white-space: pre-wrap; font-size: 0.825rem;">${escapeHtml(l.key_formulas)}</div>
-                </div>
-              ` : ''}
-            </div>
-
-            <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
-              <button type="button" class="btn btn-primary btn-sm" onclick="viewLessonDetail(${l.id})">
-                👁️ Đọc bài & Xem Video
-              </button>
-              <div style="display: flex; gap: 6px;">
-                <button type="button" class="btn btn-secondary btn-sm" onclick="openEditLessonModal(${l.id})">
-                  ✏️ Sửa
-                </button>
-                <button type="button" class="btn btn-danger btn-sm" onclick="confirmDeleteLesson(${l.id}, '${escapeHtml(l.title)}')">
-                  🗑️
-                </button>
-              </div>
-            </div>
-          </div>
-        `;
-      }).join('');
+      container.innerHTML = html;
 
       renderMathInElement(container, {
         delimiters: [
@@ -510,23 +691,270 @@
       });
     }
 
+    // Đóng/mở danh sách bài học của chương
+    function toggleChapterBody(chapterId) {
+      const body = document.getElementById(`chapter-body-${chapterId}`);
+      if (!body) return;
+      if (body.style.display === 'none') {
+        body.style.display = 'grid';
+      } else {
+        body.style.display = 'none';
+      }
+    }
+
+    // Render một thẻ bài học
+    function renderSingleLessonCard(l) {
+      let catClass = 'cat-daiso';
+      if (l.category === 'Hình học') catClass = 'cat-hinhhoc';
+      else if (l.category === 'Hệ thức Vi-ét') catClass = 'cat-viet';
+      else if (l.category === 'Bất đẳng thức & Cực trị') catClass = 'cat-bdt';
+      else if (l.category === 'Toán thực tế') catClass = 'cat-thucte';
+
+      return `
+        <div class="lesson-card">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+              <span class="category-badge ${catClass}">${escapeHtml(l.category || 'Đại số')}</span>
+              <span style="font-size: 0.8rem; color: #64748b;">${l.class_name ? `Lớp ${escapeHtml(l.class_name)}` : '🌐 Toàn bộ HS'}</span>
+            </div>
+
+            <h3 style="font-size: 1.05rem; font-weight: 800; color: #0f172a; line-height: 1.4; margin-bottom: 8px;">
+              ${escapeHtml(l.title)}
+            </h3>
+
+            <div style="display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap;">
+              ${l.video_url ? '<span class="media-badge badge-video">🎬 Video Drive</span>' : ''}
+              ${l.document_url ? '<span class="media-badge badge-doc">📄 Tài liệu Drive</span>' : ''}
+              ${l.order_index ? `<span style="font-size: 0.75rem; background: #f1f5f9; padding: 2px 8px; border-radius: 4px; color: #475569; font-weight: 600;">Thứ tự: ${l.order_index}</span>` : ''}
+            </div>
+
+            <p style="font-size: 0.85rem; color: #475569; line-height: 1.5; margin-bottom: 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+              ${escapeHtml(l.summary || 'Không có mô tả tóm tắt.')}
+            </p>
+
+            ${l.key_formulas ? `
+              <div class="formula-preview-box">
+                <strong>⚡ Công thức:</strong>
+                <div style="margin-top: 4px; white-space: pre-wrap; font-size: 0.8rem;">${escapeHtml(l.key_formulas)}</div>
+              </div>
+            ` : ''}
+          </div>
+
+          <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
+            <button type="button" class="btn btn-primary btn-sm" onclick="viewLessonDetail(${l.id})">
+              👁️ Đọc bài & Xem Video
+            </button>
+            <div style="display: flex; gap: 6px;">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="openEditLessonModal(${l.id})">
+                ✏️ Sửa
+              </button>
+              <button type="button" class="btn btn-danger btn-sm" onclick="confirmDeleteLesson(${l.id}, '${escapeHtml(l.title)}')">
+                🗑️
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
     function filterCategory(cat, btn) {
       currentCategory = cat;
       document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      renderLessons();
+      renderChaptersAndLessons();
     }
 
     function handleSearchInput() {
       clearTimeout(searchDebounceTimer);
       searchDebounceTimer = setTimeout(() => {
-        renderLessons();
+        renderChaptersAndLessons();
       }, 250);
     }
 
-    // Xem chi tiết bài giảng
+    // ==========================================
+    // QUẢN LÝ CHƯƠNG HỌC (CHAPTER CRUD)
+    // ==========================================
+    function openCreateChapterModal() {
+      document.getElementById('edit-chapter-id').value = '';
+      document.getElementById('modal-chapter-title').textContent = '📁 Thêm Chương Học Mới';
+      document.getElementById('chapter-title').value = '';
+      document.getElementById('chapter-order').value = chaptersData.length + 1;
+      document.getElementById('chapter-desc').value = '';
+      document.getElementById('chapter-modal').classList.add('open');
+    }
+
+    function openEditChapterModal(chapterId) {
+      const ch = chaptersData.find(c => c.id === chapterId);
+      if (!ch) return;
+
+      document.getElementById('edit-chapter-id').value = ch.id;
+      document.getElementById('modal-chapter-title').textContent = '✏️ Chỉnh Sửa Chương Học';
+      document.getElementById('chapter-title').value = ch.title;
+      document.getElementById('chapter-order').value = ch.order_index || 1;
+      document.getElementById('chapter-desc').value = ch.description || '';
+      document.getElementById('chapter-modal').classList.add('open');
+    }
+
+    function closeChapterModal() {
+      document.getElementById('chapter-modal').classList.remove('open');
+    }
+
+    async function saveChapter(e) {
+      e.preventDefault();
+      const id = document.getElementById('edit-chapter-id').value;
+      const title = document.getElementById('chapter-title').value.trim();
+      const order_index = document.getElementById('chapter-order').value;
+      const description = document.getElementById('chapter-desc').value.trim();
+
+      const btn = document.getElementById('btn-save-chapter');
+      btn.disabled = true;
+      btn.textContent = 'Đang lưu...';
+
+      try {
+        if (id) {
+          await apiRequest(`/api/chapters/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify({ title, order_index, description })
+          });
+          showToast('Cập nhật chương học thành công!', 'success');
+        } else {
+          await apiRequest('/api/chapters', {
+            method: 'POST',
+            body: JSON.stringify({ title, order_index, description })
+          });
+          showToast('Tạo chương học mới thành công!', 'success');
+        }
+        closeChapterModal();
+        await fetchChaptersAndLessons();
+      } catch (err) {
+        showToast(err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Lưu chương học';
+      }
+    }
+
+    async function confirmDeleteChapter(id, title) {
+      if (!confirm(`Bạn có chắc chắn muốn xóa "${title}"?\nLưu ý: Các bài giảng thuộc chương này sẽ không bị mất mà được chuyển sang mục "Bài giảng tự do".`)) return;
+
+      try {
+        await apiRequest(`/api/chapters/${id}`, { method: 'DELETE' });
+        showToast('Đã xóa chương học thành công.', 'success');
+        await fetchChaptersAndLessons();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    // ==========================================
+    // QUẢN LÝ BÀI GIẢNG (LESSON CRUD)
+    // ==========================================
+    function findLessonById(id) {
+      for (const ch of chaptersData) {
+        const found = (ch.lessons || []).find(l => l.id === id);
+        if (found) return found;
+      }
+      return unassignedLessons.find(l => l.id === id);
+    }
+
+    function openCreateLessonModal(chapterId) {
+      document.getElementById('edit-lesson-id').value = '';
+      document.getElementById('modal-lesson-title').textContent = '➕ Soạn Bài Giảng Lý Thuyết Mới';
+      document.getElementById('lesson-title').value = '';
+      document.getElementById('lesson-chapter').value = chapterId || '';
+      document.getElementById('lesson-order').value = 1;
+      document.getElementById('lesson-category').value = 'Đại số';
+      document.getElementById('lesson-class').value = '';
+      document.getElementById('lesson-video-url').value = '';
+      document.getElementById('lesson-doc-url').value = '';
+      document.getElementById('lesson-summary').value = '';
+      document.getElementById('lesson-formulas').value = '';
+      document.getElementById('lesson-content').value = '';
+      document.getElementById('lesson-modal').classList.add('open');
+    }
+
+    function openEditLessonModal(id) {
+      const lesson = findLessonById(id);
+      if (!lesson) return;
+
+      document.getElementById('edit-lesson-id').value = lesson.id;
+      document.getElementById('modal-lesson-title').textContent = '✏️ Chỉnh Sửa Bài Giảng Lý Thuyết';
+      document.getElementById('lesson-title').value = lesson.title;
+      document.getElementById('lesson-chapter').value = lesson.chapter_id || '';
+      document.getElementById('lesson-order').value = lesson.order_index || 1;
+      document.getElementById('lesson-category').value = lesson.category || 'Đại số';
+      document.getElementById('lesson-class').value = lesson.class_id || '';
+      document.getElementById('lesson-video-url').value = lesson.video_url || '';
+      document.getElementById('lesson-doc-url').value = lesson.document_url || '';
+      document.getElementById('lesson-summary').value = lesson.summary || '';
+      document.getElementById('lesson-formulas').value = lesson.key_formulas || '';
+      document.getElementById('lesson-content').value = lesson.content || '';
+      document.getElementById('lesson-modal').classList.add('open');
+    }
+
+    function closeLessonModal() {
+      document.getElementById('lesson-modal').classList.remove('open');
+    }
+
+    async function saveLesson(e) {
+      e.preventDefault();
+      const id = document.getElementById('edit-lesson-id').value;
+      const title = document.getElementById('lesson-title').value.trim();
+      const chapter_id = document.getElementById('lesson-chapter').value || null;
+      const order_index = document.getElementById('lesson-order').value;
+      const category = document.getElementById('lesson-category').value;
+      const class_id = document.getElementById('lesson-class').value || null;
+      const video_url = document.getElementById('lesson-video-url').value.trim();
+      const document_url = document.getElementById('lesson-doc-url').value.trim();
+      const summary = document.getElementById('lesson-summary').value.trim();
+      const key_formulas = document.getElementById('lesson-formulas').value.trim();
+      const content = document.getElementById('lesson-content').value.trim();
+
+      const btn = document.getElementById('btn-save-lesson');
+      btn.disabled = true;
+      btn.textContent = 'Đang lưu...';
+
+      try {
+        if (id) {
+          await apiRequest(`/api/lessons/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify({ title, chapter_id, order_index, category, class_id, video_url, document_url, summary, key_formulas, content })
+          });
+          showToast('Cập nhật bài giảng thành công!', 'success');
+        } else {
+          await apiRequest('/api/lessons', {
+            method: 'POST',
+            body: JSON.stringify({ title, chapter_id, order_index, category, class_id, video_url, document_url, summary, key_formulas, content })
+          });
+          showToast('Tạo bài giảng mới thành công!', 'success');
+        }
+        closeLessonModal();
+        await fetchChaptersAndLessons();
+      } catch (err) {
+        showToast(err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Lưu bài giảng';
+      }
+    }
+
+    async function confirmDeleteLesson(id, title) {
+      if (!confirm(`Bạn có chắc chắn muốn xóa bài giảng: "${title}" không?`)) return;
+
+      try {
+        await apiRequest(`/api/lessons/${id}`, { method: 'DELETE' });
+        showToast('Đã xóa bài giảng thành công.', 'success');
+        await fetchChaptersAndLessons();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    // ==========================================
+    // XEM CHI TIẾT BÀI GIẢNG & MEDIA
+    // ==========================================
     function viewLessonDetail(id) {
-      const lesson = allLessons.find(l => l.id === id);
+      const lesson = findLessonById(id);
       if (!lesson) return;
 
       document.getElementById('view-lesson-title').textContent = lesson.title;
@@ -590,103 +1018,9 @@
     }
 
     function closeViewLessonModal() {
-      // Dừng video khi đóng modal
       const videoIframe = document.getElementById('view-video-iframe');
       if (videoIframe) videoIframe.src = '';
       document.getElementById('view-lesson-modal').classList.remove('open');
-    }
-
-    // Mở modal tạo mới
-    function openCreateLessonModal() {
-      document.getElementById('edit-lesson-id').value = '';
-      document.getElementById('modal-lesson-title').textContent = '➕ Soạn Bài Giảng Lý Thuyết Mới';
-      document.getElementById('lesson-title').value = '';
-      document.getElementById('lesson-category').value = 'Đại số';
-      document.getElementById('lesson-class').value = '';
-      document.getElementById('lesson-video-url').value = '';
-      document.getElementById('lesson-doc-url').value = '';
-      document.getElementById('lesson-summary').value = '';
-      document.getElementById('lesson-formulas').value = '';
-      document.getElementById('lesson-content').value = '';
-      document.getElementById('lesson-modal').classList.add('open');
-    }
-
-    // Mở modal sửa
-    function openEditLessonModal(id) {
-      const lesson = allLessons.find(l => l.id === id);
-      if (!lesson) return;
-
-      document.getElementById('edit-lesson-id').value = lesson.id;
-      document.getElementById('modal-lesson-title').textContent = '✏️ Chỉnh Sửa Bài Giảng Lý Thuyết';
-      document.getElementById('lesson-title').value = lesson.title;
-      document.getElementById('lesson-category').value = lesson.category || 'Đại số';
-      document.getElementById('lesson-class').value = lesson.class_id || '';
-      document.getElementById('lesson-video-url').value = lesson.video_url || '';
-      document.getElementById('lesson-doc-url').value = lesson.document_url || '';
-      document.getElementById('lesson-summary').value = lesson.summary || '';
-      document.getElementById('lesson-formulas').value = lesson.key_formulas || '';
-      document.getElementById('lesson-content').value = lesson.content || '';
-      document.getElementById('lesson-modal').classList.add('open');
-    }
-
-    function closeLessonModal() {
-      document.getElementById('lesson-modal').classList.remove('open');
-    }
-
-    // Lưu bài giảng
-    async function saveLesson(e) {
-      e.preventDefault();
-      const id = document.getElementById('edit-lesson-id').value;
-      const title = document.getElementById('lesson-title').value.trim();
-      const category = document.getElementById('lesson-category').value;
-      const class_id = document.getElementById('lesson-class').value || null;
-      const video_url = document.getElementById('lesson-video-url').value.trim();
-      const document_url = document.getElementById('lesson-doc-url').value.trim();
-      const summary = document.getElementById('lesson-summary').value.trim();
-      const key_formulas = document.getElementById('lesson-formulas').value.trim();
-      const content = document.getElementById('lesson-content').value.trim();
-
-      const btn = document.getElementById('btn-save-lesson');
-      btn.disabled = true;
-      btn.textContent = 'Đang lưu...';
-
-      try {
-        if (id) {
-          // Update
-          await apiRequest(`/api/lessons/${id}`, {
-            method: 'PUT',
-            body: JSON.stringify({ title, category, class_id, video_url, document_url, summary, key_formulas, content })
-          });
-          showToast('Cập nhật bài giảng lý thuyết thành công!', 'success');
-        } else {
-          // Create
-          await apiRequest('/api/lessons', {
-            method: 'POST',
-            body: JSON.stringify({ title, category, class_id, video_url, document_url, summary, key_formulas, content })
-          });
-          showToast('Tạo bài giảng lý thuyết mới thành công!', 'success');
-        }
-        closeLessonModal();
-        await fetchLessons();
-      } catch (err) {
-        showToast(err.message, 'error');
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Lưu bài giảng';
-      }
-    }
-
-    // Xóa bài giảng
-    async function confirmDeleteLesson(id, title) {
-      if (!confirm(`Bạn có chắc chắn muốn xóa bài giảng: "${title}" không?`)) return;
-
-      try {
-        await apiRequest(`/api/lessons/${id}`, { method: 'DELETE' });
-        showToast('Đã xóa bài giảng thành công.', 'success');
-        await fetchLessons();
-      } catch (err) {
-        showToast(err.message, 'error');
-      }
     }
 
     // Sao lưu dữ liệu

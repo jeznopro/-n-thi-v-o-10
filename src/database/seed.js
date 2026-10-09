@@ -1,224 +1,213 @@
 const bcrypt = require('bcryptjs');
 
 /**
- * Nạp 4 chuyên đề bài giảng lý thuyết ôn thi vào 10 nếu chưa có
+ * Nạp các chương học và bài giảng theo chuẩn phân phối chương trình của Thầy cô
  */
-function seedSampleLessonsIfEmpty(db) {
+function seedSampleChaptersAndLessons(db) {
   try {
-    const lessonCount = db.prepare('SELECT COUNT(*) AS count FROM lessons').get()?.count || 0;
-    if (lessonCount > 0) {
-      try {
-        db.prepare(`
-          UPDATE lessons
-          SET video_url = COALESCE(video_url, 'https://www.youtube.com/watch?v=kqtD5dpn9C8'),
-              document_url = COALESCE(document_url, 'https://docs.google.com/document/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit')
-          WHERE video_url IS NULL OR document_url IS NULL
-        `).run();
-      } catch (e) {}
-      return;
-    }
-
     let teacher = db.prepare("SELECT id FROM users WHERE role = 'teacher' LIMIT 1").get();
     const teacherId = teacher ? teacher.id : 1;
 
-    console.log('📚 Đang nạp 4 Chuyên đề Bài giảng Lý thuyết Toán vào 10 mẫu (Kèm Video & Tài liệu Google Drive)...');
+    // 1. Kiểm tra bảng chapters
+    let chapterCount = db.prepare('SELECT COUNT(*) AS count FROM chapters').get()?.count || 0;
+    if (chapterCount === 0) {
+      console.log('📂 Đang khởi tạo 5 Chương học Toán 9 chuẩn...');
+      const insertChapter = db.prepare(`
+        INSERT INTO chapters (title, description, order_index, class_id, created_by)
+        VALUES (?, ?, ?, NULL, ?)
+      `);
 
+      insertChapter.run(
+        'Chương 1: Phương trình và hệ phương trình bậc nhất hai ẩn',
+        'Phương trình bậc nhất hai ẩn, hệ hai phương trình bậc nhất hai ẩn, các phương pháp giải hệ và giải bài toán bằng cách lập hệ phương trình.',
+        1,
+        teacherId
+      );
+      insertChapter.run(
+        'Chương 2: Phương trình và bất phương trình bậc nhất 1 ẩn',
+        'Bất đẳng thức, bất phương trình bậc nhất một ẩn, phương trình bậc hai một ẩn và định lý Vi-ét ứng dụng ôn thi vào 10.',
+        2,
+        teacherId
+      );
+      insertChapter.run(
+        'Chương 3: Căn bậc hai và căn bậc ba',
+        'Căn bậc hai, căn bậc ba, các phép tính biến đổi căn thức và kỹ thuật rút gọn biểu thức chứa căn bậc hai.',
+        3,
+        teacherId
+      );
+      insertChapter.run(
+        'Chương 4: Hệ thức lượng trong tam giác',
+        'Một số hệ thức về cạnh và đường cao trong tam giác vuông, tỉ số lượng giác góc nhọn và ứng dụng thực tế giải tam giác.',
+        4,
+        teacherId
+      );
+      insertChapter.run(
+        'Chương 5: Đường tròn',
+        'Sự xác định của đường tròn, tính chất đối xứng, vị trí tương đối, tiếp tuyến của đường tròn và tứ giác nội tiếp.',
+        5,
+        teacherId
+      );
+      console.log('✅ Đã nạp thành công 5 Chương học!');
+    }
+
+    // Lấy ID các chương
+    const ch1 = db.prepare("SELECT id FROM chapters WHERE title LIKE '%Chương 1%' LIMIT 1").get();
+    const ch2 = db.prepare("SELECT id FROM chapters WHERE title LIKE '%Chương 2%' LIMIT 1").get();
+    const ch3 = db.prepare("SELECT id FROM chapters WHERE title LIKE '%Chương 3%' LIMIT 1").get();
+    const ch4 = db.prepare("SELECT id FROM chapters WHERE title LIKE '%Chương 4%' LIMIT 1").get();
+    const ch5 = db.prepare("SELECT id FROM chapters WHERE title LIKE '%Chương 5%' LIMIT 1").get();
+
+    // 2. Gán các bài giảng hiện có vào các chương tương ứng nếu chưa có chapter_id
+    if (ch3) {
+      db.prepare(`UPDATE lessons SET chapter_id = ?, order_index = 1 WHERE (id = 1 OR title LIKE '%Rút gọn%') AND (chapter_id IS NULL OR chapter_id = 0)`).run(ch3.id);
+    }
+    if (ch2) {
+      db.prepare(`UPDATE lessons SET chapter_id = ?, order_index = 2 WHERE (id = 2 OR title LIKE '%Vi-ét%') AND (chapter_id IS NULL OR chapter_id = 0)`).run(ch2.id);
+      db.prepare(`UPDATE lessons SET chapter_id = ?, order_index = 3 WHERE (id = 4 OR title LIKE '%Cô-si%') AND (chapter_id IS NULL OR chapter_id = 0)`).run(ch2.id);
+    }
+    if (ch5) {
+      db.prepare(`UPDATE lessons SET chapter_id = ?, order_index = 1 WHERE (id = 3 OR title LIKE '%Tứ giác nội tiếp%') AND (chapter_id IS NULL OR chapter_id = 0)`).run(ch5.id);
+    }
+
+    // 3. Bổ sung bài giảng mẫu cho Chương 1 và Chương 4 nếu chưa có
     const insertLesson = db.prepare(`
-      INSERT INTO lessons (title, category, summary, content, key_formulas, video_url, document_url, class_id, created_by)
-      VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?)
+      INSERT INTO lessons (title, category, summary, content, key_formulas, video_url, document_url, chapter_id, order_index, class_id, created_by)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?)
     `);
 
-    // Chuyên đề 1: Rút gọn biểu thức
-    insertLesson.run(
-      'Chuyên đề 1: Rút gọn biểu thức chứa căn thức bậc hai & Các dạng toán phụ',
-      'Đại số',
-      'Tổng hợp các công thức căn bậc hai, quy trình 4 bước rút gọn và phương pháp xử lý 5 dạng toán phụ hay gặp nhất trong đề thi vào 10.',
-      `### I. Kiến thức cơ bản cần ghi nhớ
+    if (ch1) {
+      const hasCh1Lessons = db.prepare('SELECT COUNT(*) AS count FROM lessons WHERE chapter_id = ?').get(ch1.id)?.count || 0;
+      if (hasCh1Lessons === 0) {
+        insertLesson.run(
+          'Bài 1: Khái niệm hệ hai phương trình bậc nhất hai ẩn & Phương pháp giải (Cộng đại số & Thế)',
+          'Đại số',
+          'Dạng tổng quát của hệ phương trình bậc nhất 2 ẩn, định lý về số nghiệm và 2 phương pháp giải cốt lõi: phương pháp cộng đại số và phương pháp thế.',
+          `### I. Khái niệm Hệ hai phương trình bậc nhất hai ẩn
 
-1. **Điều kiện xác định (ĐKXĐ):**
-   - Biểu thức $\\sqrt{A}$ có nghĩa $\\Leftrightarrow A \\ge 0$.
-   - Phân thức $\\frac{A}{B}$ có nghĩa $\\Leftrightarrow B \\ne 0$.
-   - $\\frac{A}{\\sqrt{B}}$ có nghĩa $\\Leftrightarrow B > 0$.
-   > *Lưu ý sống còn:* Luôn tìm và ghi ĐKXĐ ngay từ dòng đầu tiên của bài toán rút gọn!
+Dạng tổng quát:
+$$\\begin{cases} ax + by = c \\\\ a'x + b'y = c' \\end{cases} \\quad (a^2+b^2 \\ne 0, \\; a'^2+b'^2 \\ne 0)$$
 
-2. **Hằng đẳng thức căn thức:**
-   $$\\sqrt{A^2} = |A| = \\begin{cases} A & \\text{khi } A \\ge 0 \\\\ -A & \\text{khi } A < 0 \\end{cases}$$
-
----
-
-### II. Quy trình 4 bước rút gọn chuẩn
-- **Bước 1:** Đặt điều kiện xác định cho tất cả các căn thức và phân thức trong biểu thức.
-- **Bước 2:** Phân tích các mẫu thức thành nhân tử (dùng hằng đẳng thức $x - 9 = (\\sqrt{x}-3)(\\sqrt{x}+3)$, $x - 4 = (\\sqrt{x}-2)(\\sqrt{x}+2)$...).
-- **Bước 3:** Quy đồng mẫu thức chung, nhân phá ngoặc ở tử số, thu gọn tử số.
-- **Bước 4:** Rút gọn nhân tử chung giữa tử và mẫu, ghi rõ kết quả cuối cùng kèm ĐKXĐ.
+1. **Số nghiệm của hệ phương trình:**
+   - Hệ có nghiệm duy nhất $\\Leftrightarrow \\frac{a}{a'} \\ne \\frac{b}{b'}$.
+   - Hệ vô nghiệm $\\Leftrightarrow \\frac{a}{a'} = \\frac{b}{b'} \\ne \\frac{c}{c'}$.
+   - Hệ có vô số nghiệm $\\Leftrightarrow \\frac{a}{a'} = \\frac{b}{b'} = \\frac{c}{c'}$.
 
 ---
 
-### III. Phương pháp giải 5 dạng câu hỏi phụ thường gặp
+### II. Hai phương pháp giải cơ bản
 
-1. **Tính giá trị biểu thức khi $x = x_0$:**
-   - Nếu $x_0$ có dạng chứa căn như $x = 4 - 2\\sqrt{3}$, hãy đưa về bình phương: $x = (\\sqrt{3} - 1)^2 \\Rightarrow \\sqrt{x} = \\sqrt{3} - 1$.
-   - Kiểm tra ĐKXĐ trước khi thay vào biểu thức đã rút gọn.
+1. **Phương pháp thế:**
+   - Từ một phương trình của hệ, biểu diễn một ẩn theo ẩn kia (ví dụ rút $y = \\dots$ theo $x$).
+   - Thế biểu thức vừa rút vào phương trình còn lại để được phương trình bậc nhất 1 ẩn.
+   - Giải phương trình 1 ẩn rồi tìm nốt ẩn còn lại.
 
-2. **So sánh giá trị biểu thức $P$ với số thực $k$:**
-   - *Quy tắc:* Luôn xét hiệu $P - k$, quy đồng và đánh giá dấu của tử và mẫu theo ĐKXĐ. Tuyệt đối không quy đồng bỏ mẫu khi chưa biết dấu!
+2. **Phương pháp cộng đại số:**
+   - Nhân cả hai vế của mỗi phương trình với một số thích hợp để hệ số của cùng một ẩn bằng nhau hoặc đối nhau.
+   - Trừ hoặc cộng từng vế hai phương trình để triệt tiêu một ẩn.
+   - Giải phương trình 1 ẩn thu được.`,
+          `1. Dạng tổng quát: $\\begin{cases} ax + by = c \\\\ a'x + b'y = c' \\end{cases}$
+2. Nghiệm duy nhất: $\\frac{a}{a'} \\ne \\frac{b}{b'}$
+3. Vô nghiệm: $\\frac{a}{a'} = \\frac{b}{b'} \\ne \\frac{c}{c'}$
+4. Vô số nghiệm: $\\frac{a}{a'} = \\frac{b}{b'} = \\frac{c}{c'}$`,
+          'https://drive.google.com/file/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs/preview',
+          'https://docs.google.com/document/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit',
+          ch1.id,
+          1,
+          teacherId
+        );
 
-3. **Tìm $x$ để biểu thức nhận giá trị nguyên ($P \\in \\mathbb{Z}$):**
-   - *Loại 1 (Bậc tử < bậc mẫu hoặc phân thức dạng $\\frac{k}{\\sqrt{x} + a}$):* Dùng ước số nguyên. $\\sqrt{x} + a$ phải là ước của $k$.
-   - *Loại 2 (Bậc tử = bậc mẫu dạng $\\frac{a\\sqrt{x} + b}{c\\sqrt{x} + d}$):* Lấy tử chia cho mẫu: $P = q + \\frac{r}{c\\sqrt{x} + d}$, sau đó ép phần dư là ước số.
-   - *Loại 3 (Biểu thức chặn được miền giá trị):* Đánh giá khoảng giá trị $m < P < M$, tìm các giá trị nguyên khả dĩ của $P$ rồi giải phương trình tìm $x$.
+        insertLesson.run(
+          'Bài 2: Giải bài toán bằng cách lập hệ phương trình (Toán năng suất & Chuyển động)',
+          'Đại số',
+          'Phương pháp 3 bước lập hệ phương trình cho 2 dạng toán thường gặp nhất trong đề thi vào 10: toán năng suất chung-riêng và toán chuyển động cùng/ngược chiều.',
+          `### I. Quy trình 3 bước giải bài toán bằng cách lập hệ phương trình
 
-4. **Tìm giá trị lớn nhất (GTLN) / nhỏ nhất (GTNN):**
-   - Dùng bất đẳng thức Cô-si (AM-GM) cho các biểu thức dạng $A\\sqrt{x} + \\frac{B}{\\sqrt{x}}$.
-   - Hoặc biến đổi hằng đẳng thức thêm bớt để có dạng $(\\sqrt{x} - m)^2 + k \\ge k$.`,
-      `1. $\\sqrt{A^2} = |A|$
-2. $\\sqrt{A \\cdot B} = \\sqrt{A} \\cdot \\sqrt{B}$ ($A \\ge 0, B \\ge 0$)
-3. $\\sqrt{\\frac{A}{B}} = \\frac{\\sqrt{A}}{\\sqrt{B}}$ ($A \\ge 0, B > 0$)
-4. Trục căn thức: $\\frac{m}{\\sqrt{A} \\pm \\sqrt{B}} = \\frac{m(\\sqrt{A} \\mp \\sqrt{B})}{A - B}$`,
-      teacherId
-    );
+- **Bước 1: Lập hệ phương trình:**
+  - Chọn 2 ẩn số phù hợp và đặt điều kiện thích hợp cho ẩn (đơn vị đo, số tự nhiên, số dương...).
+  - Biểu diễn các đại lượng chưa biết theo ẩn và các đại lượng đã biết.
+  - Lập 2 phương trình biểu thị mối quan hệ giữa các đại lượng.
 
-    // Chuyên đề 2: Hệ thức Vi-ét
-    insertLesson.run(
-      'Chuyên đề 2: Phương trình bậc hai & Định lý Vi-ét cùng các ứng dụng',
-      'Hệ thức Vi-ét',
-      'Toàn bộ kiến thức về biệt thức Delta, định lý Vi-ét thuận/đảo, điều kiện dấu nghiệm và phương pháp giải bài toán chứa tham số m.',
-      `### I. Định lý Vi-ét và Công thức nghiệm
+- **Bước 2: Giải hệ phương trình vừa lập.**
 
-Cho phương trình bậc hai: $ax^2 + bx + c = 0$ ($a \\ne 0$).
-
-1. **Biệt thức:**
-   - $\\Delta = b^2 - 4ac$ (hoặc $\\Delta' = b'^2 - ac$ với $b = 2b'$).
-   - $\\Delta < 0$: Phương trình vô nghiệm.
-   - $\\Delta = 0$: Phương trình có nghiệm kép $x_1 = x_2 = -\\frac{b}{2a}$.
-   - $\\Delta > 0$: Phương trình có 2 nghiệm phân biệt $x_{1,2} = \\frac{-b \\pm \\sqrt{\\Delta}}{2a}$.
-
-2. **Hệ thức Vi-ét:**
-   $$S = x_1 + x_2 = -\\frac{b}{a}, \\quad P = x_1 \\cdot x_2 = \\frac{c}{a}$$
+- **Bước 3: Đối chiếu điều kiện và trả lời bài toán.**
 
 ---
 
-### II. Các hệ thức đối xứng kinh điển thường gặp
+### II. Các công thức then chốt
 
-Khi đề bài yêu cầu thỏa mãn một biểu thức đối xứng giữa $x_1$ và $x_2$, ta biến đổi về tổng $S$ và tích $P$:
+1. **Toán chuyển động:**
+   $$\\text{Quãng đường } S = v \\cdot t, \\quad v = \\frac{S}{t}, \\quad t = \\frac{S}{v}$$
+   - Chuyển động xuôi dòng: $v_{\\text{xuôi}} = v_{\\text{thực}} + v_{\\text{dòng nước}}$
+   - Chuyển động ngược dòng: $v_{\\text{ngược}} = v_{\\text{thực}} - v_{\\text{dòng nước}}$
 
-- $x_1^2 + x_2^2 = (x_1 + x_2)^2 - 2x_1x_2 = S^2 - 2P$
-- $(x_1 - x_2)^2 = (x_1 + x_2)^2 - 4x_1x_2 = S^2 - 4P$
-- $|x_1 - x_2| = \\sqrt{S^2 - 4P}$
-- $x_1^3 + x_2^3 = (x_1 + x_2)(x_1^2 - x_1x_2 + x_2^2) = S(S^2 - 3P)$
-- $\\frac{1}{x_1} + \\frac{1}{x_2} = \\frac{x_1 + x_2}{x_1x_2} = \\frac{S}{P}$
-- $\\frac{x_1}{x_2} + \\frac{x_2}{x_1} = \\frac{x_1^2 + x_2^2}{x_1x_2} = \\frac{S^2 - 2P}{P}$
+2. **Toán năng suất - làm chung làm riêng:**
+   - Coi toàn bộ công việc hoàn thành là $1$ đơn vị.
+   - Năng suất trong 1 ngày (hoặc 1 giờ) là $\\frac{1}{x}$ và $\\frac{1}{y}$.`,
+          `1. $S = v \\cdot t$
+2. $v_{\\text{xuôi}} = v_{\\text{thực}} + v_{\\text{nước}}$
+3. $v_{\\text{ngược}} = v_{\\text{thực}} - v_{\\text{nước}}$
+4. Năng suất 1 đơn vị thời gian: $\\frac{1}{x} + \\frac{1}{y} = \\frac{1}{t_{\\text{chung}}}$`,
+          'https://drive.google.com/file/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs/preview',
+          'https://docs.google.com/document/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit',
+          ch1.id,
+          2,
+          teacherId
+        );
+      }
+    }
 
----
+    if (ch4) {
+      const hasCh4Lessons = db.prepare('SELECT COUNT(*) AS count FROM lessons WHERE chapter_id = ?').get(ch4.id)?.count || 0;
+      if (hasCh4Lessons === 0) {
+        insertLesson.run(
+          'Bài 1: Các hệ thức lượng trong tam giác vuông & Tỉ số lượng giác',
+          'Hình học',
+          'Hệ thống 5 công thức hệ thức lượng trong tam giác vuông cùng định nghĩa $\\sin, \\cos, \\tan, \\cot$ và các hệ thức lượng giác cơ bản.',
+          `### I. Các hệ thức về cạnh và đường cao trong tam giác vuông
 
-### III. Điều kiện dấu của 2 nghiệm
+Cho tam giác $ABC$ vuông tại $A$, đường cao $AH$. Đặt $BC = a, AC = b, AB = c, AH = h, BH = c', CH = b'$.
 
-- Phương trình có 2 nghiệm trái dấu $\\Leftrightarrow ac < 0$.
-- Phương trình có 2 nghiệm cùng dấu $\\Leftrightarrow \\begin{cases} \\Delta \\ge 0 \\\\ P > 0 \\end{cases}$
-- Phương trình có 2 nghiệm cùng dương $\\Leftrightarrow \\begin{cases} \\Delta \\ge 0 \\\\ S > 0 \\\\ P > 0 \\end{cases}$
-- Phương trình có 2 nghiệm cùng âm $\\Leftrightarrow \\begin{cases} \\Delta \\ge 0 \\\\ S < 0 \\\\ P > 0 \\end{cases}$`,
-      `1. $\\Delta = b^2 - 4ac$
-2. $S = x_1 + x_2 = -\\frac{b}{a}$
-3. $P = x_1 \\cdot x_2 = \\frac{c}{a}$
-4. $x_1^2 + x_2^2 = S^2 - 2P$
-5. $(x_1 - x_2)^2 = S^2 - 4P$`,
-      teacherId
-    );
-
-    // Chuyên đề 3: Tứ giác nội tiếp
-    insertLesson.run(
-      'Chuyên đề 3: Tứ giác nội tiếp đường tròn & Kỹ thuật chứng minh hình học 9',
-      'Hình học',
-      '4 Dấu hiệu nhận biết tứ giác nội tiếp, chuỗi tính chất về góc trong đường tròn và chiến thuật tư duy các câu hình thi vào 10.',
-      `### I. 4 Dấu hiệu nhận biết Tứ giác nội tiếp
-
-Một tứ giác $ABCD$ nội tiếp đường tròn nếu thỏa mãn một trong các dấu hiệu sau:
-
-1. **Dấu hiệu 1 (Tổng 2 góc đối bằng $180^\\circ$):**
-   $$\\widehat{A} + \\widehat{C} = 180^\\circ \\quad \\text{hoặc} \\quad \\widehat{B} + \\widehat{D} = 180^\\circ$$
-   *(Thường gặp nhất khi có hai góc vuông đối nhau như $\\widehat{ABC} = \\widehat{ADC} = 90^\\circ$)*.
-
-2. **Dấu hiệu 2 (Hai đỉnh cùng nhìn một cạnh dưới hai góc bằng nhau):**
-   Hai đỉnh kề nhau cùng nhìn cạnh chứa hai đỉnh còn lại dưới một góc bằng nhau:
-   $$\\widehat{DAC} = \\widehat{DBC}$$
-   *(Thường gặp khi tứ giác có hai đường chéo cắt nhau, xuất hiện 2 tam giác vuông có chung cạnh huyền)*.
-
-3. **Dấu hiệu 3 (Góc ngoài bằng góc đối trong):**
-   Góc ngoài tại một đỉnh bằng góc trong tại đỉnh đối diện của đỉnh đó.
-
-4. **Dấu hiệu 4 (Cách đều tâm):**
-   Bốn đỉnh $A, B, C, D$ cùng cách đều một điểm $O$ cố định:
-   $$OA = OB = OC = OD = R$$
+1. $b^2 = a \\cdot b', \\quad c^2 = a \\cdot c'$ (Bình phương cạnh góc vuông bằng tích cạnh huyền với hình chiếu)
+2. $h^2 = b' \\cdot c'$ (Bình phương đường cao bằng tích hai hình chiếu)
+3. $b \\cdot c = a \\cdot h$ (Tích hai cạnh góc vuông bằng tích cạnh huyền với đường cao)
+4. $\\frac{1}{h^2} = \\frac{1}{b^2} + \\frac{1}{c^2}$ (Nghịch đảo bình phương đường cao)
+5. $a^2 = b^2 + c^2$ (Định lý Pythagore)
 
 ---
 
-### II. Các góc với đường tròn cần thuộc lòng
+### II. Tỉ số lượng giác của góc nhọn $\\alpha$
 
-- **Góc nội tiếp và góc ở tâm:** $\\widehat{AMB} = \\frac{1}{2} \\widehat{AOB} = \\frac{1}{2} \\text{sđ}\\overparen{AB}$.
-- **Góc tạo bởi tiếp tuyến và dây cung:** Số đo bằng một nửa số đo cung bị chắn $\\Rightarrow$ Bằng góc nội tiếp cùng chắn cung đó:
-  $$\\widehat{xAB} = \\widehat{ACB} = \\frac{1}{2} \\text{sđ}\\overparen{AB}$$
-- **Hệ quả cực kỳ hay dùng:** Mọi góc nội tiếp chắn nửa đường tròn đều là góc vuông ($90^\\circ$).`,
-      `1. Dấu hiệu 1: $\\widehat{A} + \\widehat{C} = 180^\\circ$
-2. Dấu hiệu 2: $\\widehat{DAC} = \\widehat{DBC}$
-3. Dấu hiệu 3: Góc ngoài = góc đối trong
-4. Dấu hiệu 4: Cùng cách đều tâm $O$ bán kính $R$
-5. Tiếp tuyến & dây cung: $\\widehat{xAB} = \\widehat{ACB}$`,
-      teacherId
-    );
+- $\\sin \\alpha = \\frac{\\text{Đối}}{\\text{Huyền}}$
+- $\\cos \\alpha = \\frac{\\text{Kề}}{\\text{Huyền}}$
+- $\\tan \\alpha = \\frac{\\text{Đối}}{\\text{Kề}}$
+- $\\cot \\alpha = \\frac{\\text{Kề}}{\\text{Đối}}$
 
-    // Chuyên đề 4: Bất đẳng thức Cô-si
-    insertLesson.run(
-      'Chuyên đề 4: Bất đẳng thức Cô-si (AM-GM) & Kỹ thuật chọn điểm rơi (Câu phân loại 9 - 10 điểm)',
-      'Bất đẳng thức & Cực trị',
-      'Bí quyết chinh phục câu cuối cùng phân loại học sinh giỏi: Bất đẳng thức AM-GM, Cauchy-Schwarz dạng Engel và kỹ thuật thêm bớt hạng tử.',
-      `### I. Bất đẳng thức AM-GM (Cô-si)
+**Các công thức lượng giác cơ bản:**
+$$\\sin^2 \\alpha + \\cos^2 \\alpha = 1, \\quad \\tan \\alpha = \\frac{\\sin \\alpha}{\\cos \\alpha}, \\quad \\tan \\alpha \\cdot \\cot \\alpha = 1$$`,
+          `1. $b^2 = a \\cdot b', \\; c^2 = a \\cdot c'$
+2. $h^2 = b' \\cdot c'$
+3. $b \\cdot c = a \\cdot h$
+4. $\\frac{1}{h^2} = \\frac{1}{b^2} + \\frac{1}{c^2}$
+5. $\\sin^2 \\alpha + \\cos^2 \\alpha = 1$`,
+          'https://drive.google.com/file/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs/preview',
+          'https://docs.google.com/document/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit',
+          ch4.id,
+          1,
+          teacherId
+        );
+      }
+    }
 
-1. **Cho 2 số không âm $a, b \\ge 0$:**
-   $$a + b \\ge 2\\sqrt{ab}$$
-   *Dấu đẳng thức xảy ra khi và chỉ khi:* $a = b$.
-
-   *Hệ quả thường dùng:*
-   - $ab \\le \\frac{(a+b)^2}{4}$
-   - $a^2 + b^2 \\ge 2ab$
-   - $(a+b)^2 \\ge 4ab$
-
-2. **Cho 3 số không âm $a, b, c \\ge 0$:**
-   $$a + b + c \\ge 3\\sqrt[3]{abc}$$
-   *Dấu đẳng thức xảy ra khi và chỉ khi:* $a = b = c$.
-
----
-
-### II. Bất đẳng thức Cauchy-Schwarz dạng phân thức (BĐT Engel / Schwarz)
-
-Cho các số thực $x, y$ và các số dương $a, b > 0$:
-$$\\frac{x^2}{a} + \\frac{y^2}{b} \\ge \\frac{(x+y)^2}{a+b}$$
-*Dấu đẳng thức xảy ra khi:* $\\frac{x}{a} = \\frac{y}{b}$.
-
-*Mở rộng cho 3 số:*
-$$\\frac{x^2}{a} + \\frac{y^2}{b} + \\frac{z^2}{c} \\ge \\frac{(x+y+z)^2}{a+b+c}$$
-*(Đây là công cụ số 1 để giải các bài toán cực trị có chứa phân thức đối xứng trong đề thi vào 10)*.
-
----
-
-### III. Kỹ thuật then chốt: Chọn điểm rơi
-
-*Nguyên tắc vàng:* Trước khi áp dụng AM-GM, phải dự đoán chính xác giá trị của các biến khi đạt cực trị (điểm rơi).
-- **Ví dụ kinh điển:** Cho $x \\ge 2$. Tìm GTNN của $P = x + \\frac{1}{x}$.
-  - Sai lầm thường gặp: Áp dụng ngay $x + \\frac{1}{x} \\ge 2\\sqrt{x \\cdot \\frac{1}{x}} = 2$ (Dấu '=' xảy ra khi $x = 1$, trái với giả thiết $x \\ge 2$!).
-  - Cách làm đúng (Tách theo điểm rơi $x = 2$):
-    $$P = \\left(\\frac{x}{4} + \\frac{1}{x}\\right) + \\frac{3x}{4} \\ge 2\\sqrt{\\frac{x}{4} \\cdot \\frac{1}{x}} + \\frac{3 \\cdot 2}{4} = 1 + \\frac{3}{2} = \\frac{5}{2}$$
-    Dấu '=' xảy ra khi $\\frac{x}{4} = \\frac{1}{x} \\Leftrightarrow x = 2$ (thỏa mãn). Vậy $\\min P = \\frac{5}{2}$.`,
-      `1. AM-GM (2 số): $a + b \\ge 2\\sqrt{ab}$ ($a, b \\ge 0$)
-2. BĐT Engel: $\\frac{x^2}{a} + \\frac{y^2}{b} \\ge \\frac{(x+y)^2}{a+b}$ ($a,b > 0$)
-3. $(a+b)\\left(\\frac{1}{a} + \\frac{1}{b}\\right) \\ge 4$
-4. $a^2 + b^2 + c^2 \\ge ab + bc + ca$`,
-      teacherId
-    );
-
-    console.log('✅ Đã nạp thành công 4 Chuyên đề Bài giảng Lý thuyết Toán vào 10!');
   } catch (err) {
-    console.warn('⚠️ Lỗi nạp bài giảng lý thuyết:', err.message);
+    console.warn('⚠️ Lỗi nạp chương và bài giảng:', err.message);
   }
+}
+
+/**
+ * Nạp 4 chuyên đề bài giảng lý thuyết ôn thi vào 10 nếu chưa có
+ */
+function seedSampleLessonsIfEmpty(db) {
+  seedSampleChaptersAndLessons(db);
 }
 
 /**

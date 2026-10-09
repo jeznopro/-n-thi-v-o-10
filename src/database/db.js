@@ -23,19 +23,39 @@ db.pragma('foreign_keys = ON');
 
 module.exports = db;
 
-// Đọc và khởi tạo schema nếu chưa có
 function initSchema() {
-  const schemaPath = path.join(__dirname, 'schema.sql');
-  const schemaSql = fs.readFileSync(schemaPath, 'utf8');
-  db.exec(schemaSql);
+  // Đảm bảo bảng chapters và các cột mới trong lessons tồn tại trước khi chạy các index trong schemaSql
+  try {
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS chapters (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        description TEXT,
+        order_index INTEGER DEFAULT 0,
+        class_id INTEGER,
+        created_by INTEGER,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+  } catch (e) {}
 
-  // Đảm bảo các cột mới trong bảng lessons luôn tồn tại
   try {
     db.exec(`ALTER TABLE lessons ADD COLUMN video_url TEXT DEFAULT NULL;`);
   } catch (e) {}
   try {
     db.exec(`ALTER TABLE lessons ADD COLUMN document_url TEXT DEFAULT NULL;`);
   } catch (e) {}
+  try {
+    db.exec(`ALTER TABLE lessons ADD COLUMN chapter_id INTEGER;`);
+  } catch (e) {}
+  try {
+    db.exec(`ALTER TABLE lessons ADD COLUMN order_index INTEGER DEFAULT 0;`);
+  } catch (e) {}
+
+  const schemaPath = path.join(__dirname, 'schema.sql');
+  const schemaSql = fs.readFileSync(schemaPath, 'utf8');
+  db.exec(schemaSql);
 
   // Tự động nạp dữ liệu mẫu ban đầu nếu triển khai mới trên Render / VPS
   try {

@@ -24,7 +24,7 @@ function downloadBackup(req, res, next) {
     const tables = [
       'users', 'classes', 'class_members', 'assignments',
       'assignment_targets', 'rubrics', 'submissions', 'grades',
-      'lessons'
+      'chapters', 'lessons'
     ];
 
     const backupData = {
@@ -149,11 +149,20 @@ function restoreBackup(req, res, next) {
         data.grades.forEach(g => stmtGrade.run(g));
       }
 
-      // 9. Phục hồi lessons
+      // 9. Phục hồi chapters
+      if (Array.isArray(data.chapters)) {
+        const stmtChapter = db.prepare(`
+          INSERT OR REPLACE INTO chapters (id, title, description, order_index, class_id, created_by)
+          VALUES (@id, @title, @description, @order_index, @class_id, @created_by)
+        `);
+        data.chapters.forEach(c => stmtChapter.run(c));
+      }
+
+      // 10. Phục hồi lessons
       if (Array.isArray(data.lessons)) {
         const stmtLesson = db.prepare(`
-          INSERT OR REPLACE INTO lessons (id, title, category, summary, content, key_formulas, video_url, document_url, class_id, attachment_url, created_by)
-          VALUES (@id, @title, @category, @summary, @content, @key_formulas, @video_url, @document_url, @class_id, @attachment_url, @created_by)
+          INSERT OR REPLACE INTO lessons (id, title, category, summary, content, key_formulas, video_url, document_url, class_id, chapter_id, order_index, attachment_url, created_by)
+          VALUES (@id, @title, @category, @summary, @content, @key_formulas, @video_url, @document_url, @class_id, @chapter_id, @order_index, @attachment_url, @created_by)
         `);
         data.lessons.forEach(l => stmtLesson.run(l));
       }

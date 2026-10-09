@@ -201,9 +201,24 @@ CREATE INDEX IF NOT EXISTS idx_ai_diagnostics_student ON ai_diagnostics(student_
 CREATE INDEX IF NOT EXISTS idx_ai_diagnostics_assignment ON ai_diagnostics(assignment_id);
 CREATE INDEX IF NOT EXISTS idx_ai_diagnostics_severity ON ai_diagnostics(severity);
 
--- 12. Bảng bài giảng lý thuyết ôn thi vào 10 (Lessons)
+-- 12. Bảng các Chương học / Chuyên đề lớn (Chapters)
+CREATE TABLE IF NOT EXISTS chapters (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    description TEXT,
+    order_index INTEGER DEFAULT 0,
+    class_id INTEGER REFERENCES classes(id) ON DELETE SET NULL,
+    created_by INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_chapters_order ON chapters(order_index);
+
+-- 13. Bảng bài giảng lý thuyết trong các chương (Lessons)
 CREATE TABLE IF NOT EXISTS lessons (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    chapter_id INTEGER REFERENCES chapters(id) ON DELETE CASCADE,
     title TEXT NOT NULL,
     category TEXT NOT NULL DEFAULT 'Đại số', -- 'Đại số', 'Hình học', 'Hệ thức Vi-ét', 'Bất đẳng thức & Cực trị', 'Toán thực tế'
     summary TEXT,
@@ -211,6 +226,7 @@ CREATE TABLE IF NOT EXISTS lessons (
     key_formulas TEXT, -- Công thức trọng tâm dạng text/markdown
     video_url TEXT DEFAULT NULL, -- Link Google Drive hoặc YouTube video bài giảng
     document_url TEXT DEFAULT NULL, -- Link Google Drive tài liệu PDF/Docs bài học
+    order_index INTEGER DEFAULT 0,
     class_id INTEGER REFERENCES classes(id) ON DELETE SET NULL, -- NULL: tất cả học sinh được xem
     attachment_url TEXT DEFAULT NULL,
     created_by INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -218,6 +234,7 @@ CREATE TABLE IF NOT EXISTS lessons (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE INDEX IF NOT EXISTS idx_lessons_chapter ON lessons(chapter_id);
 CREATE INDEX IF NOT EXISTS idx_lessons_category ON lessons(category);
 CREATE INDEX IF NOT EXISTS idx_lessons_class ON lessons(class_id);
 CREATE INDEX IF NOT EXISTS idx_lessons_created ON lessons(created_at);

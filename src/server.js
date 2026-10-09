@@ -18,6 +18,7 @@ const gradingRoutes = require('./routes/gradingRoutes');
 const auditRoutes = require('./routes/auditRoutes');
 const aiRoutes = require('./routes/aiRoutes');
 const lessonRoutes = require('./routes/lessonRoutes');
+const chapterRoutes = require('./routes/chapterRoutes');
 const systemRoutes = require('./routes/systemRoutes');
 
 const app = express();
@@ -55,6 +56,7 @@ app.use('/api/submissions', submissionRoutes);
 app.use('/api/grading', gradingRoutes);
 app.use('/api/teacher', auditRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/chapters', chapterRoutes);
 app.use('/api/lessons', lessonRoutes);
 app.use('/api/system', systemRoutes);
 
