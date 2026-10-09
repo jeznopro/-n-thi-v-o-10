@@ -19,8 +19,8 @@ function seedDatabase() {
   `);
 
   const saltRounds = 10;
-  const teacherPasswordHash = bcrypt.hashSync('Giaovien@123', saltRounds);
-  const studentPasswordHash = bcrypt.hashSync('Hocsinh@123', saltRounds);
+  const teacherPasswordHash = bcrypt.hashSync('123456', saltRounds);
+  const studentPasswordHash = bcrypt.hashSync('123456', saltRounds);
 
   const insertUser = db.prepare(`
     INSERT INTO users (username, password_hash, full_name, role, status, must_change_password)
