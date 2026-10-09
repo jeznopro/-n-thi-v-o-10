@@ -52,6 +52,12 @@ function initSchema() {
   try {
     db.exec(`ALTER TABLE lessons ADD COLUMN order_index INTEGER DEFAULT 0;`);
   } catch (e) {}
+  try {
+    db.exec(`ALTER TABLE lessons ADD COLUMN html_content TEXT DEFAULT NULL;`);
+  } catch (e) {}
+  try {
+    db.exec(`ALTER TABLE lessons ADD COLUMN html_filename TEXT DEFAULT NULL;`);
+  } catch (e) {}
 
   const schemaPath = path.join(__dirname, 'schema.sql');
   const schemaSql = fs.readFileSync(schemaPath, 'utf8');

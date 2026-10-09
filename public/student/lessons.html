@@ -431,7 +431,7 @@
         <!-- TABS ĐIỀU HƯỚNG NỘI DUNG -->
         <div class="lesson-tabs">
           <button type="button" class="lesson-tab-btn active" id="tab-btn-video" onclick="switchLessonTab('video')">🎬 Video bài giảng</button>
-          <button type="button" class="lesson-tab-btn" id="tab-btn-doc" onclick="switchLessonTab('doc')">📄 Tài liệu Drive</button>
+          <button type="button" class="lesson-tab-btn" id="tab-btn-doc" onclick="switchLessonTab('doc')">🌐 Bài học HTML</button>
           <button type="button" class="lesson-tab-btn" id="tab-btn-formula" onclick="switchLessonTab('formula')">⚡ Công thức trọng tâm</button>
           <button type="button" class="lesson-tab-btn" id="tab-btn-content" onclick="switchLessonTab('content')">📖 Hướng dẫn chi tiết</button>
         </div>
@@ -442,13 +442,32 @@
             <iframe id="modal-video-iframe" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe>
           </div>
           <p id="no-video-hint" style="display: none; text-align: center; color: #64748b; padding: 30px; background: #f8fafc; border-radius: 12px;">
-            Thầy cô chưa đính kèm video cho bài giảng này. Bạn hãy chuyển sang tab <strong>Tài liệu Drive</strong> hoặc <strong>Công thức trọng tâm</strong> để ôn tập nhé!
+            Thầy cô chưa đính kèm video cho bài giảng này. Bạn hãy chuyển sang tab <strong>Bài học HTML</strong> hoặc <strong>Công thức trọng tâm</strong> để ôn tập nhé!
           </p>
         </div>
 
-        <!-- TAB 2: TÀI LIỆU GOOGLE DRIVE -->
+        <!-- TAB 2: BÀI HỌC HTML / TÀI LIỆU -->
         <div id="tab-content-doc" style="display: none;">
-          <div id="modal-doc-container">
+          <!-- Khung xem bài học HTML -->
+          <div id="modal-html-container" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+              <span style="font-weight: 700; color: #7c3aed; display: flex; align-items: center; gap: 6px;">
+                🌐 Bài giảng lý thuyết (HTML tương tác):
+              </span>
+              <div style="display: flex; gap: 8px;">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="toggleHtmlFullscreen('modal-html-iframe')" style="font-weight: 700;">
+                  ⛶ Toàn màn hình
+                </button>
+                <a id="modal-html-link" href="#" target="_blank" class="btn btn-secondary btn-sm" style="font-weight: 700; color: #7c3aed;">
+                  ↗ Mở trang riêng
+                </a>
+              </div>
+            </div>
+            <iframe id="modal-html-iframe" src="" style="width: 100%; height: 560px; border: 1.5px solid #cbd5e1; border-radius: 14px; background: #ffffff;"></iframe>
+          </div>
+
+          <!-- Khung xem tài liệu Google Drive (nếu có) -->
+          <div id="modal-doc-container" style="display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
               <span style="font-weight: 700; color: #1e3a8a;">📄 Đọc tài liệu PDF / Docs:</span>
               <a id="modal-doc-link" href="#" target="_blank" class="btn btn-secondary btn-sm" style="font-weight: 700; color: #2563eb;">
@@ -457,8 +476,9 @@
             </div>
             <iframe id="modal-doc-iframe" src="" style="width: 100%; height: 500px; border: 1.5px solid #cbd5e1; border-radius: 14px;"></iframe>
           </div>
+
           <p id="no-doc-hint" style="display: none; text-align: center; color: #64748b; padding: 30px; background: #f8fafc; border-radius: 12px;">
-            Thầy cô chưa đính kèm file tài liệu Google Drive riêng. Bạn có thể xem phần <strong>Hướng dẫn chi tiết</strong> bên dưới.
+            Thầy cô chưa đính kèm file HTML bài giảng riêng cho bài học này. Bạn hãy xem tab <strong>Hướng dẫn chi tiết</strong> hoặc <strong>Video</strong> để học nhé!
           </p>
         </div>
 
@@ -703,7 +723,7 @@
 
             <div style="display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap;">
               ${l.video_url ? '<span class="media-badge badge-video">🎬 Video Drive</span>' : ''}
-              ${l.document_url ? '<span class="media-badge badge-doc">📄 Tài liệu Drive</span>' : ''}
+              ${(l.html_content || l.html_filename) ? '<span class="media-badge" style="background: #f5f3ff; color: #7c3aed; border: 1px solid #ddd6fe;">🌐 Bài học HTML</span>' : (l.document_url ? '<span class="media-badge badge-doc">📄 Tài liệu Drive</span>' : '')}
               ${l.order_index ? `<span style="font-size: 0.75rem; background: #f1f5f9; padding: 2px 8px; border-radius: 4px; color: #475569; font-weight: 600;">Bài ${l.order_index}</span>` : ''}
             </div>
 
@@ -761,9 +781,19 @@
       return (unassignedLessons || []).find(l => l.id == id);
     }
 
+    function toggleHtmlFullscreen(iframeId) {
+      const iframe = document.getElementById(iframeId);
+      if (!iframe) return;
+      if (iframe.requestFullscreen) {
+        iframe.requestFullscreen();
+      } else if (iframe.webkitRequestFullscreen) {
+        iframe.webkitRequestFullscreen();
+      }
+    }
+
     async function openLessonModal(id) {
       let lesson = findStudentLessonById(id);
-      if (!lesson) {
+      if (!lesson || !lesson.html_content) {
         try {
           const res = await apiRequest(`/api/lessons/${id}`);
           lesson = res.lesson;
@@ -800,18 +830,31 @@
         noVideoHint.style.display = 'block';
       }
 
-      // Tài liệu
+      // Bài học HTML hoặc Tài liệu Drive
+      const htmlContainer = document.getElementById('modal-html-container');
+      const htmlIframe = document.getElementById('modal-html-iframe');
+      const htmlLink = document.getElementById('modal-html-link');
       const docContainer = document.getElementById('modal-doc-container');
       const docIframe = document.getElementById('modal-doc-iframe');
       const docLink = document.getElementById('modal-doc-link');
       const noDocHint = document.getElementById('no-doc-hint');
-      if (lesson.document_url && lesson.document_url.trim()) {
+
+      if (lesson.html_content || lesson.html_filename) {
+        htmlIframe.src = `/api/lessons/${lesson.id}/html`;
+        htmlLink.href = `/api/lessons/${lesson.id}/html`;
+        htmlContainer.style.display = 'block';
+        docContainer.style.display = 'none';
+        noDocHint.style.display = 'none';
+      } else if (lesson.document_url && lesson.document_url.trim()) {
         docIframe.src = getEmbedUrl(lesson.document_url);
         docLink.href = lesson.document_url;
         docContainer.style.display = 'block';
+        htmlContainer.style.display = 'none';
         noDocHint.style.display = 'none';
       } else {
+        htmlIframe.src = '';
         docIframe.src = '';
+        htmlContainer.style.display = 'none';
         docContainer.style.display = 'none';
         noDocHint.style.display = 'block';
       }
@@ -827,10 +870,10 @@
       // Nội dung chi tiết
       document.getElementById('modal-content').innerHTML = formatMarkdown(lesson.content);
 
-      // Mặc định mở tab Video nếu có video, nếu không thì mở tab Công thức
+      // Mặc định mở tab Video nếu có video, hoặc tab Bài học HTML nếu có HTML, nếu không thì mở tab Công thức
       if (lesson.video_url && lesson.video_url.trim()) {
         switchLessonTab('video');
-      } else if (lesson.document_url && lesson.document_url.trim()) {
+      } else if (lesson.html_content || lesson.document_url) {
         switchLessonTab('doc');
       } else {
         switchLessonTab('formula');
@@ -851,6 +894,10 @@
     function closeLessonModal() {
       const videoIframe = document.getElementById('modal-video-iframe');
       if (videoIframe) videoIframe.src = '';
+      const docIframe = document.getElementById('modal-doc-iframe');
+      if (docIframe) docIframe.src = '';
+      const htmlIframe = document.getElementById('modal-html-iframe');
+      if (htmlIframe) htmlIframe.src = '';
       document.getElementById('lesson-modal').classList.remove('open');
     }
 

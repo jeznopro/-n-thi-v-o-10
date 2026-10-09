@@ -437,30 +437,70 @@
             </div>
           </div>
 
-          <!-- KHUNG LIÊN KẾT GOOGLE DRIVE VIDEO & TÀI LIỆU -->
-          <div style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 14px; padding: 16px 20px; margin-bottom: 18px;">
-            <div style="font-weight: 800; color: #1e3a8a; font-size: 0.95rem; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
-              📁 Liên kết Video & Tài liệu Google Drive
+          <!-- KHUNG LIÊN KẾT VIDEO DRIVE & NHẬP BÀI HỌC FILE HTML -->
+          <div style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 14px; padding: 18px 20px; margin-bottom: 18px;">
+            <div style="font-weight: 800; color: #1e3a8a; font-size: 0.95rem; margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
+              📁 Video Bài Giảng & File HTML Bài Học
             </div>
             
-            <div class="form-group" style="margin-bottom: 14px;">
-              <label class="form-label" for="lesson-video-url">
+            <!-- VIDEO BÀI GIẢNG GOOGLE DRIVE / YOUTUBE (GIỮ NGUYÊN) -->
+            <div class="form-group" style="margin-bottom: 16px;">
+              <label class="form-label" for="lesson-video-url" style="color: #b91c1c; font-weight: 700;">
                 🎬 Link Video bài giảng (Google Drive hoặc YouTube)
               </label>
-              <input type="url" id="lesson-video-url" class="form-control" placeholder="Ví dụ: https://drive.google.com/file/d/1a2b3c4d.../view hoặc https://youtube.com/watch?v=...">
+              <input type="url" id="lesson-video-url" class="form-control" placeholder="Ví dụ: https://drive.google.com/file/d/.../view hoặc https://youtube.com/watch?v=...">
               <p style="font-size: 0.8rem; color: #64748b; margin-top: 4px; margin-bottom: 0;">
-                💡 <em>Cách lấy trên Google Drive:</em> Chuột phải vào video $\rightarrow$ Chia sẻ $\rightarrow$ Đặt quyền <strong>"Bất kỳ ai có đường liên kết đều có thể xem"</strong> rồi sao chép link dán vào đây. Hệ thống sẽ tự động nhúng video xem trực tiếp!
+                💡 <em>Video Google Drive:</em> Chuột phải vào video &rarr; Chia sẻ &rarr; Đặt quyền <strong>"Bất kỳ ai có đường liên kết đều có thể xem"</strong> để hệ thống nhúng phát trực tiếp cho học sinh.
               </p>
             </div>
 
+            <!-- NHẬP BÀI HỌC BẰNG FILE HTML -->
             <div class="form-group" style="margin-bottom: 4px;">
-              <label class="form-label" for="lesson-doc-url">
-                📄 Link Tài liệu học tập (Google Drive PDF / Docs / Slides)
-              </label>
-              <input type="url" id="lesson-doc-url" class="form-control" placeholder="Ví dụ: https://drive.google.com/file/d/... hoặc https://docs.google.com/document/d/...">
-              <p style="font-size: 0.8rem; color: #64748b; margin-top: 4px; margin-bottom: 0;">
-                💡 Hệ thống sẽ tự động hiển thị khung xem trước file PDF/Word/Slides và nút mở tài liệu trực tiếp trên Google Drive cho học sinh.
-              </p>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <label class="form-label" style="font-weight: 700; color: #1d4ed8; margin-bottom: 0;">
+                  🌐 Bài giảng lý thuyết (Nhập File HTML)
+                </label>
+                <span id="html-file-badge" style="font-size: 0.75rem; background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 6px; font-weight: 600; display: none;">
+                  Đã nạp file HTML
+                </span>
+              </div>
+
+              <!-- VÙNG TẢI FILE HTML TỪ MÁY TÍNH -->
+              <div id="html-upload-box" style="border: 2px dashed #93c5fd; background: #eff6ff; border-radius: 12px; padding: 18px 20px; text-align: center; cursor: pointer; transition: all 0.2s;" onclick="document.getElementById('lesson-html-file-input').click()">
+                <input type="file" id="lesson-html-file-input" accept=".html,.htm" style="display: none;" onchange="handleHtmlFileSelect(event)">
+                <div style="font-size: 2rem; margin-bottom: 4px;">📄</div>
+                <div style="font-weight: 700; color: #1e40af; font-size: 0.95rem;">Bấm vào đây để chọn File bài giảng HTML (.html) từ máy tính</div>
+                <div style="font-size: 0.8rem; color: #64748b; margin-top: 4px;">Hỗ trợ toàn bộ trang web bài giảng HTML, Morph SVG, KaTeX công thức Toán, tương tác mượt mà</div>
+              </div>
+
+              <!-- THÔNG TIN FILE HTML ĐANG NẠP -->
+              <div id="html-file-preview-card" style="display: none; margin-top: 10px; background: #ffffff; border: 1.5px solid #bfdbfe; border-radius: 10px; padding: 10px 14px; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <span style="font-size: 1.4rem;">🌐</span>
+                  <div>
+                    <div id="html-file-name-display" style="font-weight: 700; color: #0f172a; font-size: 0.9rem;">ten_file.html</div>
+                    <div id="html-file-size-display" style="font-size: 0.75rem; color: #64748b;">0 KB</div>
+                  </div>
+                </div>
+                <div style="display: flex; gap: 6px;">
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="previewLoadedHtml()" style="font-weight: 600;">👁️ Xem thử HTML</button>
+                  <button type="button" class="btn btn-danger btn-sm" onclick="clearLoadedHtml()" style="font-weight: 600;">🗑️ Gỡ file</button>
+                </div>
+              </div>
+
+              <!-- TÙY CHỌN DÁN MÃ HTML HOẶC LINK DỰ PHÒNG -->
+              <div style="margin-top: 10px;">
+                <a href="javascript:void(0)" onclick="toggleAdvancedHtmlBox()" id="toggle-advanced-html-link" style="font-size: 0.8rem; color: #475569; text-decoration: underline;">
+                  ✏️ Hoặc dán trực tiếp mã HTML / Link tài liệu Drive
+                </a>
+                <div id="advanced-html-panel" style="display: none; margin-top: 8px;">
+                  <label class="form-label" for="lesson-html-raw" style="font-size: 0.8rem; color: #475569; margin-bottom: 4px;">Mã HTML bài giảng:</label>
+                  <textarea id="lesson-html-raw" class="form-control" rows="4" placeholder="<!DOCTYPE html>... dán mã HTML bài học tại đây..." style="font-family: monospace; font-size: 0.8rem;" oninput="onRawHtmlInput()"></textarea>
+                  
+                  <label class="form-label" for="lesson-doc-url" style="font-size: 0.8rem; color: #475569; margin-top: 8px; margin-bottom: 4px;">Hoặc link tài liệu Drive (dự phòng):</label>
+                  <input type="url" id="lesson-doc-url" class="form-control" placeholder="https://drive.google.com/file/d/...">
+                </div>
+              </div>
             </div>
           </div>
 
@@ -515,7 +555,25 @@
           </div>
         </div>
 
-        <!-- KHUNG TÀI LIỆU GOOGLE DRIVE -->
+        <!-- KHUNG BÀI HỌC HTML TƯƠNG TÁC -->
+        <div id="view-html-section" style="display: none; margin-bottom: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+            <h4 style="color: #7c3aed; font-size: 1.05rem; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 6px;">
+              🌐 Bài Giảng Lý Thuyết (File HTML):
+            </h4>
+            <div style="display: flex; gap: 8px;">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="toggleHtmlFullscreen('view-html-iframe')" style="font-weight: 700;">
+                ⛶ Toàn màn hình
+              </button>
+              <a id="view-html-btn" href="#" target="_blank" class="btn btn-secondary btn-sm" style="font-weight: 700; color: #7c3aed;">
+                ↗ Mở tab riêng
+              </a>
+            </div>
+          </div>
+          <iframe id="view-html-iframe" src="" style="width: 100%; height: 560px; border: 1.5px solid #cbd5e1; border-radius: 14px; background: #ffffff;"></iframe>
+        </div>
+
+        <!-- KHUNG TÀI LIỆU GOOGLE DRIVE (NẾU CÓ) -->
         <div id="view-doc-section" style="display: none; margin-bottom: 24px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
             <h4 style="color: #2563eb; font-size: 1.05rem; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 6px;">
@@ -793,7 +851,7 @@
 
             <div style="display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap;">
               ${l.video_url ? '<span class="media-badge badge-video">🎬 Video Drive</span>' : ''}
-              ${l.document_url ? '<span class="media-badge badge-doc">📄 Tài liệu Drive</span>' : ''}
+              ${(l.html_content || l.html_filename) ? '<span class="media-badge" style="background: #f5f3ff; color: #7c3aed; border: 1px solid #ddd6fe;">🌐 Bài học HTML</span>' : (l.document_url ? '<span class="media-badge badge-doc">📄 Tài liệu Drive</span>' : '')}
               ${l.order_index ? `<span style="font-size: 0.75rem; background: #f1f5f9; padding: 2px 8px; border-radius: 4px; color: #475569; font-weight: 600;">Thứ tự: ${l.order_index}</span>` : ''}
             </div>
 
@@ -916,8 +974,97 @@
     }
 
     // ==========================================
-    // QUẢN LÝ BÀI GIẢNG (LESSON CRUD)
+    // QUẢN LÝ BÀI GIẢNG (LESSON CRUD) & HTML FILE
     // ==========================================
+    let currentHtmlContent = '';
+    let currentHtmlFilename = '';
+
+    function handleHtmlFileSelect(e) {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      const lower = file.name.toLowerCase();
+      if (!lower.endsWith('.html') && !lower.endsWith('.htm')) {
+        showToast('Vui lòng chọn file bài giảng có định dạng .html hoặc .htm', 'warning');
+        return;
+      }
+
+      currentHtmlFilename = file.name;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        currentHtmlContent = evt.target.result;
+        updateHtmlUiState();
+        showToast(`Đã nạp file bài giảng: "${file.name}"`, 'success');
+      };
+      reader.readAsText(file, 'utf-8');
+    }
+
+    function updateHtmlUiState() {
+      const badge = document.getElementById('html-file-badge');
+      const previewCard = document.getElementById('html-file-preview-card');
+      const nameEl = document.getElementById('html-file-name-display');
+      const sizeEl = document.getElementById('html-file-size-display');
+      const uploadBox = document.getElementById('html-upload-box');
+      const rawTextarea = document.getElementById('lesson-html-raw');
+
+      if (currentHtmlContent && currentHtmlContent.trim()) {
+        if (badge) badge.style.display = 'inline-block';
+        if (previewCard) previewCard.style.display = 'flex';
+        if (uploadBox) uploadBox.style.display = 'none';
+        if (nameEl) nameEl.textContent = currentHtmlFilename || 'bai-giang.html';
+        const kb = Math.round(currentHtmlContent.length / 1024 * 10) / 10;
+        if (sizeEl) sizeEl.textContent = `${kb} KB (Đã sẵn sàng lưu)`;
+        if (rawTextarea) rawTextarea.value = currentHtmlContent;
+      } else {
+        if (badge) badge.style.display = 'none';
+        if (previewCard) previewCard.style.display = 'none';
+        if (uploadBox) uploadBox.style.display = 'block';
+        if (rawTextarea) rawTextarea.value = '';
+        const fileInput = document.getElementById('lesson-html-file-input');
+        if (fileInput) fileInput.value = '';
+      }
+    }
+
+    function clearLoadedHtml() {
+      currentHtmlContent = '';
+      currentHtmlFilename = '';
+      updateHtmlUiState();
+      showToast('Đã gỡ file HTML.', 'info');
+    }
+
+    function previewLoadedHtml() {
+      if (!currentHtmlContent) {
+        showToast('Chưa có nội dung HTML để xem thử.', 'warning');
+        return;
+      }
+      const blob = new Blob([currentHtmlContent], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+    }
+
+    function toggleAdvancedHtmlBox() {
+      const box = document.getElementById('advanced-html-panel');
+      if (!box) return;
+      box.style.display = (box.style.display === 'none' ? 'block' : 'none');
+    }
+
+    function onRawHtmlInput() {
+      const val = document.getElementById('lesson-html-raw').value;
+      currentHtmlContent = val;
+      if (!currentHtmlFilename) currentHtmlFilename = 'bai-giang.html';
+      updateHtmlUiState();
+    }
+
+    function toggleHtmlFullscreen(iframeId) {
+      const iframe = document.getElementById(iframeId);
+      if (!iframe) return;
+      if (iframe.requestFullscreen) {
+        iframe.requestFullscreen();
+      } else if (iframe.webkitRequestFullscreen) {
+        iframe.webkitRequestFullscreen();
+      }
+    }
+
     function findLessonById(id) {
       for (const ch of chaptersData) {
         const found = (ch.lessons || []).find(l => l.id == id);
@@ -939,12 +1086,17 @@
       document.getElementById('lesson-summary').value = '';
       document.getElementById('lesson-formulas').value = '';
       document.getElementById('lesson-content').value = '';
+
+      currentHtmlContent = '';
+      currentHtmlFilename = '';
+      updateHtmlUiState();
+
       document.getElementById('lesson-modal').classList.add('open');
     }
 
     async function openEditLessonModal(id) {
       let lesson = findLessonById(id);
-      if (!lesson) {
+      if (!lesson || !lesson.html_content) {
         try {
           const res = await apiRequest(`/api/lessons/${id}`);
           lesson = res.lesson;
@@ -967,6 +1119,11 @@
       document.getElementById('lesson-summary').value = lesson.summary || '';
       document.getElementById('lesson-formulas').value = lesson.key_formulas || '';
       document.getElementById('lesson-content').value = lesson.content || '';
+
+      currentHtmlContent = lesson.html_content || '';
+      currentHtmlFilename = lesson.html_filename || (lesson.html_content ? 'bai-giang.html' : '');
+      updateHtmlUiState();
+
       document.getElementById('lesson-modal').classList.add('open');
     }
 
@@ -987,22 +1144,30 @@
       const summary = document.getElementById('lesson-summary').value.trim();
       const key_formulas = document.getElementById('lesson-formulas').value.trim();
       const content = document.getElementById('lesson-content').value.trim();
+      const html_content = currentHtmlContent;
+      const html_filename = currentHtmlFilename;
 
       const btn = document.getElementById('btn-save-lesson');
       btn.disabled = true;
       btn.textContent = 'Đang lưu...';
 
       try {
+        const payload = {
+          title, chapter_id, order_index, category, class_id,
+          video_url, document_url, html_content, html_filename,
+          summary, key_formulas, content
+        };
+
         if (id) {
           await apiRequest(`/api/lessons/${id}`, {
             method: 'PUT',
-            body: JSON.stringify({ title, chapter_id, order_index, category, class_id, video_url, document_url, summary, key_formulas, content })
+            body: JSON.stringify(payload)
           });
           showToast('Cập nhật bài giảng thành công!', 'success');
         } else {
           await apiRequest('/api/lessons', {
             method: 'POST',
-            body: JSON.stringify({ title, chapter_id, order_index, category, class_id, video_url, document_url, summary, key_formulas, content })
+            body: JSON.stringify(payload)
           });
           showToast('Tạo bài giảng mới thành công!', 'success');
         }
@@ -1066,11 +1231,24 @@
         videoSection.style.display = 'none';
       }
 
-      // Nhúng Tài liệu Google Drive
+      // Nhúng HTML Bài Giảng
+      const htmlSection = document.getElementById('view-html-section');
+      const htmlIframe = document.getElementById('view-html-iframe');
+      const htmlBtn = document.getElementById('view-html-btn');
+      if (lesson.html_content || lesson.html_filename) {
+        htmlIframe.src = `/api/lessons/${lesson.id}/html`;
+        htmlBtn.href = `/api/lessons/${lesson.id}/html`;
+        htmlSection.style.display = 'block';
+      } else {
+        htmlIframe.src = '';
+        htmlSection.style.display = 'none';
+      }
+
+      // Nhúng Tài liệu Google Drive (nếu có)
       const docSection = document.getElementById('view-doc-section');
       const docIframe = document.getElementById('view-doc-iframe');
       const docBtn = document.getElementById('view-doc-btn');
-      if (lesson.document_url && lesson.document_url.trim()) {
+      if (lesson.document_url && lesson.document_url.trim() && !lesson.html_content) {
         docIframe.src = getEmbedUrl(lesson.document_url);
         docBtn.href = lesson.document_url;
         docSection.style.display = 'block';
@@ -1107,6 +1285,10 @@
     function closeViewLessonModal() {
       const videoIframe = document.getElementById('view-video-iframe');
       if (videoIframe) videoIframe.src = '';
+      const docIframe = document.getElementById('view-doc-iframe');
+      if (docIframe) docIframe.src = '';
+      const htmlIframe = document.getElementById('view-html-iframe');
+      if (htmlIframe) htmlIframe.src = '';
       document.getElementById('view-lesson-modal').classList.remove('open');
     }
 

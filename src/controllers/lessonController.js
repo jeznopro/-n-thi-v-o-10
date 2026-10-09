@@ -98,7 +98,7 @@ function getLessonById(req, res, next) {
 function createLesson(req, res, next) {
   try {
     const teacherId = req.user.id;
-    const { title, category, summary, content, key_formulas, class_id, chapter_id, order_index, attachment_url, video_url, document_url } = req.body;
+    const { title, category, summary, content, key_formulas, class_id, chapter_id, order_index, attachment_url, video_url, document_url, html_content, html_filename } = req.body;
 
     if (!title || !title.trim()) {
       return res.status(400).json({
@@ -107,20 +107,21 @@ function createLesson(req, res, next) {
       });
     }
 
-    if (!content || !content.trim()) {
+    const rawContent = (content && content.trim()) ? content.trim() : (html_content ? 'Bài giảng lý thuyết dạng HTML tương tác.' : '');
+    if (!rawContent) {
       return res.status(400).json({
         success: false,
-        message: 'Vui lòng nhập nội dung bài giảng.'
+        message: 'Vui lòng tải lên file HTML bài học hoặc nhập nội dung bài giảng.'
       });
     }
 
-    const cleanContent = cleanHtml(content);
+    const cleanContent = cleanHtml(rawContent);
     const cleanFormulas = key_formulas ? cleanHtml(key_formulas) : null;
     const cleanSummary = summary ? summary.trim() : '';
 
     const stmt = db.prepare(`
-      INSERT INTO lessons (title, category, summary, content, key_formulas, video_url, document_url, class_id, chapter_id, order_index, attachment_url, created_by)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO lessons (title, category, summary, content, key_formulas, video_url, document_url, html_content, html_filename, class_id, chapter_id, order_index, attachment_url, created_by)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     const result = stmt.run(
@@ -131,6 +132,8 @@ function createLesson(req, res, next) {
       cleanFormulas,
       video_url ? video_url.trim() : null,
       document_url ? document_url.trim() : null,
+      html_content ? html_content.trim() : null,
+      html_filename ? html_filename.trim() : null,
       class_id ? parseInt(class_id, 10) : null,
       chapter_id ? parseInt(chapter_id, 10) : null,
       order_index !== undefined && order_index !== null ? parseInt(order_index, 10) : 0,
@@ -144,7 +147,7 @@ function createLesson(req, res, next) {
       targetType: 'lessons',
       targetId: result.lastInsertRowid,
       ipAddress: req.ip,
-      details: { title: title.trim(), category: category || 'Đại số', chapter_id }
+      details: { title: title.trim(), category: category || 'Đại số', chapter_id, has_html: !!html_content }
     });
 
     return res.status(201).json({
@@ -163,9 +166,9 @@ function createLesson(req, res, next) {
 function updateLesson(req, res, next) {
   try {
     const { id } = req.params;
-    const { title, category, summary, content, key_formulas, video_url, document_url, class_id, chapter_id, order_index, attachment_url } = req.body;
+    const { title, category, summary, content, key_formulas, video_url, document_url, html_content, html_filename, class_id, chapter_id, order_index, attachment_url } = req.body;
 
-    const existing = db.prepare('SELECT id FROM lessons WHERE id = ?').get(id);
+    const existing = db.prepare('SELECT id, html_content, html_filename FROM lessons WHERE id = ?').get(id);
     if (!existing) {
       return res.status(404).json({
         success: false,
@@ -173,14 +176,19 @@ function updateLesson(req, res, next) {
       });
     }
 
-    const cleanContent = cleanHtml(content);
+    const finalHtmlContent = html_content !== undefined ? (html_content ? html_content.trim() : null) : existing.html_content;
+    const finalHtmlFilename = html_filename !== undefined ? (html_filename ? html_filename.trim() : null) : existing.html_filename;
+
+    const rawContent = (content && content.trim()) ? content.trim() : (finalHtmlContent ? 'Bài giảng lý thuyết dạng HTML tương tác.' : '');
+    const cleanContent = cleanHtml(rawContent);
     const cleanFormulas = key_formulas ? cleanHtml(key_formulas) : null;
     const cleanSummary = summary ? summary.trim() : '';
 
     db.prepare(`
       UPDATE lessons
       SET title = ?, category = ?, summary = ?, content = ?, key_formulas = ?,
-          video_url = ?, document_url = ?, class_id = ?, chapter_id = ?, order_index = ?,
+          video_url = ?, document_url = ?, html_content = ?, html_filename = ?,
+          class_id = ?, chapter_id = ?, order_index = ?,
           attachment_url = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `).run(
@@ -191,6 +199,8 @@ function updateLesson(req, res, next) {
       cleanFormulas,
       video_url ? video_url.trim() : null,
       document_url ? document_url.trim() : null,
+      finalHtmlContent,
+      finalHtmlFilename,
       class_id ? parseInt(class_id, 10) : null,
       chapter_id ? parseInt(chapter_id, 10) : null,
       order_index !== undefined && order_index !== null ? parseInt(order_index, 10) : 0,
@@ -204,7 +214,7 @@ function updateLesson(req, res, next) {
       targetType: 'lessons',
       targetId: id,
       ipAddress: req.ip,
-      details: { title: title.trim(), chapter_id }
+      details: { title: title.trim(), chapter_id, has_html: !!finalHtmlContent }
     });
 
     return res.json({
@@ -251,10 +261,36 @@ function deleteLesson(req, res, next) {
   }
 }
 
+/**
+ * Phục vụ nội dung HTML nguyên bản của bài giảng để hiển thị trong iframe
+ */
+function getLessonHtml(req, res, next) {
+  try {
+    const { id } = req.params;
+    const lesson = db.prepare('SELECT id, title, html_content FROM lessons WHERE id = ?').get(id);
+
+    if (!lesson) {
+      return res.status(404).send('<!DOCTYPE html><html><body style="font-family:sans-serif;padding:24px;color:#dc2626;"><h3>Không tìm thấy bài giảng.</h3></body></html>');
+    }
+
+    if (!lesson.html_content) {
+      return res.status(404).send('<!DOCTYPE html><html><body style="font-family:sans-serif;padding:24px;color:#64748b;"><h3>Bài giảng này không có nội dung HTML riêng.</h3></body></html>');
+    }
+
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+    return res.send(lesson.html_content);
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   getAllLessons,
   getLessonById,
   createLesson,
   updateLesson,
-  deleteLesson
+  deleteLesson,
+  getLessonHtml
 };
+
