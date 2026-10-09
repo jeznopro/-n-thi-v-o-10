@@ -26,6 +26,20 @@ function initSchema() {
   const schemaPath = path.join(__dirname, 'schema.sql');
   const schemaSql = fs.readFileSync(schemaPath, 'utf8');
   db.exec(schemaSql);
+
+  // Tự động nạp dữ liệu mẫu ban đầu nếu triển khai mới trên Render / VPS
+  try {
+    const userCount = db.prepare('SELECT COUNT(*) AS count FROM users').get().count;
+    if (userCount === 0) {
+      console.log('🌱 Phát hiện cơ sở dữ liệu mới, đang tự động nạp dữ liệu mẫu...');
+      const seedDatabase = require('./seed');
+      if (typeof seedDatabase === 'function') {
+        seedDatabase();
+      }
+    }
+  } catch (err) {
+    console.warn('Lỗi kiểm tra dữ liệu ban đầu:', err.message);
+  }
 }
 
 // Khởi tạo bảng ngay khi load module

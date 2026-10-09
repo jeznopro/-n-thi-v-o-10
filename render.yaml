@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: he-thong-thi-toan-thcs
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: MAX_FILE_SIZE_MB
+        value: 25
+      - key: DB_PATH
+        value: ./data/database.sqlite
