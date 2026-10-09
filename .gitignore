@@ -34,3 +34,5 @@ test_*.js
 test_*.docx
 scratch/
 tmp/
+cloudflared.exe
+cloudflared
