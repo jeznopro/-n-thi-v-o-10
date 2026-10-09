@@ -27,6 +27,7 @@
           <li><a href="/teacher/index.html" class="nav-link active">📊 Tổng quan</a></li>
           <li><a href="/teacher/classes.html" class="nav-link">👥 Lớp & Học sinh</a></li>
           <li><a href="/teacher/assignments.html" class="nav-link">📝 Quản lý bài tập</a></li>
+          <li><a href="/teacher/lessons.html" class="nav-link">📖 Bài giảng lý thuyết</a></li>
           <li><a href="/teacher/logs.html" class="nav-link">📜 Nhật ký</a></li>
         </ul>
       </nav>
@@ -51,7 +52,7 @@
         <h2>Xin chào, <span id="teacher-name">Thầy Cô</span> 👋</h2>
         <p>Chào mừng đến với hệ thống giao và nhận xét bài tập tự luận Toán THCS</p>
       </div>
-      <div class="page-actions">
+      <div class="page-actions" style="display: flex; gap: 8px; flex-wrap: wrap;">
         <button class="btn btn-primary" onclick="openCreateClassModal()">
           🏫 Tạo lớp mới
         </button>
@@ -61,9 +62,12 @@
         <a href="/teacher/assignment-create.html" class="btn btn-primary" style="background: #2563eb;">
           ➕ Soạn đề bài tập
         </a>
-        <a href="/teacher/classes.html" class="btn btn-secondary">
-          👥 Danh sách Lớp & HS
+        <a href="/teacher/lessons.html" class="btn btn-primary" style="background: #8b5cf6; border-color: #8b5cf6;">
+          📖 Soạn bài giảng
         </a>
+        <button type="button" class="btn btn-secondary" onclick="exportDataBackup()" title="Tải file sao lưu CSDL (.json)">
+          💾 Sao lưu CSDL
+        </button>
       </div>
     </div>
 
@@ -690,6 +694,29 @@
       } finally {
         submitBtn.disabled = false;
         submitBtn.textContent = 'Bắt đầu nhập dữ liệu';
+      }
+    }
+
+    async function exportDataBackup() {
+      try {
+        showToast('Đang tạo bản sao lưu dữ liệu...', 'info');
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/system/backup', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error('Không thể tải file sao lưu.');
+        
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `backup-math10-${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        showToast('Đã tải về bản sao lưu CSDL thành công!', 'success');
+      } catch (err) {
+        showToast(err.message, 'error');
       }
     }
 

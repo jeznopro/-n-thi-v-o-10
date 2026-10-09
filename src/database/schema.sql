@@ -201,3 +201,23 @@ CREATE INDEX IF NOT EXISTS idx_ai_diagnostics_student ON ai_diagnostics(student_
 CREATE INDEX IF NOT EXISTS idx_ai_diagnostics_assignment ON ai_diagnostics(assignment_id);
 CREATE INDEX IF NOT EXISTS idx_ai_diagnostics_severity ON ai_diagnostics(severity);
 
+-- 12. Bảng bài giảng lý thuyết ôn thi vào 10 (Lessons)
+CREATE TABLE IF NOT EXISTS lessons (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    category TEXT NOT NULL DEFAULT 'Đại số', -- 'Đại số', 'Hình học', 'Hệ thức Vi-ét', 'Bất đẳng thức & Cực trị', 'Toán thực tế'
+    summary TEXT,
+    content TEXT NOT NULL, -- Nội dung bài giảng Markdown + KaTeX ($...$)
+    key_formulas TEXT, -- Công thức trọng tâm dạng text/markdown
+    class_id INTEGER REFERENCES classes(id) ON DELETE SET NULL, -- NULL: tất cả học sinh được xem
+    attachment_url TEXT DEFAULT NULL,
+    created_by INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_lessons_category ON lessons(category);
+CREATE INDEX IF NOT EXISTS idx_lessons_class ON lessons(class_id);
+CREATE INDEX IF NOT EXISTS idx_lessons_created ON lessons(created_at);
+
+
