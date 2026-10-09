@@ -282,15 +282,14 @@ function seedDatabase(customDb) {
     insertUser.run('giaovien', teacherPasswordHash, 'Thầy Nguyễn Văn Toán', 'teacher', 'active', 0);
     const teacher = db.prepare('SELECT id FROM users WHERE username = ?').get('giaovien');
 
-    // 2. Học sinh THCS
-    insertUser.run('hs_tranvanb', studentPasswordHash, 'Trần Văn Bình', 'student', 'active', 0);
-    insertUser.run('hs_lethic', studentPasswordHash, 'Lê Thị Cúc', 'student', 'active', 0);
-    insertUser.run('hs_phamvand', studentPasswordHash, 'Phạm Văn Dũng', 'student', 'active', 0);
+    // 2. Đúng 3 học sinh: Giáp, Dũng, Huy
     insertUser.run('nguyenminhgiap123', studentPasswordHash, 'Nguyễn Minh Giáp', 'student', 'active', 0);
-    insertUser.run('hs_giapnm', studentPasswordHash, 'Nguyễn Minh Giáp', 'student', 'active', 0);
+    insertUser.run('nguyentiendung123', studentPasswordHash, 'Nguyễn Tiến Dũng', 'student', 'active', 0);
+    insertUser.run('dinhquanghuy123', studentPasswordHash, 'Đinh Quang Huy', 'student', 'active', 0);
 
-    const studentB = db.prepare('SELECT id FROM users WHERE username = ?').get('hs_tranvanb');
-    const studentC = db.prepare('SELECT id FROM users WHERE username = ?').get('hs_lethic');
+    const studentGiap = db.prepare('SELECT id FROM users WHERE username = ?').get('nguyenminhgiap123');
+    const studentDung = db.prepare('SELECT id FROM users WHERE username = ?').get('nguyentiendung123');
+    const studentHuy = db.prepare('SELECT id FROM users WHERE username = ?').get('dinhquanghuy123');
 
     // 3. Lớp học mẫu
     const classRes = insertClass.run(
@@ -301,9 +300,10 @@ function seedDatabase(customDb) {
     );
     const classId = classRes.lastInsertRowid;
 
-    // Thêm học sinh vào lớp 9A
-    insertClassMember.run(classId, studentB.id);
-    insertClassMember.run(classId, studentC.id);
+    // Thêm cả 3 học sinh vào lớp 9A
+    insertClassMember.run(classId, studentGiap.id);
+    insertClassMember.run(classId, studentDung.id);
+    insertClassMember.run(classId, studentHuy.id);
 
     // 4. Đề thi Toán chia theo từng câu hỏi
     const questions1 = [

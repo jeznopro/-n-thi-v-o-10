@@ -53,23 +53,45 @@ async function login(req, res, next) {
         SELECT id, username, password_hash, full_name, role, status, must_change_password
         FROM users WHERE username = 'giaovien'
       `).get();
-    } else if (!user && (normUser === 'nguyenminhgiap123' || normUser === 'hs_giapnm' || normUser === 'hs_tranvanb' || normUser === 'hs_lethic' || normUser === 'hs_phamvand')) {
+    } else if (!user && (
+      normUser === 'nguyenminhgiap123' || normUser === 'hs_giap' ||
+      normUser === 'nguyentiendung123' || normUser === 'hs_dung' ||
+      normUser === 'dinhquanghuy123' || normUser === 'hs_huy'
+    )) {
       const hash = bcrypt.hashSync('123456', 10);
-      const studentNames = {
-        'nguyenminhgiap123': 'Nguyễn Minh Giáp',
-        'hs_giapnm': 'Nguyễn Minh Giáp',
-        'hs_tranvanb': 'Trần Văn Bình',
-        'hs_lethic': 'Lê Thị Cúc',
-        'hs_phamvand': 'Phạm Văn Dũng'
-      };
-      db.prepare(`
-        INSERT INTO users (username, password_hash, full_name, role, status, must_change_password)
-        VALUES (?, ?, ?, 'student', 'active', 0)
-      `).run(normUser, hash, studentNames[normUser] || 'Học sinh');
-      user = db.prepare(`
-        SELECT id, username, password_hash, full_name, role, status, must_change_password
-        FROM users WHERE username = ?
-      `).get(normUser);
+      let canonicalUser = normUser;
+      let fullName = 'Học sinh';
+
+      if (normUser.includes('giap')) {
+        canonicalUser = 'nguyenminhgiap123';
+        fullName = 'Nguyễn Minh Giáp';
+      } else if (normUser.includes('dung')) {
+        canonicalUser = 'nguyentiendung123';
+        fullName = 'Nguyễn Tiến Dũng';
+      } else if (normUser.includes('huy')) {
+        canonicalUser = 'dinhquanghuy123';
+        fullName = 'Đinh Quang Huy';
+      }
+
+      // Kiểm tra xem đã có user canonical chưa
+      let existingUser = db.prepare('SELECT id FROM users WHERE username = ?').get(canonicalUser);
+      if (!existingUser) {
+        db.prepare(`
+          INSERT INTO users (username, password_hash, full_name, role, status, must_change_password)
+          VALUES (?, ?, ?, 'student', 'active', 0)
+        `).run(canonicalUser, hash, fullName);
+      }
+
+      // Đảm bảo học sinh được gán vào lớp học
+      const student = db.prepare('SELECT id, username, password_hash, full_name, role, status, must_change_password FROM users WHERE username = ?').get(canonicalUser);
+      const defaultClass = db.prepare('SELECT id FROM classes LIMIT 1').get();
+      if (student && defaultClass) {
+        try {
+          db.prepare('INSERT OR IGNORE INTO class_members (class_id, student_id) VALUES (?, ?)').run(defaultClass.id, student.id);
+        } catch (e) {}
+      }
+
+      user = student;
     }
 
     if (!user) {
