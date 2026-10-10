@@ -214,8 +214,26 @@ async function checkAuthAndLoad(expectedRole = null) {
 }
 
 // ============================================================
-// HỆ THỐNG CHUYỂN ĐỔI GIAO DIỆN (COZY LIBRARY VS HIỆN ĐẠI BAN ĐẦU)
+// HỆ THỐNG CHUYỂN ĐỔI GIAO DIỆN (DROPDOWN MENU HIỂN THỊ DANH SÁCH)
 // ============================================================
+const THEMES_INFO = {
+  cozy: {
+    name: 'Thư viện ấm',
+    icon: '🏛️',
+    desc: 'Cozy Library • Trầm lắng & Dễ đọc'
+  },
+  classic: {
+    name: 'Hiện đại',
+    icon: '⚡',
+    desc: 'Classic Blue • Trực quan & Năng động'
+  },
+  minimal: {
+    name: 'Tối giản',
+    icon: '◻️',
+    desc: 'Minimalism • Đơn sắc & Tập trung'
+  }
+};
+
 function getCurrentTheme() {
   return localStorage.getItem('app-theme') || 'cozy';
 }
@@ -248,9 +266,15 @@ function toggleAppTheme() {
 }
 
 function updateThemeSwitcherUI(theme) {
-  ['cozy', 'classic', 'minimal'].forEach(t => {
-    const btn = document.getElementById(`theme-btn-${t}`);
-    if (btn) btn.classList.toggle('active', theme === t);
+  const info = THEMES_INFO[theme] || THEMES_INFO['cozy'];
+  document.querySelectorAll('.theme-current-icon').forEach(el => el.textContent = info.icon);
+  document.querySelectorAll('.theme-current-text').forEach(el => el.textContent = info.name);
+
+  document.querySelectorAll('.theme-dropdown-item').forEach(item => {
+    item.classList.remove('active');
+  });
+  document.querySelectorAll(`.theme-opt-${theme}`).forEach(item => {
+    item.classList.add('active');
   });
 }
 
@@ -292,35 +316,111 @@ function updateBrandTexts(theme) {
   }
 }
 
-function mountThemeSwitcher() {
-  if (document.getElementById('app-theme-switcher')) return;
-
-  const current = getCurrentTheme();
-  const switcher = document.createElement('div');
-  switcher.id = 'app-theme-switcher';
-  switcher.className = 'theme-switch-wrapper';
-  switcher.title = 'Chuyển đổi giao diện: Thư viện ấm / Hiện đại / Tối giản';
-  switcher.innerHTML = `
-    <button type="button" class="theme-switch-btn ${current === 'cozy' ? 'active' : ''}" id="theme-btn-cozy" onclick="applyTheme('cozy')">
-      🏛️ Thư viện
+function getThemeDropdownHTML(current) {
+  const currentInfo = THEMES_INFO[current] || THEMES_INFO['cozy'];
+  return `
+    <button type="button" class="theme-dropdown-trigger" aria-haspopup="true" aria-expanded="false" onclick="toggleThemeDropdown(event)" title="Bấm để chọn phong cách giao diện">
+      <span class="theme-current-icon">${currentInfo.icon}</span>
+      <span class="theme-current-text">${currentInfo.name}</span>
+      <svg class="theme-chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="6 9 12 15 18 9"></polyline>
+      </svg>
     </button>
-    <button type="button" class="theme-switch-btn ${current === 'classic' ? 'active' : ''}" id="theme-btn-classic" onclick="applyTheme('classic')">
-      ⚡ Hiện đại
-    </button>
-    <button type="button" class="theme-switch-btn ${current === 'minimal' ? 'active' : ''}" id="theme-btn-minimal" onclick="applyTheme('minimal')">
-      ◻️ Tối giản
-    </button>
+    <div class="theme-dropdown-menu">
+      <div class="theme-dropdown-header">Chọn phong cách giao diện</div>
+      ${Object.keys(THEMES_INFO).map(key => {
+        const item = THEMES_INFO[key];
+        const isActive = key === current;
+        return `
+          <div class="theme-dropdown-item theme-opt-${key} ${isActive ? 'active' : ''}" onclick="selectTheme('${key}', event)">
+            <div class="theme-item-left">
+              <span class="theme-item-icon">${item.icon}</span>
+              <div>
+                <div class="theme-item-title">${item.name}</div>
+                <div class="theme-item-desc">${item.desc}</div>
+              </div>
+            </div>
+            <span class="theme-check">✓</span>
+          </div>
+        `;
+      }).join('')}
+    </div>
   `;
+}
 
-  // Chèn vào vị trí thuận tiện nhất trên navbar
-  const navUser = document.querySelector('.nav-user');
-  if (navUser) {
-    navUser.insertBefore(switcher, navUser.firstChild);
-  } else {
-    const navContainer = document.querySelector('.nav-container');
-    if (navContainer) navContainer.appendChild(switcher);
+function toggleThemeDropdown(e) {
+  if (e) e.stopPropagation();
+  const wrapper = e.currentTarget.closest('.theme-dropdown-wrapper');
+  if (!wrapper) return;
+  const menu = wrapper.querySelector('.theme-dropdown-menu');
+  const trigger = wrapper.querySelector('.theme-dropdown-trigger');
+  
+  const isOpen = menu.classList.contains('show');
+  closeThemeDropdowns();
+  
+  if (!isOpen) {
+    menu.classList.add('show');
+    trigger.classList.add('open');
+    trigger.setAttribute('aria-expanded', 'true');
   }
 }
+
+function closeThemeDropdowns() {
+  document.querySelectorAll('.theme-dropdown-menu').forEach(m => m.classList.remove('show'));
+  document.querySelectorAll('.theme-dropdown-trigger').forEach(t => {
+    t.classList.remove('open');
+    t.setAttribute('aria-expanded', 'false');
+  });
+}
+
+function selectTheme(theme, e) {
+  if (e) e.stopPropagation();
+  applyTheme(theme);
+  closeThemeDropdowns();
+}
+
+function mountThemeSwitcher() {
+  const current = getCurrentTheme();
+
+  // 1. Nếu có container dành riêng trên trang login
+  const loginSwitcher = document.getElementById('login-theme-switcher');
+  if (loginSwitcher) {
+    loginSwitcher.className = 'theme-dropdown-wrapper';
+    loginSwitcher.innerHTML = getThemeDropdownHTML(current);
+  }
+
+  // 2. Chèn vào navbar ứng dụng nếu chưa có
+  if (document.getElementById('app-theme-switcher')) return;
+
+  const navUser = document.querySelector('.nav-user');
+  const navContainer = document.querySelector('.nav-container');
+
+  if (navUser || navContainer) {
+    const switcher = document.createElement('div');
+    switcher.id = 'app-theme-switcher';
+    switcher.className = 'theme-dropdown-wrapper';
+    switcher.innerHTML = getThemeDropdownHTML(current);
+
+    if (navUser) {
+      navUser.insertBefore(switcher, navUser.firstChild);
+    } else if (navContainer) {
+      navContainer.appendChild(switcher);
+    }
+  }
+}
+
+// Đóng dropdown khi bấm ra ngoài hoặc nhấn Esc
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.theme-dropdown-wrapper')) {
+    closeThemeDropdowns();
+  }
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeThemeDropdowns();
+  }
+});
 
 // Chạy khởi tạo lớp Theme ngay lập tức để tránh chớp màn hình (FOUC)
 (function initThemeImmediately() {
