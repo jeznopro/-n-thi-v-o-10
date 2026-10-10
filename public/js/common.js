@@ -268,7 +268,9 @@ function toggleAppTheme() {
 function updateThemeSwitcherUI(theme) {
   const info = THEMES_INFO[theme] || THEMES_INFO['cozy'];
   document.querySelectorAll('.theme-current-icon').forEach(el => el.textContent = info.icon);
-  document.querySelectorAll('.theme-current-text').forEach(el => el.textContent = info.name);
+  document.querySelectorAll('.theme-dropdown-trigger').forEach(el => {
+    el.title = `Đổi phong cách giao diện: ${info.name}`;
+  });
 
   document.querySelectorAll('.theme-dropdown-item').forEach(item => {
     item.classList.remove('active');
@@ -319,12 +321,8 @@ function updateBrandTexts(theme) {
 function getThemeDropdownHTML(current) {
   const currentInfo = THEMES_INFO[current] || THEMES_INFO['cozy'];
   return `
-    <button type="button" class="theme-dropdown-trigger" aria-haspopup="true" aria-expanded="false" onclick="toggleThemeDropdown(event)" title="Bấm để chọn phong cách giao diện">
+    <button type="button" class="theme-dropdown-trigger" aria-haspopup="true" aria-expanded="false" onclick="toggleThemeDropdown(event)" title="Đổi phong cách giao diện: ${currentInfo.name}">
       <span class="theme-current-icon">${currentInfo.icon}</span>
-      <span class="theme-current-text">${currentInfo.name}</span>
-      <svg class="theme-chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="6 9 12 15 18 9"></polyline>
-      </svg>
     </button>
     <div class="theme-dropdown-menu">
       <div class="theme-dropdown-header">Chọn phong cách giao diện</div>
