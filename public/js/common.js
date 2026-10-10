@@ -230,15 +230,20 @@ const THEMES_INFO = {
     icon: '🏛️',
     desc: 'Cozy Library • Trầm lắng & Dễ đọc'
   },
-  classic: {
-    name: 'Hiện đại',
-    icon: '⚡',
-    desc: 'Classic Blue • Trực quan & Năng động'
+  academic: {
+    name: 'Học thuật tĩnh lặng',
+    icon: '🖋️',
+    desc: 'Focus OS • Giấy ngà & Tập trung sâu'
   },
   minimal: {
     name: 'Tối giản',
     icon: '◻️',
     desc: 'Minimalism • Đơn sắc & Tập trung'
+  },
+  classic: {
+    name: 'Hiện đại',
+    icon: '⚡',
+    desc: 'Classic Blue • Trực quan & Năng động'
   }
 };
 
@@ -247,8 +252,8 @@ function getCurrentTheme() {
 }
 
 function applyTheme(theme) {
-  document.documentElement.classList.remove('theme-classic', 'theme-cozy', 'theme-minimal');
-  document.body.classList.remove('theme-classic', 'theme-cozy', 'theme-minimal');
+  document.documentElement.classList.remove('theme-classic', 'theme-cozy', 'theme-minimal', 'theme-academic');
+  document.body.classList.remove('theme-classic', 'theme-cozy', 'theme-minimal', 'theme-academic');
 
   if (theme === 'classic') {
     document.documentElement.classList.add('theme-classic');
@@ -256,6 +261,9 @@ function applyTheme(theme) {
   } else if (theme === 'minimal') {
     document.documentElement.classList.add('theme-minimal');
     document.body.classList.add('theme-minimal');
+  } else if (theme === 'academic') {
+    document.documentElement.classList.add('theme-academic');
+    document.body.classList.add('theme-academic');
   } else {
     document.documentElement.classList.add('theme-cozy');
     document.body.classList.add('theme-cozy');
@@ -442,6 +450,16 @@ function updateBrandTexts(theme) {
     if (brandSubEl) brandSubEl.textContent = 'Học tập & Ôn luyện';
     if (avatarEl) avatarEl.style.background = '#2563EB';
     cleanOrRestoreEmojis(true);
+  } else if (theme === 'academic') {
+    if (logoEl) {
+      logoEl.innerHTML = '🖋️';
+      logoEl.style.background = '#64745B';
+      logoEl.style.color = '#F7F6F2';
+    }
+    if (brandTitleEl) brandTitleEl.textContent = 'FOCUS OS';
+    if (brandSubEl) brandSubEl.textContent = 'Quiet Academic Edition';
+    if (avatarEl) avatarEl.style.background = '#64745B';
+    cleanOrRestoreEmojis(false);
   } else {
     if (logoEl) {
       logoEl.innerHTML = '🏛️';
@@ -479,6 +497,15 @@ function getThemeDropdownHTML(current) {
           </div>
         `;
       }).join('')}
+      <a href="/focus" class="theme-dropdown-item" style="border-top:1px solid var(--border-color); margin-top:4px; padding-top:10px; text-decoration:none;">
+        <div class="theme-item-left">
+          <span class="theme-item-icon">🚀</span>
+          <div>
+            <div class="theme-item-title" style="color:var(--primary-color, #64745B);">Mở không gian Focus OS</div>
+            <div class="theme-item-desc">Bàn học Quiet Academic cá nhân độc lập</div>
+          </div>
+        </div>
+      </a>
     </div>
   `;
 }

@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Focus OS — Quiet Academic Edition</title>
+  <meta name="description" content="Hệ điều hành học tập cá nhân phong cách Quiet Academic: tối giản, học thuật, sâu lắng và tập trung cao độ.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🖋️</text></svg>">
+  <link rel="stylesheet" href="/focus/css/focus.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- SIDEBAR NAVIGATION -->
+    <aside class="sidebar">
+      <div>
+        <div class="sidebar-header">
+          <a href="/focus" class="brand-link">
+            <span class="brand-title">Focus OS</span>
+            <span class="brand-dot">.</span>
+            <span class="brand-badge">Academic</span>
+          </a>
+        </div>
+
+        <nav>
+          <ul class="nav-group">
+            <li>
+              <a class="nav-item active" data-view="today">
+                <span class="nav-item-content">
+                  <span class="nav-icon">📖</span>
+                  <span>Bàn học (Today)</span>
+                </span>
+                <span class="nav-count" id="badge-today-count">0</span>
+              </a>
+            </li>
+            <li>
+              <a class="nav-item" data-view="tasks">
+                <span class="nav-item-content">
+                  <span class="nav-icon">📋</span>
+                  <span>Nhiệm vụ (Tasks)</span>
+                </span>
+                <span class="nav-count" id="badge-tasks-count">0</span>
+              </a>
+            </li>
+            <li>
+              <a class="nav-item" data-view="subjects">
+                <span class="nav-item-content">
+                  <span class="nav-icon">📚</span>
+                  <span>Môn học (Subjects)</span>
+                </span>
+                <span class="nav-count" id="badge-subjects-count">0</span>
+              </a>
+            </li>
+            <li>
+              <a class="nav-item" data-view="notes">
+                <span class="nav-item-content">
+                  <span class="nav-icon">🖋️</span>
+                  <span>Ghi chép (Notes)</span>
+                </span>
+                <span class="nav-count" id="badge-notes-count">0</span>
+              </a>
+            </li>
+            <li>
+              <a class="nav-item" data-view="progress">
+                <span class="nav-item-content">
+                  <span class="nav-icon">📈</span>
+                  <span>Báo cáo (Progress)</span>
+                </span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+
+      <!-- SIDEBAR FOOTER -->
+      <div class="sidebar-footer">
+        <button type="button" class="footer-btn" id="btn-quick-focus">
+          <span>⏳</span>
+          <span>Bắt đầu phiên Focus</span>
+        </button>
+        <button type="button" class="footer-btn" id="btn-toggle-dark">
+          <span id="dark-icon">🌙</span>
+          <span id="dark-text">Chế độ đọc ban đêm</span>
+        </button>
+        <button type="button" class="footer-btn" id="btn-open-settings">
+          <span>⚙️</span>
+          <span>Dữ liệu & Cấu hình</span>
+        </button>
+        <a href="/" class="footer-btn" style="text-decoration:none; margin-top:4px;">
+          <span>🚪</span>
+          <span>Về Cổng Học Tập & Thi</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="main-content">
+      
+      <!-- ============================================== -->
+      <!-- VIEW: TODAY (BÀN HỌC CÁ NHÂN) -->
+      <!-- ============================================== -->
+      <section id="view-today" class="view-section active">
+        <header class="view-header">
+          <div class="meta-date" id="today-current-date">Thứ Bảy, ngày 10 tháng 10, 2026</div>
+          <h1 class="view-title">Make room for deep work.</h1>
+          <p class="view-subtitle">Hôm nay, tập trung vào điều quan trọng nhất và loại bỏ mọi điều gây xao nhãng.</p>
+        </header>
+
+        <!-- PRIORITY TASK CARD -->
+        <div id="today-priority-container">
+          <!-- Rendered dynamically -->
+        </div>
+
+        <div class="section-label">
+          <span>Nhiệm vụ trọng tâm hôm nay</span>
+          <button class="btn btn-sm btn-secondary" id="btn-open-new-task">+ Thêm nhiệm vụ</button>
+        </div>
+
+        <!-- TASK NOTEBOOK LIST -->
+        <div class="task-notebook">
+          <div id="today-task-list">
+            <!-- Rendered by JS -->
+          </div>
+          <div class="quick-add-row">
+            <span style="color:var(--text-tertiary); font-size:1.1rem;">+</span>
+            <input type="text" id="input-quick-add-today" class="quick-add-input" placeholder="Thêm nhanh nhiệm vụ hôm nay... (Nhấn Enter)">
+          </div>
+        </div>
+
+        <hr class="academic-divider">
+
+        <!-- TODAY STUDY LOG -->
+        <div class="section-label">
+          <span>Nhật ký các phiên tập trung trong ngày</span>
+          <span id="today-logged-total" style="font-family:var(--font-mono); font-size:0.8rem; color:var(--accent);">0 giờ 00 phút</span>
+        </div>
+        <div id="today-study-logs" class="study-log-list">
+          <!-- Rendered by JS -->
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- VIEW: TASKS (NHIỆM VỤ) -->
+      <!-- ============================================== -->
+      <section id="view-tasks" class="view-section">
+        <header class="view-header">
+          <div class="meta-date">Nhiệm vụ & Mục tiêu học tập</div>
+          <h1 class="view-title">Danh sách công việc</h1>
+          <p class="view-subtitle">Tổ chức rõ ràng từng đầu việc học tập để giải phóng tâm trí cho tư duy chiều sâu.</p>
+        </header>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:20px; flex-wrap:wrap;">
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-sm btn-secondary task-filter-btn active" data-filter="all">Tất cả</button>
+            <button class="btn btn-sm btn-secondary task-filter-btn" data-filter="today">Hôm nay</button>
+            <button class="btn btn-sm btn-secondary task-filter-btn" data-filter="pending">Đang chờ</button>
+            <button class="btn btn-sm btn-secondary task-filter-btn" data-filter="completed">Đã hoàn thành</button>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <input type="text" id="task-search-input" class="form-input" placeholder="Tìm kiếm nhiệm vụ..." style="padding:6px 12px; font-size:0.85rem; width:220px;">
+            <button class="btn btn-sm btn-primary" id="btn-tasks-add-task">+ Tạo nhiệm vụ</button>
+          </div>
+        </div>
+
+        <div class="task-notebook">
+          <div id="all-tasks-list">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- VIEW: SUBJECTS (MÔN HỌC & CHUYÊN ĐỀ) -->
+      <!-- ============================================== -->
+      <section id="view-subjects" class="view-section">
+        <header class="view-header">
+          <div class="meta-date">Lĩnh vực & Chuyên ngành</div>
+          <h1 class="view-title">Môn học nghiên cứu</h1>
+          <p class="view-subtitle">Theo dõi phân bổ thời gian và năng lượng trí tuệ cho từng chủ đề khoa học.</p>
+        </header>
+
+        <div style="display:flex; justify-content:flex-end; margin-bottom:16px;">
+          <button class="btn btn-primary" id="btn-add-subject">+ Thêm môn học</button>
+        </div>
+
+        <div class="subjects-grid" id="subjects-grid-list">
+          <!-- Rendered by JS -->
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- VIEW: NOTES (GHI CHÉP HỌC THUẬT) -->
+      <!-- ============================================== -->
+      <section id="view-notes" class="view-section">
+        <header class="view-header">
+          <div class="meta-date">Sổ tay học thuật & Tri thức</div>
+          <h1 class="view-title">Ghi chép chuyên sâu</h1>
+          <p class="view-subtitle">Lưu trữ các phân tích, tóm tắt lý thuyết, giải thích khái niệm với định dạng Markdown.</p>
+        </header>
+
+        <div class="notes-container">
+          <!-- Sidebar: Notes List -->
+          <div class="notes-sidebar">
+            <div class="notes-search-bar">
+              <input type="text" id="note-search-input" class="notes-search-input" placeholder="Tìm kiếm ghi chép...">
+              <button class="btn btn-sm btn-secondary" id="btn-create-note" style="width:100%; margin-top:8px;">+ Viết ghi chép mới</button>
+            </div>
+            <ul class="notes-list" id="notes-item-list">
+              <!-- Rendered by JS -->
+            </ul>
+          </div>
+
+          <!-- Main Pane: Editor / Reader -->
+          <div class="notes-editor-pane">
+            <div class="note-editor-header">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <select id="note-subject-select" class="form-select" style="padding:4px 10px; font-size:0.8rem; width:auto;">
+                  <option value="">(Không phân loại môn)</option>
+                </select>
+                <button type="button" class="btn btn-sm btn-secondary" id="btn-toggle-note-mode">👁️ Xem trước (Preview)</button>
+              </div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <button type="button" class="btn btn-sm btn-secondary" id="btn-delete-note" title="Xóa ghi chép">🗑️</button>
+                <button type="button" class="btn btn-sm btn-primary" id="btn-save-note">Lưu ghi chép</button>
+              </div>
+            </div>
+
+            <input type="text" id="note-title-input" class="note-title-input" placeholder="Tiêu đề chuyên khảo hoặc ghi chú...">
+            
+            <div id="note-editor-wrapper" style="display:flex; flex-direction:column; flex:1;">
+              <textarea id="note-body-textarea" class="note-body-textarea" placeholder="Nhập nội dung theo cú pháp Markdown (# Tiêu đề, - Danh sách, **in đậm**, `mã lệnh`)..."></textarea>
+            </div>
+            <div id="note-preview-wrapper" style="display:none; flex:1; overflow-y:auto; padding:10px 4px; line-height:1.75;">
+              <!-- Markdown HTML Preview rendered here -->
+            </div>
+
+            <div class="notes-footer-status">
+              <span id="note-save-status">Tự động đồng bộ cục bộ</span>
+              <span id="note-word-count">0 từ · 0 ký tự</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- VIEW: PROGRESS (BÁO CÁO HỌC THUẬT) -->
+      <!-- ============================================== -->
+      <section id="view-progress" class="view-section">
+        <header class="view-header">
+          <div class="meta-date">Tổng kết & Báo cáo</div>
+          <h1 class="view-title">Nhật ký tiến độ học tập</h1>
+          <p class="view-subtitle">Số liệu phân tích khách quan về tính kỷ luật và thời lượng rèn luyện trí tuệ.</p>
+        </header>
+
+        <div class="progress-grid">
+          <div class="metric-card">
+            <div class="metric-label">Tổng giờ tập trung (Tuần)</div>
+            <div class="metric-value" id="metric-week-hours">0.0h</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Phiên Focus hoàn thành</div>
+            <div class="metric-value" id="metric-sessions-count">0</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Chuỗi ngày kỷ luật (Streak)</div>
+            <div class="metric-value" id="metric-streak-days">1 ngày</div>
+          </div>
+        </div>
+
+        <div class="chart-container">
+          <div class="section-label">
+            <span>Phân bổ thời gian 7 ngày gần nhất</span>
+            <span style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-tertiary);">Đơn vị: Giờ</span>
+          </div>
+          <div class="chart-bars" id="weekly-chart-bars">
+            <!-- Weekly bars rendered dynamically -->
+          </div>
+        </div>
+
+        <div class="section-label">
+          <span>Thời lượng theo môn học</span>
+        </div>
+        <div id="subject-progress-breakdown" style="display:flex; flex-direction:column; gap:12px; margin-bottom:32px;">
+          <!-- Rendered by JS -->
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- FOCUS MODE OVERLAY (POMODORO WORKSPACE) -->
+  <!-- ============================================== -->
+  <div class="focus-overlay" id="focus-overlay">
+    <div class="focus-top-bar">
+      <span class="focus-subject-badge" id="focus-overlay-subject">Sinh lý học</span>
+      <button type="button" class="focus-exit-btn" id="btn-exit-focus">Esc · Rời phiên Focus</button>
+    </div>
+
+    <div class="focus-center">
+      <h2 class="focus-task-title" id="focus-overlay-task-title">Đọc và tóm tắt cơ chế truyền tin tế bào</h2>
+      
+      <div class="focus-clock-container">
+        <div class="focus-timer" id="focus-timer-digits">25:00</div>
+      </div>
+
+      <div class="focus-progress-track">
+        <div class="focus-progress-fill" id="focus-progress-fill"></div>
+      </div>
+
+      <div class="focus-controls">
+        <button type="button" class="btn btn-secondary btn-icon" id="btn-timer-reset" title="Đặt lại đồng hồ">↺</button>
+        <button type="button" class="focus-play-btn" id="btn-timer-toggle" title="Phím Space để Tạm dừng / Tiếp tục">▶</button>
+        <button type="button" class="btn btn-secondary btn-icon" id="btn-timer-finish" title="Hoàn thành sớm">✓</button>
+      </div>
+
+      <div class="preset-pills">
+        <button class="preset-pill active" data-minutes="25">25 phút</button>
+        <button class="preset-pill" data-minutes="50">50 phút</button>
+        <button class="preset-pill" data-minutes="90">90 phút</button>
+        <button class="preset-pill" data-minutes="5">Nghỉ 5p</button>
+        <button class="preset-pill" data-minutes="10">Nghỉ 10p</button>
+      </div>
+    </div>
+
+    <div class="focus-quote" id="focus-quote-text">
+      “To produce at your peak level you need to work for extended periods with full concentration.”
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- MODAL: ADD / EDIT TASK -->
+  <!-- ============================================== -->
+  <div class="modal-overlay" id="modal-task">
+    <div class="modal-window">
+      <h3 class="modal-title" id="modal-task-title">Thêm nhiệm vụ học tập</h3>
+      <form id="form-task">
+        <input type="hidden" id="task-id">
+        <div class="form-group">
+          <label class="form-label" for="task-input-title">Tiêu đề nhiệm vụ *</label>
+          <input type="text" id="task-input-title" class="form-input" required placeholder="Ví dụ: Giải bài tập đại số tuyến tính chương 2">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="task-input-subject">Thuộc môn học</label>
+          <select id="task-input-subject" class="form-select">
+            <!-- Injected by JS -->
+          </select>
+        </div>
+        <div class="form-group" style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+          <div>
+            <label class="form-label" for="task-input-duration">Thời lượng dự kiến (phút)</label>
+            <input type="number" id="task-input-duration" class="form-input" value="25" min="5" step="5">
+          </div>
+          <div>
+            <label class="form-label" for="task-input-date">Hạn hoàn thành</label>
+            <input type="date" id="task-input-date" class="form-input">
+          </div>
+        </div>
+        <div class="form-group">
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.88rem;">
+            <input type="checkbox" id="task-input-priority" style="accent-color:var(--accent);">
+            <span>Đặt làm <strong>Nhiệm vụ trọng tâm số 1 hôm nay</strong></span>
+          </label>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary modal-cancel-btn">Hủy</button>
+          <button type="submit" class="btn btn-primary">Lưu nhiệm vụ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- MODAL: ADD / EDIT SUBJECT -->
+  <!-- ============================================== -->
+  <div class="modal-overlay" id="modal-subject">
+    <div class="modal-window">
+      <h3 class="modal-title">Thêm môn học / Chuyên ngành</h3>
+      <form id="form-subject">
+        <input type="hidden" id="subject-id">
+        <div class="form-group">
+          <label class="form-label" for="subject-input-name">Tên môn học *</label>
+          <input type="text" id="subject-input-name" class="form-input" required placeholder="Ví dụ: Giải tích vi phân & tích phân">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="subject-input-desc">Mô tả tóm tắt</label>
+          <textarea id="subject-input-desc" class="form-textarea" rows="3" placeholder="Mục tiêu hoặc giáo trình chính đang nghiên cứu..."></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary modal-cancel-btn">Hủy</button>
+          <button type="submit" class="btn btn-primary">Tạo môn học</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- MODAL: SETTINGS & BACKUP -->
+  <!-- ============================================== -->
+  <div class="modal-overlay" id="modal-settings">
+    <div class="modal-window">
+      <h3 class="modal-title">Cấu hình & Quản lý dữ liệu</h3>
+      <p style="font-size:0.86rem; color:var(--text-secondary); margin-bottom:18px;">
+        Toàn bộ dữ liệu của bạn được lưu an toàn trên trình duyệt này. Bạn có thể sao lưu ra tệp JSON hoặc khôi phục bất cứ lúc nào.
+      </p>
+      
+      <div class="form-group">
+        <label class="form-label">Sao lưu & Khôi phục</label>
+        <div style="display:flex; gap:10px;">
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-export-backup">📥 Xuất tệp sao lưu JSON</button>
+          <label class="btn btn-secondary btn-sm" style="margin:0; cursor:pointer;">
+            📤 Nhập dữ liệu sao lưu
+            <input type="file" id="input-import-backup" accept=".json" style="display:none;">
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-top:20px; border-top:1px solid var(--border-light); padding-top:16px;">
+        <label class="form-label" style="color:var(--danger);">Dữ liệu ban đầu</label>
+        <button type="button" class="btn btn-secondary btn-sm" id="btn-reset-demo" style="color:var(--danger); border-color:var(--danger);">
+          Khôi phục dữ liệu mẫu học thuật
+        </button>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-primary modal-cancel-btn">Đóng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div class="quiet-toast" id="quiet-toast">Đã lưu thành công</div>
+
+  <!-- APPLICATION SCRIPTS -->
+  <script src="/focus/js/focus.js"></script>
+</body>
+</html>

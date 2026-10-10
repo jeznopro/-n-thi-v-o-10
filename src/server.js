@@ -67,6 +67,11 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
+// Route Focus OS — Quiet Academic Edition
+app.get('/focus', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/focus/index.html'));
+});
+
 // Bắt lỗi tập trung
 app.use(errorHandler);
 
