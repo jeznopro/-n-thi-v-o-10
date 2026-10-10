@@ -20,6 +20,7 @@ const aiRoutes = require('./routes/aiRoutes');
 const lessonRoutes = require('./routes/lessonRoutes');
 const chapterRoutes = require('./routes/chapterRoutes');
 const systemRoutes = require('./routes/systemRoutes');
+const parentRoutes = require('./routes/parentRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -59,6 +60,7 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/chapters', chapterRoutes);
 app.use('/api/lessons', lessonRoutes);
 app.use('/api/system', systemRoutes);
+app.use('/api/parent', parentRoutes);
 
 // Route mặc định điều hướng trang chính
 app.get('/', (req, res) => {

@@ -13,53 +13,81 @@
       align-items: center;
       justify-content: center;
       padding: 24px 16px;
-      background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #3b82f6 100%);
+      background: radial-gradient(circle at top center, #FAF7F0 0%, #F5F1E8 60%, #EAE4D7 100%);
+      position: relative;
     }
     .login-box {
       width: 100%;
       max-width: 440px;
-      background: #ffffff;
-      border-radius: var(--radius-lg);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-      padding: 36px 32px;
+      background: #FFFCF5;
+      border: 1.5px solid #E2D9CB;
+      border-radius: 18px;
+      box-shadow: 0 16px 40px rgba(48, 46, 41, 0.08);
+      padding: 38px 34px;
+      position: relative;
+    }
+    .login-box::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 5px;
+      background: #788268;
+      border-radius: 18px 18px 0 0;
     }
     .login-header {
       text-align: center;
       margin-bottom: 28px;
     }
     .login-logo {
-      width: 56px;
-      height: 56px;
-      background: linear-gradient(135deg, #2563eb, #1d4ed8);
-      color: #fff;
+      width: 60px;
+      height: 60px;
+      background: #788268;
+      color: #FFFCF5;
       border-radius: 14px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.8rem;
-      font-weight: 800;
+      font-size: 1.9rem;
       margin: 0 auto 16px;
-      box-shadow: 0 8px 16px rgba(37, 99, 235, 0.3);
+      box-shadow: 0 4px 12px rgba(48, 46, 41, 0.15);
+      border: 1px solid #D2DEC9;
     }
     .login-header h2 {
-      font-size: 1.45rem;
-      font-weight: 800;
-      color: #0f172a;
+      font-family: var(--font-serif);
+      font-size: 1.55rem;
+      font-weight: 700;
+      color: #302E29;
+      letter-spacing: -0.01em;
     }
     .login-header p {
-      color: var(--text-muted);
-      font-size: 0.875rem;
+      color: #6E685F;
+      font-size: 0.885rem;
       margin-top: 6px;
     }
   </style>
 </head>
 <body>
   <div class="login-container">
+    <!-- NÚT CHUYỂN ĐỔI GIAO DIỆN Ở TRANG ĐĂNG NHẬP -->
+    <div style="position: absolute; top: 20px; right: 20px; z-index: 10;">
+      <div class="theme-switch-wrapper" id="login-theme-switcher">
+        <button type="button" class="theme-switch-btn" id="theme-btn-cozy" onclick="applyTheme('cozy')">
+          🏛️ Thư viện
+        </button>
+        <button type="button" class="theme-switch-btn" id="theme-btn-classic" onclick="applyTheme('classic')">
+          ⚡ Hiện đại
+        </button>
+        <button type="button" class="theme-switch-btn" id="theme-btn-minimal" onclick="applyTheme('minimal')">
+          ◻️ Tối giản
+        </button>
+      </div>
+    </div>
+
     <div class="login-box">
       <div class="login-header">
-        <div class="login-logo">∑</div>
-        <h2>HỆ THỐNG TỰ LUẬN TOÁN THCS</h2>
-        <p>Cổng đăng nhập dành cho Giáo viên & Học sinh</p>
+        <div class="login-logo" id="login-logo-el">🏛️</div>
+        <h2 id="login-title-el">THƯ VIỆN TOÁN 9</h2>
+        <p id="login-sub-el">Phòng Học & Ôn Thi Tuyển Sinh Vào 10</p>
       </div>
 
       <form id="login-form">
@@ -73,15 +101,53 @@
           <input type="password" id="password" class="form-control" placeholder="Nhập mật khẩu..." required autocomplete="current-password">
         </div>
 
-        <button type="submit" id="btn-submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 1rem; margin-top: 8px;">
-          Đăng Nhập
+        <button type="submit" id="btn-submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 1rem; margin-top: 8px; border-radius: 8px; font-weight: 700;">
+          Bước Vào Phòng Học 🕯️
         </button>
+
+        <div style="text-align: center; margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--border-color); font-size: 0.875rem;">
+          <a href="/parent/lookup.html" style="color: var(--text-muted); text-decoration: none; font-weight: 500;">
+            👨‍👩‍👧 Phụ huynh tra cứu tiến độ học tập &rarr;
+          </a>
+        </div>
       </form>
     </div>
   </div>
 
   <script src="/js/api.js"></script>
+  <script src="/js/common.js"></script>
   <script>
+    function updateLoginThemeTexts(theme) {
+      const logo = document.getElementById('login-logo-el');
+      const title = document.getElementById('login-title-el');
+      const sub = document.getElementById('login-sub-el');
+      const btn = document.getElementById('btn-submit');
+
+      if (theme === 'minimal') {
+        if (logo) logo.textContent = 'TL';
+        if (title) title.textContent = 'TỰ LUẬN';
+        if (sub) sub.textContent = 'Nền tảng làm bài tự luận học sinh';
+        if (btn) btn.textContent = 'Đăng nhập';
+      } else if (theme === 'classic') {
+        if (logo) logo.textContent = '∑';
+        if (title) title.textContent = 'HỆ THỐNG TỰ LUẬN TOÁN THCS';
+        if (sub) sub.textContent = 'Cổng đăng nhập dành cho Giáo viên & Học sinh';
+        if (btn) btn.textContent = 'Đăng Nhập';
+      } else {
+        if (logo) logo.textContent = '🏛️';
+        if (title) title.textContent = 'THƯ VIỆN TOÁN 9';
+        if (sub) sub.textContent = 'Phòng Học & Ôn Thi Tuyển Sinh Vào 10';
+        if (btn) btn.textContent = 'Bước Vào Phòng Học 🕯️';
+      }
+    }
+
+    window.addEventListener('themeChanged', (e) => {
+      updateLoginThemeTexts(e.detail.theme);
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      updateLoginThemeTexts(getCurrentTheme());
+    });
     // Kiểm tra thông báo phiên hết hạn từ URL
     if (new URLSearchParams(window.location.search).get('expired')) {
       showToast('Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại.', 'warning');

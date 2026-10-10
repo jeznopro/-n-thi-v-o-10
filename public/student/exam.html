@@ -14,17 +14,17 @@
       gap: 10px;
       overflow-x: auto;
       padding: 12px 0 16px;
-      border-bottom: 2px solid #e2e8f0;
+      border-bottom: 1.5px solid #E2D9CB;
       margin-bottom: 20px;
     }
     .question-nav-btn {
-      padding: 10px 18px;
+      padding: 9px 18px;
       border-radius: 9999px;
-      background: #ffffff;
-      border: 1.5px solid #cbd5e1;
-      font-size: 0.925rem;
+      background: #FFFCF5;
+      border: 1.5px solid #E2D9CB;
+      font-size: 0.9rem;
       font-weight: 700;
-      color: #334155;
+      color: #6E685F;
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -33,46 +33,49 @@
       transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .question-nav-btn:hover {
-      border-color: #3b82f6;
-      background: #eff6ff;
+      border-color: #8C8275;
+      background: #F8F3EA;
+      color: #302E29;
     }
     .question-nav-btn.active {
-      background: #2563eb;
+      background: #788268;
       color: #ffffff;
-      border-color: #1d4ed8;
-      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+      border-color: #788268;
+      box-shadow: 0 2px 8px rgba(48, 46, 41, 0.15);
     }
     .question-nav-btn.completed {
-      border-color: #10b981;
-      color: #047857;
-      background: #ecfdf5;
+      border-color: #D2DEC9;
+      color: #5F7A61;
+      background: #EFF5F0;
     }
     .question-nav-btn.completed.active {
-      background: #059669;
+      background: #5F7A61;
       color: #ffffff;
-      border-color: #047857;
+      border-color: #5F7A61;
     }
 
     /* Thẻ câu hỏi che gần ngang màn hình */
     .wide-question-container {
       width: 100%;
-      background: #ffffff;
-      border: 1.5px solid var(--border-color);
-      border-radius: 22px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+      background: #FFFCF5;
+      border: 1.5px solid #E2D9CB;
+      border-radius: 16px;
+      box-shadow: 0 3px 12px rgba(48, 46, 41, 0.05);
       overflow: hidden;
       margin-bottom: 30px;
     }
 
     .wide-question-header {
-      background: linear-gradient(135deg, #1e3a8a, #2563eb);
-      color: #ffffff;
+      background: #FAF7EE;
+      color: #302E29;
+      border-bottom: 1px solid #E2D9CB;
       padding: 18px 24px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
       gap: 12px;
+      font-family: var(--font-serif);
     }
 
     .wide-question-body {
@@ -80,22 +83,22 @@
     }
 
     .question-prompt-box {
-      background: #f8fafc;
-      border: 1.5px solid #e2e8f0;
-      border-left: 5px solid #2563eb;
-      border-radius: 18px;
+      background: #FDFBF7;
+      border: 1.5px solid #E2D9CB;
+      border-left: 5px solid #788268;
+      border-radius: 12px;
       padding: 20px;
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       line-height: 1.8;
-      color: #0f172a;
+      color: #302E29;
       margin-bottom: 24px;
     }
 
     /* Khung chèn ảnh bài làm ngay dưới đề */
     .photo-upload-banner {
-      background: #f0fdf4;
-      border: 2px dashed #86efac;
-      border-radius: 20px;
+      background: #FAF7EE;
+      border: 2px dashed #C29B38;
+      border-radius: 16px;
       padding: 20px;
       margin-top: 18px;
     }
@@ -104,9 +107,9 @@
       position: sticky;
       top: 68px;
       z-index: 100;
-      background: #ffffff;
-      border-bottom: 1px solid var(--border-color);
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      background: #FFFCF5;
+      border-bottom: 1px solid #E2D9CB;
+      box-shadow: 0 2px 6px rgba(48, 46, 41, 0.05);
       padding: 10px 20px;
     }
   </style>
@@ -116,22 +119,22 @@
   <header class="navbar">
     <div class="nav-container">
       <a href="/student/index.html" class="nav-brand">
-        <div class="brand-logo" style="background: linear-gradient(135deg, #10b981, #059669);">∑</div>
+        <div class="brand-logo" style="background: #788268; color: #FFFCF5; font-family: var(--font-serif); font-size: 1.3rem;">🏛️</div>
         <div class="brand-text">
-          <h1>TOÁN THCS</h1>
+          <h1>THƯ VIỆN TOÁN 9</h1>
           <p>Phòng Làm Bài Trực Tuyến</p>
         </div>
       </a>
 
       <div class="nav-user">
         <div class="user-badge">
-          <div class="user-avatar" style="background: #10b981;">HS</div>
+          <div class="user-avatar" style="background: #788268; color: #FFFCF5;">HS</div>
           <div class="user-info">
             <span class="user-name">Học sinh</span>
-            <span class="user-role">Học sinh</span>
+            <span class="user-role">Sĩ tử Lớp 9</span>
           </div>
         </div>
-        <a href="/student/index.html" class="btn btn-secondary btn-sm">Thoát</a>
+        <a href="/student/index.html" class="btn btn-secondary btn-sm" style="border-radius: 6px;">Thoát</a>
       </div>
     </div>
   </header>
@@ -140,21 +143,21 @@
   <div class="timer-sticky">
     <div class="nav-container" style="height: auto; padding: 0;">
       <div>
-        <h3 id="exam-title" style="font-size: 1.15rem; font-weight: 800; color: #1e3a8a;">Đang tải bài thi...</h3>
-        <div id="exam-meta" style="font-size: 0.8rem; color: #64748b;"></div>
+        <h3 id="exam-title" style="font-size: 1.15rem; font-family: var(--font-serif); font-weight: 700; color: #302E29;">Đang tải bài thi...</h3>
+        <div id="exam-meta" style="font-size: 0.8rem; color: #6E685F;"></div>
       </div>
 
       <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
         <!-- Đồng hồ đếm ngược -->
-        <div id="timer-box" style="display: none; background: #eff6ff; padding: 6px 14px; border-radius: 12px; font-weight: 800; font-size: 1.15rem; color: #1d4ed8; border: 1.5px solid #bfdbfe;">
+        <div id="timer-box" style="display: none; background: #FAF6EB; padding: 6px 14px; border-radius: 8px; font-weight: 700; font-size: 1.15rem; color: #8C6D23; border: 1.5px solid #C29B38; font-family: var(--font-mono);">
           ⏱️ <span id="countdown-text">--:--</span>
         </div>
 
-        <span id="autosave-indicator" style="font-size: 0.825rem; color: #10b981; font-weight: 600;">
+        <span id="autosave-indicator" style="font-size: 0.825rem; color: #788268; font-weight: 600;">
           💾 Tự lưu nháp 30s
         </span>
 
-        <button class="btn btn-success" style="padding: 9px 20px; font-weight: 700; border-radius: 12px;" onclick="confirmSubmit()">
+        <button class="btn btn-primary" style="padding: 9px 20px; font-weight: 700; border-radius: 8px;" onclick="confirmSubmit()">
           📤 Nộp Bài Thi
         </button>
       </div>
@@ -461,8 +464,8 @@
           startTimer();
         }
 
-        // Tự động lưu nháp định kỳ 30s
-        autoSaveInterval = setInterval(triggerAutoSave, 30000);
+        // Tự động lưu nháp định kỳ 10s (chuẩn Minimalism)
+        autoSaveInterval = setInterval(triggerAutoSave, 10000);
 
         // Tự lưu khi người dùng chuyển trang
         window.addEventListener('beforeunload', () => {
@@ -1112,7 +1115,11 @@
         });
 
         if (notify) {
-          document.getElementById('autosave-indicator').textContent = `💾 Đã lưu nháp lúc ${res.savedAt}`;
+          const isMinimal = getCurrentTheme() === 'minimal';
+          const indicator = document.getElementById('autosave-indicator');
+          if (indicator) {
+            indicator.textContent = isMinimal ? `Đã lưu nháp lúc ${res.savedAt}` : `💾 Đã lưu nháp lúc ${res.savedAt}`;
+          }
         }
       } catch (err) {
         console.error('Lỗi tự động lưu nháp:', err);
@@ -1151,18 +1158,19 @@
       }
     });
 
-    // NỘP BÀI THI
+    // NỘP BÀI THI (Xác nhận rõ ràng số từ và số lượng ảnh đã nộp)
     async function confirmSubmit() {
       saveCurrentQuestionAnswer();
 
-      // Kiểm tra xem đã làm câu nào chưa
       const attachments = submissionData.attachments || [];
       const totalPhotos = attachments.length;
-      const totalAnswers = Object.values(answersMap).filter(t => t.trim().length > 0).length;
+      const totalWords = Object.values(answersMap).reduce((acc, t) => acc + countWords(t), 0);
+      const totalAnsweredQuestions = Object.values(answersMap).filter(t => t && t.trim().length > 0).length;
 
-      let msg = 'Bạn có chắc chắn muốn nộp bài thi không? Sau khi nộp sẽ không thể chỉnh sửa.';
-      if (totalPhotos === 0 && totalAnswers === 0) {
-        msg = '⚠️ BẠN CHƯA TẢI ẢNH BÀI LÀM VÀ CHƯA GÕ LỜI GIẢI NÀO! Bạn có thực sự muốn nộp bài trắng không?';
+      let msg = `Bạn có chắc chắn muốn nộp bài thi không?\n\n• Số từ bài giải: ${totalWords} từ (${totalAnsweredQuestions}/${questionsList.length} câu đã nhập chữ)\n• Số ảnh bài làm viết tay: ${totalPhotos} ảnh\n\nSau khi nộp, bạn sẽ không thể chỉnh sửa bài làm.`;
+      
+      if (totalPhotos === 0 && totalWords === 0) {
+        msg = '⚠️ Cảnh báo: Bạn chưa tải bất kỳ ảnh bài làm nào và chưa nhập lời giải văn bản nào! Bạn có chắc muốn nộp bài trống không?';
       }
 
       const ok = await showConfirm('Xác nhận nộp bài thi', msg);

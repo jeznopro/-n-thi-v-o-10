@@ -10,44 +10,145 @@
   <style>
     .student-nav-menu {
       display: flex;
-      gap: 12px;
+      gap: 10px;
       list-style: none;
       margin: 0;
       padding: 0;
     }
     .student-nav-menu li a {
-      color: #334155;
+      color: #6E685F;
       text-decoration: none;
       font-weight: 600;
-      font-size: 0.95rem;
-      padding: 8px 16px;
-      border-radius: 9999px;
+      font-size: 0.925rem;
+      padding: 8px 18px;
+      border-radius: 6px;
       transition: all 0.2s;
     }
     .student-nav-menu li a:hover {
-      background: #f1f5f9;
-      color: #2563eb;
+      background: #F8F3EA;
+      color: #302E29;
     }
     .student-nav-menu li a.active {
-      background: #eff6ff;
-      color: #2563eb;
+      background: #EBF0E6;
+      color: #788268;
       font-weight: 700;
+      box-shadow: 0 1px 3px rgba(48, 46, 41, 0.05);
     }
-    .chapter-accordion {
-      background: #ffffff;
-      border: 1.5px solid #e2e8f0;
+
+    /* COZY EXAM HALL BANNER */
+    .cozy-revision-hero {
+      background: #FFFCF5;
+      border: 1px solid #E2D9CB;
+      border-radius: 16px;
+      padding: 24px 28px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 20px -2px rgba(48, 46, 41, 0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      position: relative;
+      overflow: hidden;
+    }
+    .cozy-revision-hero::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; bottom: 0;
+      width: 6px;
+      background: #788268;
+    }
+
+    .countdown-box {
+      background: #F5F1E8;
+      border: 1px solid #E2D9CB;
+      border-radius: 12px;
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.03);
+    }
+    .countdown-num {
+      font-family: var(--font-serif);
+      font-size: 1.85rem;
+      font-weight: 700;
+      color: #A87552;
+      line-height: 1;
+    }
+
+    /* AMBIENT SOUND PLAYER BAR */
+    .ambient-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #F5F1E8;
+      border: 1px solid #E2D9CB;
       border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 0.825rem;
+    }
+    .ambient-btn {
+      background: none;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 14px;
+      cursor: pointer;
+      color: #6E685F;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s;
+    }
+    .ambient-btn:hover {
+      background: #FFFCF5;
+      color: #302E29;
+    }
+    .ambient-btn.active {
+      background: #788268;
+      color: #FFFFFF;
+    }
+
+    /* STUDY TIMER PILL */
+    .study-timer-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #FAF6EB;
+      border: 1px solid #C29B38;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      color: #8C6D23;
+      font-weight: 600;
+    }
+
+    /* CHAPTER ACCORDION (BOOK VOLUME STYLE) */
+    .chapter-accordion {
+      background: #FFFCF5;
+      border: 1px solid #E2D9CB;
+      border-radius: 14px;
       margin-bottom: 22px;
       overflow: hidden;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+      box-shadow: 0 3px 12px rgba(48, 46, 41, 0.05);
       transition: all 0.25s ease;
+      position: relative;
+    }
+    .chapter-accordion::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; bottom: 0;
+      width: 5px;
+      background: #788268;
+      opacity: 0.8;
     }
     .chapter-accordion.expanded {
-      border-color: #3b82f6;
-      box-shadow: 0 10px 25px rgba(37,99,235,0.06);
+      border-color: #788268;
+      box-shadow: 0 8px 24px rgba(48, 46, 41, 0.09);
     }
     .chapter-header {
-      background: linear-gradient(to right, #f8fafc, #ffffff);
+      background: #FDFBF7;
       padding: 18px 24px;
       display: flex;
       justify-content: space-between;
@@ -57,9 +158,14 @@
       transition: background 0.2s ease;
       gap: 12px;
       flex-wrap: wrap;
+      border-bottom: 1px solid transparent;
+    }
+    .chapter-accordion.expanded .chapter-header {
+      border-bottom-color: #E2D9CB;
+      background: #FAF7F0;
     }
     .chapter-header:hover {
-      background: #f1f5f9;
+      background: #F5EFE4;
     }
     .chapter-info {
       display: flex;
@@ -69,20 +175,22 @@
     .chapter-icon {
       width: 44px;
       height: 44px;
-      border-radius: 12px;
-      background: #eff6ff;
-      color: #2563eb;
+      border-radius: 8px;
+      background: #EBF0E6;
+      color: #788268;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.5rem;
+      font-size: 1.4rem;
       flex-shrink: 0;
-      box-shadow: 0 2px 6px rgba(37,99,235,0.12);
+      box-shadow: 0 2px 6px rgba(48, 46, 41, 0.08);
+      border: 1px solid #D2DEC9;
     }
     .chapter-title {
-      font-size: 1.15rem;
-      font-weight: 800;
-      color: #0f172a;
+      font-size: 1.25rem;
+      font-family: var(--font-serif);
+      font-weight: 700;
+      color: #302E29;
       margin: 0;
       display: flex;
       align-items: center;
@@ -92,36 +200,39 @@
     .chapter-lessons-count {
       font-size: 0.75rem;
       padding: 3px 10px;
-      border-radius: 9999px;
-      background: #e0f2fe;
-      color: #0369a1;
+      border-radius: 12px;
+      background: #FAF6EB;
+      color: #A37B32;
+      border: 1px solid #EBDCB4;
       font-weight: 700;
+      font-family: var(--font-sans);
     }
     .chapter-desc {
       font-size: 0.85rem;
-      color: #64748b;
+      color: #6E685F;
       margin-top: 4px;
       margin-bottom: 0;
+      font-style: italic;
     }
     .chapter-chevron {
-      font-size: 1.1rem;
-      color: #64748b;
+      font-size: 1rem;
+      color: #8C8275;
       transition: transform 0.25s ease;
       display: inline-block;
     }
     .chapter-accordion.expanded .chapter-chevron {
       transform: rotate(180deg);
-      color: #2563eb;
+      color: #788268;
     }
     .chapter-body {
       padding: 22px 24px;
-      background: #fcfcfd;
-      border-top: 1.5px solid #f1f5f9;
+      background: #FFFCF5;
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
       gap: 18px;
     }
 
+    /* LESSON CARDS (BOOK CHAPTER STYLE) */
     .lesson-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
@@ -129,36 +240,36 @@
       margin-top: 24px;
     }
     .lesson-card {
-      background: #ffffff;
-      border: 1.5px solid #e2e8f0;
-      border-radius: 22px;
-      padding: 24px;
+      background: #FFFCF5;
+      border: 1px solid #E2D9CB;
+      border-radius: 12px;
+      padding: 22px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 2px 8px rgba(48, 46, 41, 0.04);
       position: relative;
     }
     .lesson-card:hover {
       transform: translateY(-3px);
-      border-color: #3b82f6;
-      box-shadow: 0 12px 28px rgba(37,99,235,0.09);
+      border-color: #788268;
+      box-shadow: 0 8px 24px rgba(48, 46, 41, 0.12);
     }
     .category-badge {
       display: inline-block;
-      padding: 4px 12px;
-      border-radius: 9999px;
+      padding: 3px 10px;
+      border-radius: 4px;
       font-size: 0.75rem;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.04em;
     }
-    .cat-daiso { background: #eff6ff; color: #1d4ed8; }
-    .cat-hinhhoc { background: #f0fdf4; color: #15803d; }
-    .cat-viet { background: #fef3c7; color: #b45309; }
-    .cat-bdt { background: #faf5ff; color: #7e22ce; }
-    .cat-thucte { background: #fff1f2; color: #be123c; }
+    .cat-daiso { background: #EBF0E6; color: #788268; border: 1px solid #D2DEC9; }
+    .cat-hinhhoc { background: #EFF5F0; color: #5F7A61; border: 1px solid #C4D9C7; }
+    .cat-viet { background: #FAF6EB; color: #C29B38; border: 1px solid #EBDCB4; }
+    .cat-bdt { background: #F7EEE7; color: #A87552; border: 1px solid #E8D3C4; }
+    .cat-thucte { background: #FDF2F2; color: #9B4A4A; border: 1px solid #F5CECE; }
 
     .media-badge {
       display: inline-flex;
@@ -166,18 +277,18 @@
       gap: 4px;
       font-size: 0.75rem;
       padding: 3px 8px;
-      border-radius: 6px;
+      border-radius: 4px;
       font-weight: 700;
     }
     .badge-video {
-      background: #fef2f2;
-      color: #dc2626;
-      border: 1px solid #fecaca;
+      background: #FDF2F2;
+      color: #9B4A4A;
+      border: 1px solid #F5CECE;
     }
     .badge-doc {
-      background: #eff6ff;
-      color: #2563eb;
-      border: 1px solid #bfdbfe;
+      background: #EBF0E6;
+      color: #788268;
+      border: 1px solid #D2DEC9;
     }
 
     .filter-tabs {
@@ -188,40 +299,40 @@
       margin-top: 14px;
     }
     .filter-tab {
-      padding: 8px 18px;
-      border-radius: 9999px;
-      background: #ffffff;
-      border: 1.5px solid #e2e8f0;
+      padding: 7px 16px;
+      border-radius: 6px;
+      background: #FFFCF5;
+      border: 1px solid #E2D9CB;
       font-size: 0.85rem;
       font-weight: 600;
-      color: #475569;
+      color: #6E685F;
       cursor: pointer;
       white-space: nowrap;
-      transition: all 0.2s;
+      transition: all 0.15s;
     }
-    .filter-tab:hover { background: #f8fafc; border-color: #cbd5e1; }
-    .filter-tab.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+    .filter-tab:hover { background: #F8F3EA; border-color: #8C8275; color: #302E29; }
+    .filter-tab.active { background: #788268; color: #fff; border-color: #788268; box-shadow: 0 1px 3px rgba(48,46,41,0.12); }
 
     .formula-preview-box {
-      background: #f8fafc;
-      border: 1px dashed #cbd5e1;
-      border-radius: 12px;
+      background: #FDFBF7;
+      border: 1px dashed #D9CCB8;
+      border-radius: 8px;
       padding: 10px 14px;
       margin-top: 12px;
       font-size: 0.85rem;
-      color: #334155;
+      color: #302E29;
     }
 
-    /* UNIVERSAL POPUP MODAL STYLES */
+    /* UNIVERSAL POPUP MODAL STYLES (COZY READING SANCTUARY) */
     .modal {
       position: fixed !important;
       top: 0 !important;
       left: 0 !important;
       width: 100vw !important;
       height: 100vh !important;
-      background: rgba(15, 23, 42, 0.72) !important;
-      backdrop-filter: blur(5px) !important;
-      -webkit-backdrop-filter: blur(5px) !important;
+      background: rgba(30, 28, 24, 0.65) !important;
+      backdrop-filter: blur(4px) !important;
+      -webkit-backdrop-filter: blur(4px) !important;
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
@@ -238,15 +349,15 @@
       pointer-events: auto !important;
     }
     .modal-dialog {
-      background: #ffffff !important;
-      border-radius: 22px !important;
-      border: 1.5px solid #e2e8f0 !important;
+      background: #FFFCF5 !important;
+      border-radius: 16px !important;
+      border: 1.5px solid #E2D9CB !important;
       width: 100% !important;
       max-width: 650px;
       max-height: 90vh !important;
-      box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.35) !important;
-      transform: scale(0.94);
-      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+      box-shadow: 0 20px 50px rgba(48, 46, 41, 0.3) !important;
+      transform: scale(0.95);
+      transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
       overflow: hidden !important;
       display: flex !important;
       flex-direction: column !important;
@@ -255,23 +366,24 @@
       transform: scale(1) !important;
     }
     .modal-header {
-      padding: 18px 24px !important;
-      border-bottom: 1.5px solid #e2e8f0 !important;
+      padding: 16px 24px !important;
+      border-bottom: 1px solid #E2D9CB !important;
       display: flex !important;
       align-items: center !important;
       justify-content: space-between !important;
-      background: #ffffff !important;
+      background: #FDFBF7 !important;
       flex-shrink: 0 !important;
     }
     .modal-body {
       padding: 24px !important;
       overflow-y: auto !important;
       flex: 1 !important;
+      background: #FFFCF5 !important;
     }
     .modal-footer {
-      padding: 16px 24px !important;
-      background: #f8fafc !important;
-      border-top: 1.5px solid #e2e8f0 !important;
+      padding: 14px 24px !important;
+      background: #F8F3EA !important;
+      border-top: 1px solid #E2D9CB !important;
       display: flex !important;
       justify-content: flex-end !important;
       gap: 12px !important;
@@ -280,20 +392,20 @@
     .modal-close {
       background: none !important;
       border: none !important;
-      font-size: 1.8rem !important;
-      color: #64748b !important;
+      font-size: 1.6rem !important;
+      color: #8C8275 !important;
       cursor: pointer !important;
       line-height: 1 !important;
       padding: 4px 8px !important;
-      border-radius: 8px !important;
-      transition: all 0.2s !important;
+      border-radius: 6px !important;
+      transition: all 0.15s !important;
     }
     .modal-close:hover {
-      background: #f1f5f9 !important;
-      color: #0f172a !important;
+      background: #E2D9CB !important;
+      color: #302E29 !important;
     }
     .modal-lesson-view {
-      max-width: 950px !important;
+      max-width: 960px !important;
       width: 95% !important;
     }
 
@@ -302,10 +414,11 @@
       padding-bottom: 56.25%;
       height: 0;
       overflow: hidden;
-      border-radius: 16px;
-      background: #000;
+      border-radius: 12px;
+      background: #181714;
       margin-bottom: 22px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+      box-shadow: 0 4px 16px rgba(48, 46, 41, 0.15);
+      border: 1px solid #E2D9CB;
     }
     .video-wrapper iframe {
       position: absolute;
@@ -319,29 +432,29 @@
     /* Lesson Navigation Tabs inside Viewer */
     .lesson-tabs {
       display: flex;
-      gap: 8px;
-      border-bottom: 2px solid #e2e8f0;
+      gap: 6px;
+      border-bottom: 1.5px solid #E2D9CB;
       margin-bottom: 18px;
       overflow-x: auto;
     }
     .lesson-tab-btn {
-      padding: 10px 18px;
+      padding: 9px 16px;
       font-weight: 700;
       font-size: 0.9rem;
-      color: #64748b;
+      color: #6E685F;
       background: none;
       border: none;
-      border-bottom: 3px solid transparent;
+      border-bottom: 2.5px solid transparent;
       cursor: pointer;
       transition: all 0.2s;
       white-space: nowrap;
     }
     .lesson-tab-btn:hover {
-      color: #1e293b;
+      color: #302E29;
     }
     .lesson-tab-btn.active {
-      color: #2563eb;
-      border-bottom-color: #2563eb;
+      color: #788268;
+      border-bottom-color: #788268;
     }
   </style>
 </head>
@@ -350,10 +463,10 @@
   <header class="navbar">
     <div class="nav-container">
       <a href="/student/index.html" class="nav-brand">
-        <div class="brand-logo" style="background: linear-gradient(135deg, #10b981, #059669);">∑</div>
+        <div class="brand-logo" style="background: #788268; color: #FFFCF5; font-family: var(--font-serif); font-size: 1.3rem;">🏛️</div>
         <div class="brand-text">
-          <h1>TOÁN THCS</h1>
-          <p>Cổng Học Sinh</p>
+          <h1>THƯ VIỆN TOÁN 9</h1>
+          <p>Phòng Ôn Thi Vào 10</p>
         </div>
       </a>
 
@@ -361,17 +474,17 @@
 
       <nav>
         <ul class="student-nav-menu">
-          <li><a href="/student/index.html">📝 Bài tập & Đề thi</a></li>
-          <li><a href="/student/lessons.html" class="active">📖 Bài giảng lý thuyết</a></li>
+          <li><a href="/student/index.html">📝 Đề thi & Bài tập</a></li>
+          <li><a href="/student/lessons.html" class="active">📖 Giác thư & Bài giảng</a></li>
         </ul>
       </nav>
 
       <div class="nav-user">
         <div class="user-badge">
-          <div class="user-avatar" style="background: #10b981;">HS</div>
+          <div class="user-avatar" style="background: #788268; color: #FFFCF5;">HS</div>
           <div class="user-info">
             <span class="user-name">Học sinh</span>
-            <span class="user-role">Học sinh</span>
+            <span class="user-role">Sĩ tử Lớp 9</span>
           </div>
         </div>
         <button id="logout-btn" class="btn btn-secondary btn-sm">Đăng xuất</button>
@@ -381,23 +494,66 @@
 
   <!-- MAIN WRAPPER -->
   <main class="main-wrapper">
-    <div class="page-header">
-      <div class="page-title">
-        <h2>📖 Chuyên đề Bài giảng & Tóm tắt Lý thuyết Toán vào 10</h2>
-        <p>Xem video bài giảng Google Drive/YouTube, tài liệu PDF và sơ đồ công thức then chốt</p>
+    <!-- COZY REVISION HERO BANNER -->
+    <div class="cozy-revision-hero">
+      <div style="flex: 1; min-width: 300px;">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+          <span id="lessons-hero-tag" style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; color: var(--primary); background: var(--primary-light); padding: 2px 10px; border-radius: 9999px;">Phòng Đọc Học Tập Yên Tĩnh</span>
+          <span id="lessons-hero-candle" style="color: #A87552; font-size: 0.85rem;">🕯️ Đèn vàng ấm</span>
+        </div>
+        <h2 id="lessons-hero-title" style="font-size: 1.65rem; margin-bottom: 8px;">
+          Giác Thư & Chuyên Đề Lý Thuyết Ôn Thi Vào 10
+        </h2>
+        <p id="lessons-hero-sub" style="color: var(--text-muted); font-size: 0.925rem; max-width: 680px; margin: 0; line-height: 1.6;">
+          Không gian số lưu trữ đầy đủ định lý, công thức trọng tâm, bài giảng video Google Drive và tài liệu tương tác HTML giúp bạn làm chủ kỳ thi.
+        </p>
+      </div>
+
+      <!-- ĐẾM NGƯỢC THI VÀO 10 & TIỆN ÍCH HỌC TẬP -->
+      <div style="display: flex; flex-direction: column; gap: 10px; align-items: flex-end;">
+        <div class="countdown-box">
+          <div style="font-size: 2rem;">🎓</div>
+          <div>
+            <div style="font-size: 0.72rem; text-transform: uppercase; font-weight: 700; color: #8C8275; letter-spacing: 0.06em;">Kỳ Thi Tuyển Sinh Vào 10</div>
+            <div style="display: flex; align-items: baseline; gap: 6px;">
+              <span class="countdown-num" id="exam-countdown-days">56</span>
+              <span style="font-size: 0.85rem; color: #6E685F; font-weight: 600;">ngày đếm ngược</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
+          <!-- BỘ PHÁT TIẾNG ỒN TRẮNG / AMBIENT THƯ VIỆN -->
+          <div class="ambient-bar" title="Âm thanh thư viện giúp tập trung (chạy hoàn toàn bằng Web Audio offline)">
+            <span style="font-weight: 700; color: #8C8275; font-size: 0.75rem; text-transform: uppercase;">Âm nền:</span>
+            <button type="button" class="ambient-btn" id="btn-ambient-rain" onclick="toggleAmbient('rain')">🌧️ Mưa</button>
+            <button type="button" class="ambient-btn" id="btn-ambient-fire" onclick="toggleAmbient('fire')">🔥 Củi</button>
+            <button type="button" class="ambient-btn" id="btn-ambient-clock" onclick="toggleAmbient('clock')">⏳ Tích tắc</button>
+            <button type="button" class="ambient-btn" id="btn-ambient-brown" onclick="toggleAmbient('brown')">☕ Nâu ấm</button>
+            <button type="button" class="ambient-btn" id="btn-ambient-stop" onclick="stopAmbient()" title="Tắt âm" style="display: none;">🔇</button>
+          </div>
+
+          <!-- ĐỒNG HỒ TẬP TRUNG POMODORO -->
+          <div class="study-timer-pill" id="study-timer-box">
+            <span>⏱️</span>
+            <span id="study-timer-display" style="font-family: var(--font-mono); font-weight: 700; color: #302E29;">25:00</span>
+            <button type="button" onclick="toggleStudyTimer()" id="btn-study-timer" style="background: none; border: none; cursor: pointer; color: #788268; font-weight: 700; padding: 2px 6px; border-radius: 4px;">▶ Bắt đầu</button>
+            <button type="button" onclick="resetStudyTimer()" style="background: none; border: none; cursor: pointer; color: #8C8275; font-size: 0.85rem;" title="Đặt lại 25 phút">↻</button>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- TÌM KIẾM VÀ BỘ LỌC -->
-    <div style="background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 20px; padding: 18px 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+    <!-- TÌM KIẾM VÀ BỘ LỌC CHUYÊN ĐỀ -->
+    <div style="background: #FFFCF5; border: 1.5px solid #E2D9CB; border-radius: 16px; padding: 18px 24px; box-shadow: 0 2px 8px rgba(48, 46, 41, 0.04);">
       <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-        <div style="flex: 1; min-width: 250px;">
-          <input type="text" id="student-lesson-search" class="form-control" placeholder="🔍 Tìm kiếm bài giảng, định lý, công thức (Vi-ét, căn thức, tứ giác nội tiếp, Cô-si...)" oninput="handleSearch()">
+        <div style="flex: 1; min-width: 260px;">
+          <input type="text" id="student-lesson-search" class="form-control" placeholder="🔍 Tra cứu bài giảng, định lý, công thức (Vi-ét, căn thức, tứ giác nội tiếp, Cô-si, Parabol...)" oninput="handleSearch()" style="background: #FDFBF7; border-color: #D9CCB8; font-size: 0.95rem;">
         </div>
       </div>
 
       <div class="filter-tabs">
-        <button type="button" class="filter-tab active" onclick="filterCategory('all', this)">Tất cả chuyên đề</button>
+        <button type="button" class="filter-tab active" onclick="filterCategory('all', this)">📚 Tất cả chuyên đề</button>
         <button type="button" class="filter-tab" onclick="filterCategory('Đại số', this)">📐 Đại số & Căn thức</button>
         <button type="button" class="filter-tab" onclick="filterCategory('Hệ thức Vi-ét', this)">🔢 Phương trình & Vi-ét</button>
         <button type="button" class="filter-tab" onclick="filterCategory('Hình học', this)">⭕ Hình học & Tứ giác nội tiếp</button>
@@ -408,32 +564,32 @@
 
     <!-- DANH SÁCH CÁC CHƯƠNG VÀ BÀI HỌC THEO CÂY THƯ MỤC -->
     <div id="student-chapters-container" style="margin-top: 24px;">
-      <div style="text-align: center; padding: 48px; color: #64748b; background: #ffffff; border-radius: 20px; border: 1.5px dashed #cbd5e1;">
-        Đang tải chuyên đề bài giảng lý thuyết theo từng chương...
+      <div style="text-align: center; padding: 48px; color: #8C8275; background: #FFFCF5; border-radius: 16px; border: 1.5px dashed #D9CCB8;">
+        Đang tải chuyên đề bài giảng lý thuyết theo từng tập chương...
       </div>
     </div>
   </main>
 
-  <!-- MODAL ĐỌC BÀI GIẢNG & XEM VIDEO -->
+  <!-- MODAL ĐỌC BÀI GIẢNG & XEM VIDEO (SANCTUARY READER) -->
   <div class="modal" id="lesson-modal">
     <div class="modal-dialog modal-lesson-view">
       <div class="modal-header">
         <div style="display: flex; align-items: center; gap: 10px;">
           <span id="modal-cat-badge" class="category-badge cat-daiso">Đại số</span>
-          <h3 id="modal-title" style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #0f172a;"></h3>
+          <h3 id="modal-title" style="margin: 0; font-size: 1.25rem; font-weight: 700; font-family: var(--font-serif); color: #302E29;"></h3>
         </div>
         <button type="button" class="modal-close" onclick="closeLessonModal()">&times;</button>
       </div>
       <div class="modal-body" style="max-height: 80vh; overflow-y: auto; padding: 26px;">
         <!-- Tóm tắt ngắn -->
-        <div id="modal-summary" style="background: #f8fafc; border-left: 4px solid #3b82f6; padding: 12px 18px; border-radius: 0 12px 12px 0; margin-bottom: 20px; font-size: 0.95rem; color: #334155; line-height: 1.6;"></div>
+        <div id="modal-summary" style="background: #FDFBF7; border-left: 4px solid #788268; padding: 14px 18px; border-radius: 0 10px 10px 0; margin-bottom: 20px; font-size: 0.95rem; color: #4D473F; line-height: 1.6; border-top: 1px solid #E2D9CB; border-right: 1px solid #E2D9CB; border-bottom: 1px solid #E2D9CB;"></div>
 
         <!-- TABS ĐIỀU HƯỚNG NỘI DUNG -->
         <div class="lesson-tabs">
-          <button type="button" class="lesson-tab-btn active" id="tab-btn-video" onclick="switchLessonTab('video')">🎬 Video bài giảng</button>
-          <button type="button" class="lesson-tab-btn" id="tab-btn-doc" onclick="switchLessonTab('doc')">🌐 Bài học HTML</button>
-          <button type="button" class="lesson-tab-btn" id="tab-btn-formula" onclick="switchLessonTab('formula')">⚡ Công thức trọng tâm</button>
-          <button type="button" class="lesson-tab-btn" id="tab-btn-content" onclick="switchLessonTab('content')">📖 Hướng dẫn chi tiết</button>
+          <button type="button" class="lesson-tab-btn active" id="tab-btn-video" onclick="switchLessonTab('video')">🎬 Video Bài Giảng</button>
+          <button type="button" class="lesson-tab-btn" id="tab-btn-doc" onclick="switchLessonTab('doc')">🌐 Khóa Học HTML</button>
+          <button type="button" class="lesson-tab-btn" id="tab-btn-formula" onclick="switchLessonTab('formula')">⚡ Định Lý & Công Thức</button>
+          <button type="button" class="lesson-tab-btn" id="tab-btn-content" onclick="switchLessonTab('content')">📖 Luận Giải Chi Tiết</button>
         </div>
 
         <!-- TAB 1: VIDEO BÀI GIẢNG -->
@@ -441,8 +597,8 @@
           <div id="modal-video-wrapper" class="video-wrapper">
             <iframe id="modal-video-iframe" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe>
           </div>
-          <p id="no-video-hint" style="display: none; text-align: center; color: #64748b; padding: 30px; background: #f8fafc; border-radius: 12px;">
-            Thầy cô chưa đính kèm video cho bài giảng này. Bạn hãy chuyển sang tab <strong>Bài học HTML</strong> hoặc <strong>Công thức trọng tâm</strong> để ôn tập nhé!
+          <p id="no-video-hint" style="display: none; text-align: center; color: #8C8275; padding: 30px; background: #FDFBF7; border-radius: 12px; border: 1px dashed #D9CCB8;">
+            Thầy cô chưa đính kèm video riêng cho bài giảng này. Bạn hãy chuyển sang tab <strong>Khóa Học HTML</strong> hoặc <strong>Định Lý & Công Thức</strong> để ôn tập nhé!
           </p>
         </div>
 
@@ -451,56 +607,56 @@
           <!-- Khung xem bài học HTML -->
           <div id="modal-html-container" style="display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
-              <span style="font-weight: 700; color: #7c3aed; display: flex; align-items: center; gap: 6px;">
-                🌐 Bài giảng lý thuyết (HTML tương tác):
+              <span style="font-weight: 700; color: #788268; display: flex; align-items: center; gap: 6px; font-family: var(--font-serif); font-size: 1.05rem;">
+                🌐 Bài giảng lý thuyết (Tương tác trực tiếp):
               </span>
               <div style="display: flex; gap: 8px;">
                 <button type="button" class="btn btn-secondary btn-sm" onclick="toggleHtmlFullscreen('modal-html-iframe')" style="font-weight: 700;">
                   ⛶ Toàn màn hình
                 </button>
-                <a id="modal-html-link" href="#" target="_blank" class="btn btn-secondary btn-sm" style="font-weight: 700; color: #7c3aed;">
+                <a id="modal-html-link" href="#" target="_blank" class="btn btn-secondary btn-sm" style="font-weight: 700; color: #788268;">
                   ↗ Mở trang riêng
                 </a>
               </div>
             </div>
-            <iframe id="modal-html-iframe" src="" style="width: 100%; height: 560px; border: 1.5px solid #cbd5e1; border-radius: 14px; background: #ffffff;"></iframe>
+            <iframe id="modal-html-iframe" src="" style="width: 100%; height: 560px; border: 1.5px solid #E2D9CB; border-radius: 12px; background: #FFFCF5;"></iframe>
           </div>
 
           <!-- Khung xem tài liệu Google Drive (nếu có) -->
           <div id="modal-doc-container" style="display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
-              <span style="font-weight: 700; color: #1e3a8a;">📄 Đọc tài liệu PDF / Docs:</span>
-              <a id="modal-doc-link" href="#" target="_blank" class="btn btn-secondary btn-sm" style="font-weight: 700; color: #2563eb;">
+              <span style="font-weight: 700; color: #A87552; font-family: var(--font-serif); font-size: 1.05rem;">📄 Đọc tài liệu PDF / Bản in:</span>
+              <a id="modal-doc-link" href="#" target="_blank" class="btn btn-secondary btn-sm" style="font-weight: 700; color: #A87552;">
                 📥 Mở toàn màn hình trên Google Drive ↗
               </a>
             </div>
-            <iframe id="modal-doc-iframe" src="" style="width: 100%; height: 500px; border: 1.5px solid #cbd5e1; border-radius: 14px;"></iframe>
+            <iframe id="modal-doc-iframe" src="" style="width: 100%; height: 500px; border: 1.5px solid #E2D9CB; border-radius: 12px; background: #FFFCF5;"></iframe>
           </div>
 
-          <p id="no-doc-hint" style="display: none; text-align: center; color: #64748b; padding: 30px; background: #f8fafc; border-radius: 12px;">
-            Thầy cô chưa đính kèm file HTML bài giảng riêng cho bài học này. Bạn hãy xem tab <strong>Hướng dẫn chi tiết</strong> hoặc <strong>Video</strong> để học nhé!
+          <p id="no-doc-hint" style="display: none; text-align: center; color: #8C8275; padding: 30px; background: #FDFBF7; border-radius: 12px; border: 1px dashed #D9CCB8;">
+            Thầy cô chưa đính kèm file HTML bài giảng riêng cho bài học này. Bạn hãy xem tab <strong>Luận Giải Chi Tiết</strong> hoặc <strong>Video</strong> để học nhé!
           </p>
         </div>
 
         <!-- TAB 3: CÔNG THỨC TRỌNG TÂM -->
         <div id="tab-content-formula" style="display: none;">
-          <h4 style="color: #1e3a8a; font-size: 1.05rem; font-weight: 800; margin-bottom: 8px;">
+          <h4 style="color: #A87552; font-family: var(--font-serif); font-size: 1.15rem; font-weight: 700; margin-bottom: 10px;">
             ⚡ Các công thức & định lý then chốt cần thuộc lòng:
           </h4>
-          <div id="modal-formulas" style="background: #eff6ff; border: 1.5px solid #bfdbfe; border-radius: 14px; padding: 18px 22px; line-height: 1.85;"></div>
+          <div id="modal-formulas" style="background: #FDFBF7; border: 1.5px solid #E2D9CB; border-radius: 12px; padding: 20px 24px; line-height: 1.85; color: #302E29;"></div>
         </div>
 
         <!-- TAB 4: NỘI DUNG CHI TIẾT -->
         <div id="tab-content-content" style="display: none;">
-          <h4 style="color: #0f172a; font-size: 1.1rem; font-weight: 800; margin-bottom: 14px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
-            📖 Nội dung lý thuyết chi tiết & Phương pháp giải:
+          <h4 style="color: #302E29; font-family: var(--font-serif); font-size: 1.15rem; font-weight: 700; margin-bottom: 14px; border-bottom: 1.5px solid #E2D9CB; padding-bottom: 8px;">
+            📖 Luận giải lý thuyết & Phương pháp giải chi tiết:
           </h4>
-          <div id="modal-content" style="line-height: 1.85; font-size: 1.025rem; color: #1e293b;"></div>
+          <div id="modal-content" style="line-height: 1.85; font-size: 1.025rem; color: #302E29;"></div>
         </div>
       </div>
       <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-        <span style="font-size: 0.85rem; color: #64748b;">
-          💡 Chúc các em ôn tập vững chắc và tự tin bước vào kỳ thi!
+        <span style="font-size: 0.85rem; color: #8C8275; font-style: italic;">
+          🕯️ Chúc các em ôn tập vững vàng, ghi nhớ sâu và đạt điểm 9+ môn Toán!
         </span>
         <button type="button" class="btn btn-secondary" onclick="closeLessonModal()">Đóng lại</button>
       </div>
@@ -520,9 +676,263 @@
     let expandedChapters = {}; // Lưu trạng thái mở/đóng của từng chương
 
     document.addEventListener('DOMContentLoaded', async () => {
+      initExamCountdown();
       await loadStudentInfo();
       await fetchStudentChaptersAndLessons();
     });
+
+    // === EXAM COUNTDOWN ===
+    function initExamCountdown() {
+      const now = new Date();
+      let targetYear = now.getFullYear();
+      let examDate = new Date(targetYear, 5, 6); // Month 5 = June
+      if (now > examDate) {
+        examDate = new Date(targetYear + 1, 5, 6);
+      }
+      const diffMs = examDate - now;
+      const days = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+      const countEl = document.getElementById('exam-countdown-days');
+      if (countEl) countEl.textContent = days;
+    }
+
+    // === OFFLINE PROCEDURAL WEB AUDIO AMBIENT SYNTHESIZER ===
+    let audioCtx = null;
+    let currentAmbient = null;
+    let ambientNodes = [];
+    let clockInterval = null;
+
+    function getAudioContext() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContextClass();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function stopAmbient() {
+      if (clockInterval) {
+        clearInterval(clockInterval);
+        clockInterval = null;
+      }
+      ambientNodes.forEach(node => {
+        try {
+          if (node.stop) node.stop();
+          if (node.disconnect) node.disconnect();
+        } catch (e) {}
+      });
+      ambientNodes = [];
+      currentAmbient = null;
+      document.querySelectorAll('.ambient-btn').forEach(b => b.classList.remove('active'));
+      const stopBtn = document.getElementById('btn-ambient-stop');
+      if (stopBtn) stopBtn.style.display = 'none';
+    }
+
+    function toggleAmbient(type) {
+      if (currentAmbient === type) {
+        stopAmbient();
+        return;
+      }
+      stopAmbient();
+      const ctx = getAudioContext();
+      currentAmbient = type;
+
+      const btn = document.getElementById(`btn-ambient-${type}`);
+      if (btn) btn.classList.add('active');
+      const stopBtn = document.getElementById('btn-ambient-stop');
+      if (stopBtn) stopBtn.style.display = 'inline-flex';
+
+      if (type === 'rain') {
+        playRainSound(ctx);
+      } else if (type === 'fire') {
+        playFireSound(ctx);
+      } else if (type === 'clock') {
+        playClockSound(ctx);
+      } else if (type === 'brown') {
+        playBrownNoise(ctx);
+      }
+    }
+
+    function playRainSound(ctx) {
+      const bufferSize = ctx.sampleRate * 4;
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+
+      const whiteNoise = ctx.createBufferSource();
+      whiteNoise.buffer = buffer;
+      whiteNoise.loop = true;
+
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.value = 1100;
+
+      const gain = ctx.createGain();
+      gain.gain.value = 0.12;
+
+      whiteNoise.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+
+      whiteNoise.start();
+      ambientNodes.push(whiteNoise, filter, gain);
+    }
+
+    function playBrownNoise(ctx) {
+      const bufferSize = ctx.sampleRate * 4;
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      let lastOut = 0.0;
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        data[i] = (lastOut + (0.02 * white)) / 1.02;
+        lastOut = data[i];
+        data[i] *= 3.5;
+      }
+
+      const noise = ctx.createBufferSource();
+      noise.buffer = buffer;
+      noise.loop = true;
+
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.value = 400;
+
+      const gain = ctx.createGain();
+      gain.gain.value = 0.16;
+
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+
+      noise.start();
+      ambientNodes.push(noise, filter, gain);
+    }
+
+    function playFireSound(ctx) {
+      const bufferSize = ctx.sampleRate * 3;
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      let lastOut = 0.0;
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        data[i] = (lastOut + (0.04 * white)) / 1.04;
+        lastOut = data[i];
+        if (Math.random() < 0.0006) {
+          data[i] += (Math.random() - 0.5) * 4.0;
+        }
+      }
+
+      const fireSource = ctx.createBufferSource();
+      fireSource.buffer = buffer;
+      fireSource.loop = true;
+
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.value = 550;
+
+      const gain = ctx.createGain();
+      gain.gain.value = 0.22;
+
+      fireSource.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+
+      fireSource.start();
+      ambientNodes.push(fireSource, filter, gain);
+    }
+
+    function playClockSound(ctx) {
+      function tick() {
+        if (!currentAmbient || currentAmbient !== 'clock') return;
+        try {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(1100, ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 0.035);
+          gain.gain.setValueAtTime(0.08, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.035);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.04);
+        } catch(e) {}
+      }
+      tick();
+      clockInterval = setInterval(tick, 1000);
+    }
+
+    // === POMODORO STUDY TIMER ===
+    let timerTotalSeconds = 25 * 60;
+    let timerRemaining = timerTotalSeconds;
+    let timerInterval = null;
+    let timerRunning = false;
+
+    function updateTimerDisplay() {
+      const mins = Math.floor(timerRemaining / 60);
+      const secs = timerRemaining % 60;
+      const str = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+      const el = document.getElementById('study-timer-display');
+      if (el) el.textContent = str;
+    }
+
+    function toggleStudyTimer() {
+      const btn = document.getElementById('btn-study-timer');
+      if (timerRunning) {
+        clearInterval(timerInterval);
+        timerRunning = false;
+        if (btn) btn.textContent = '▶ Tiếp tục';
+      } else {
+        timerRunning = true;
+        if (btn) btn.textContent = '⏸ Tạm dừng';
+        timerInterval = setInterval(() => {
+          if (timerRemaining > 0) {
+            timerRemaining--;
+            updateTimerDisplay();
+          } else {
+            clearInterval(timerInterval);
+            timerRunning = false;
+            if (btn) btn.textContent = '▶ Bắt đầu';
+            timerRemaining = timerTotalSeconds;
+            updateTimerDisplay();
+            playChime();
+            showToast('🔔 Đã hoàn thành 25 phút tập trung! Bạn hãy nghỉ ngơi ngắm nhìn không gian thư viện 5 phút nhé.', 'success');
+          }
+        }, 1000);
+      }
+    }
+
+    function resetStudyTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+      timerRunning = false;
+      timerRemaining = timerTotalSeconds;
+      updateTimerDisplay();
+      const btn = document.getElementById('btn-study-timer');
+      if (btn) btn.textContent = '▶ Bắt đầu';
+    }
+
+    function playChime() {
+      try {
+        const ctx = getAudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+        osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.3);
+        osc.frequency.setValueAtTime(783.99, ctx.currentTime + 0.6);
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.8);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 2.0);
+      } catch(e) {}
+    }
 
     async function loadStudentInfo() {
       try {
@@ -589,6 +999,11 @@
       }
     }
 
+    function getRomanNumeral(n) {
+      const romans = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI', 'XVII', 'XVIII', 'XIX', 'XX'];
+      return romans[n - 1] || `${n}`;
+    }
+
     function renderChaptersAccordion() {
       const container = document.getElementById('student-chapters-container');
       const search = (document.getElementById('student-lesson-search').value || '').toLowerCase().trim();
@@ -597,17 +1012,17 @@
 
       if (chaptersData.length === 0 && unassignedLessons.length === 0) {
         container.innerHTML = `
-          <div style="text-align: center; padding: 48px; background: #ffffff; border-radius: 22px; border: 1.5px dashed #cbd5e1;">
+          <div style="text-align: center; padding: 48px; background: #FFFCF5; border-radius: 16px; border: 1.5px dashed #D9CCB8;">
             <div style="font-size: 3rem; margin-bottom: 12px;">📚</div>
-            <h4 style="font-size: 1.15rem; color: #1e293b; font-weight: 700;">Chưa có bài giảng lý thuyết nào</h4>
-            <p style="font-size: 0.9rem; color: #64748b; margin-top: 6px;">Thầy cô sẽ sớm cập nhật chương trình ôn tập cho các bạn.</p>
+            <h4 style="font-size: 1.2rem; color: #302E29; font-weight: 700; font-family: var(--font-serif);">Thư viện chưa có bài giảng nào</h4>
+            <p style="font-size: 0.9rem; color: #6E685F; margin-top: 6px;">Thầy cô sẽ sớm phát hành các tập chuyên đề ôn thi cho các sĩ tử.</p>
           </div>
         `;
         return;
       }
 
       // Duyệt qua từng chương học
-      chaptersData.forEach(ch => {
+      chaptersData.forEach((ch, idx) => {
         const filteredLessons = (ch.lessons || []).filter(l => {
           const matchCat = activeCategory === 'all' || l.category === activeCategory;
           const matchSearch = !search ||
@@ -624,15 +1039,20 @@
         }
 
         const isExpanded = !!expandedChapters[ch.id];
+        const isClassic = document.body.classList.contains('theme-classic');
+        const roman = getRomanNumeral(idx + 1);
+        const chapterLabel = isClassic ? `CHƯƠNG ${idx + 1}` : `TẬP ${roman}`;
+        const chapterIcon = isClassic ? '📁' : roman;
 
         html += `
           <div class="chapter-accordion ${isExpanded ? 'expanded' : ''}" id="student-chapter-${ch.id}">
             <div class="chapter-header" onclick="toggleChapter(${ch.id})">
               <div class="chapter-info">
-                <div class="chapter-icon">📂</div>
+                <div class="chapter-icon" title="${chapterLabel}">${chapterIcon}</div>
                 <div>
                   <h3 class="chapter-title">
-                    ${escapeHtml(ch.title)}
+                    <span style="font-size: 0.78rem; font-weight: 800; color: var(--primary); background: var(--primary-light); padding: 2px 8px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.04em;">${chapterLabel}</span>
+                    <span>${escapeHtml(ch.title)}</span>
                     <span class="chapter-lessons-count">${filteredLessons.length} bài học</span>
                   </h3>
                   ${ch.description ? `<p class="chapter-desc">${escapeHtml(ch.description)}</p>` : ''}
@@ -645,8 +1065,8 @@
 
             <div class="chapter-body" id="student-chapter-body-${ch.id}" style="display: ${isExpanded ? 'grid' : 'none'};">
               ${filteredLessons.length > 0 ? filteredLessons.map(l => renderStudentLessonCard(l)).join('') : `
-                <div style="grid-column: 1 / -1; text-align: center; padding: 24px; color: #64748b; background: #ffffff; border-radius: 12px; border: 1px dashed #e2e8f0;">
-                  Chưa có bài học nào trong chuyên đề này của chương.
+                <div style="grid-column: 1 / -1; text-align: center; padding: 24px; color: var(--text-muted); background: var(--bg-card); border-radius: 12px; border: 1px dashed var(--border-color);">
+                  Chưa có bài học nào trong chuyên đề này của ${chapterLabel.toLowerCase()}.
                 </div>
               `}
             </div>
@@ -666,17 +1086,21 @@
 
       if (filteredUnassigned.length > 0) {
         const isExpanded = !!expandedChapters['unassigned'];
+        const isClassic = document.body.classList.contains('theme-classic');
+        const unassignedLabel = isClassic ? 'CHUYÊN ĐỀ MỞ RỘNG' : 'PHỤ LỤC';
+
         html += `
-          <div class="chapter-accordion ${isExpanded ? 'expanded' : ''}" id="student-chapter-unassigned" style="border-color: #f59e0b;">
-            <div class="chapter-header" style="background: #fffbeb;" onclick="toggleChapter('unassigned')">
+          <div class="chapter-accordion ${isExpanded ? 'expanded' : ''}" id="student-chapter-unassigned" style="border-color: var(--warning);">
+            <div class="chapter-header" onclick="toggleChapter('unassigned')">
               <div class="chapter-info">
-                <div class="chapter-icon" style="background: #fef3c7; color: #d97706;">📁</div>
+                <div class="chapter-icon" style="background: var(--warning-light); color: var(--warning);">📁</div>
                 <div>
-                  <h3 class="chapter-title" style="color: #92400e;">
-                    Bài giảng tự do & Chuyên đề bổ trợ
-                    <span class="chapter-lessons-count" style="background: #fef3c7; color: #b45309;">${filteredUnassigned.length} bài</span>
+                  <h3 class="chapter-title" style="color: var(--warning);">
+                    <span style="font-size: 0.78rem; font-weight: 800; color: var(--warning); background: var(--warning-light); padding: 2px 8px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.04em;">${unassignedLabel}</span>
+                    <span>Chuyên Đề Bổ Trợ & Mở Rộng</span>
+                    <span class="chapter-lessons-count" style="background: var(--warning-light); color: var(--warning);">${filteredUnassigned.length} bài</span>
                   </h3>
-                  <p class="chapter-desc">Các bài giảng mở rộng phục vụ ôn tập</p>
+                  <p class="chapter-desc">Các bài giảng bổ sung kỹ năng và mở rộng tư duy làm đề</p>
                 </div>
               </div>
               <div>
@@ -709,44 +1133,70 @@
       else if (l.category === 'Bất đẳng thức & Cực trị') catClass = 'cat-bdt';
       else if (l.category === 'Toán thực tế') catClass = 'cat-thucte';
 
+      const isClassic = document.body.classList.contains('theme-classic');
+      const authorText = isClassic ? (l.author_name ? escapeHtml(l.author_name) : 'Thầy cô Toán') : (l.author_name ? 'Biên soạn: ' + escapeHtml(l.author_name) : 'Tài liệu Thư Viện');
+      const actionText = isClassic ? '🚀 Học ngay & Xem Video' : '📖 Mở Sách Học Ngay';
+
       return `
         <div class="lesson-card">
           <div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
               <span class="category-badge ${catClass}">${escapeHtml(l.category || 'Đại số')}</span>
-              <span style="font-size: 0.8rem; color: #64748b;">${l.author_name || 'Thầy Toán'}</span>
+              <span style="font-size: 0.8rem; color: var(--text-muted); font-style: italic;">${authorText}</span>
             </div>
 
-            <h3 style="font-size: 1.1rem; font-weight: 800; color: #0f172a; line-height: 1.4; margin-bottom: 10px;">
+            <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-main); line-height: 1.4; margin-bottom: 10px;">
               ${escapeHtml(l.title)}
             </h3>
 
             <div style="display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap;">
-              ${l.video_url ? '<span class="media-badge badge-video">🎬 Video Drive</span>' : ''}
-              ${(l.html_content || l.html_filename) ? '<span class="media-badge" style="background: #f5f3ff; color: #7c3aed; border: 1px solid #ddd6fe;">🌐 Bài học HTML</span>' : (l.document_url ? '<span class="media-badge badge-doc">📄 Tài liệu Drive</span>' : '')}
-              ${l.order_index ? `<span style="font-size: 0.75rem; background: #f1f5f9; padding: 2px 8px; border-radius: 4px; color: #475569; font-weight: 600;">Bài ${l.order_index}</span>` : ''}
+              ${l.video_url ? '<span class="media-badge badge-video">🎬 Video Giảng</span>' : ''}
+              ${(l.html_content || l.html_filename) ? '<span class="media-badge" style="background: var(--primary-light); color: var(--primary); border: 1px solid var(--border-color);">🌐 Khóa Học HTML</span>' : (l.document_url ? '<span class="media-badge badge-doc">📄 Tài liệu Drive</span>' : '')}
+              ${l.order_index ? `<span style="font-size: 0.75rem; background: var(--bg-card-hover); padding: 2px 8px; border-radius: 4px; color: var(--text-muted); font-weight: 700; border: 1px solid var(--border-color);">Bài ${l.order_index}</span>` : ''}
             </div>
 
-            <p style="font-size: 0.875rem; color: #475569; line-height: 1.55; margin-bottom: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+            <p style="font-size: 0.885rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
               ${escapeHtml(l.summary || 'Không có mô tả tóm tắt.')}
             </p>
 
             ${l.key_formulas ? `
               <div class="formula-preview-box">
-                <strong style="color: #1e40af;">⚡ Công thức cốt lõi:</strong>
-                <div style="margin-top: 6px; white-space: pre-wrap; font-size: 0.825rem;">${escapeHtml(l.key_formulas)}</div>
+                <strong style="color: var(--accent-terracotta); display: flex; align-items: center; gap: 4px;">⚡ Định lý & Công thức then chốt:</strong>
+                <div style="margin-top: 6px; white-space: pre-wrap; font-size: 0.825rem; font-family: var(--font-mono); color: var(--text-main);">${escapeHtml(l.key_formulas)}</div>
               </div>
             ` : ''}
           </div>
 
-          <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid #f1f5f9;">
-            <button type="button" class="btn btn-primary" style="width: 100%; border-radius: 12px; font-weight: 700; padding: 11px;" onclick="openLessonModal(${l.id})">
-              📖 Học ngay & Xem Video
+          <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border-color);">
+            <button type="button" class="btn btn-primary" style="width: 100%; border-radius: 8px; font-weight: 700; padding: 10px;" onclick="openLessonModal(${l.id})">
+              ${actionText}
             </button>
           </div>
         </div>
       `;
     }
+
+    // Lắng nghe sự kiện chuyển đổi giao diện
+    window.addEventListener('themeChanged', (e) => {
+      const theme = e.detail.theme;
+      const tagEl = document.getElementById('lessons-hero-tag');
+      const candleEl = document.getElementById('lessons-hero-candle');
+      const titleEl = document.getElementById('lessons-hero-title');
+      const subEl = document.getElementById('lessons-hero-sub');
+
+      if (theme === 'classic') {
+        if (tagEl) tagEl.textContent = 'Hệ Thống Ôn Luyện 9+';
+        if (candleEl) candleEl.style.display = 'none';
+        if (titleEl) titleEl.textContent = 'Chuyên Đề Bài Giảng & Tóm Tắt Lý Thuyết Toán Vào 10';
+        if (subEl) subEl.textContent = 'Xem video bài giảng Google Drive/YouTube, tài liệu tương tác HTML và sơ đồ công thức then chốt.';
+      } else {
+        if (tagEl) tagEl.textContent = 'Phòng Đọc Học Tập Yên Tĩnh';
+        if (candleEl) candleEl.style.display = 'inline';
+        if (titleEl) titleEl.textContent = 'Giác Thư & Chuyên Đề Lý Thuyết Ôn Thi Vào 10';
+        if (subEl) subEl.textContent = 'Không gian số lưu trữ đầy đủ định lý, công thức trọng tâm, bài giảng video Google Drive và tài liệu tương tác HTML giúp bạn làm chủ kỳ thi.';
+      }
+      renderChaptersAccordion();
+    });
 
     function filterCategory(cat, btn) {
       activeCategory = cat;
@@ -904,10 +1354,10 @@
     function formatMarkdown(md) {
       if (!md) return '';
       return md
-        .replace(/^### (.*$)/gim, '<h3 style="color:#1e3a8a; font-size:1.15rem; font-weight:800; margin-top:20px; margin-bottom:10px;">$1</h3>')
-        .replace(/^## (.*$)/gim, '<h2 style="color:#0f172a; font-size:1.25rem; font-weight:800; margin-top:24px; margin-bottom:12px;">$1</h2>')
-        .replace(/^# (.*$)/gim, '<h1 style="color:#0f172a; font-size:1.4rem; font-weight:800; margin-top:28px; margin-bottom:14px;">$1</h1>')
-        .replace(/^\> (.*$)/gim, '<blockquote style="border-left:4px solid #3b82f6; background:#eff6ff; padding:10px 16px; margin:12px 0; border-radius:0 8px 8px 0; color:#1e40af;">$1</blockquote>')
+        .replace(/^### (.*$)/gim, '<h3 style="color:#A87552; font-family:var(--font-serif); font-size:1.15rem; font-weight:700; margin-top:20px; margin-bottom:10px;">$1</h3>')
+        .replace(/^## (.*$)/gim, '<h2 style="color:#788268; font-family:var(--font-serif); font-size:1.25rem; font-weight:700; margin-top:24px; margin-bottom:12px;">$1</h2>')
+        .replace(/^# (.*$)/gim, '<h1 style="color:#302E29; font-family:var(--font-serif); font-size:1.45rem; font-weight:700; margin-top:28px; margin-bottom:14px;">$1</h1>')
+        .replace(/^\> (.*$)/gim, '<blockquote style="border-left:4px solid #788268; background:#FAF7EE; padding:12px 18px; margin:14px 0; border-radius:0 8px 8px 0; color:#302E29; border-top:1px solid #E2D9CB; border-right:1px solid #E2D9CB; border-bottom:1px solid #E2D9CB; font-style:italic;">$1</blockquote>')
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/\*(.*?)\*/g, '<em>$1</em>')
         .replace(/\n\n/g, '<p style="margin:12px 0;"></p>')

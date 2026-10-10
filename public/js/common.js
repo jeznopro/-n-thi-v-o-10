@@ -212,3 +212,125 @@ async function checkAuthAndLoad(expectedRole = null) {
     return null;
   }
 }
+
+// ============================================================
+// HỆ THỐNG CHUYỂN ĐỔI GIAO DIỆN (COZY LIBRARY VS HIỆN ĐẠI BAN ĐẦU)
+// ============================================================
+function getCurrentTheme() {
+  return localStorage.getItem('app-theme') || 'cozy';
+}
+
+function applyTheme(theme) {
+  document.documentElement.classList.remove('theme-classic', 'theme-cozy', 'theme-minimal');
+  document.body.classList.remove('theme-classic', 'theme-cozy', 'theme-minimal');
+
+  if (theme === 'classic') {
+    document.documentElement.classList.add('theme-classic');
+    document.body.classList.add('theme-classic');
+  } else if (theme === 'minimal') {
+    document.documentElement.classList.add('theme-minimal');
+    document.body.classList.add('theme-minimal');
+  } else {
+    document.documentElement.classList.add('theme-cozy');
+    document.body.classList.add('theme-cozy');
+  }
+  localStorage.setItem('app-theme', theme);
+  updateThemeSwitcherUI(theme);
+  updateBrandTexts(theme);
+  window.dispatchEvent(new CustomEvent('themeChanged', { detail: { theme } }));
+}
+
+function toggleAppTheme() {
+  const current = getCurrentTheme();
+  const themes = ['cozy', 'classic', 'minimal'];
+  const nextIdx = (themes.indexOf(current) + 1) % themes.length;
+  applyTheme(themes[nextIdx]);
+}
+
+function updateThemeSwitcherUI(theme) {
+  ['cozy', 'classic', 'minimal'].forEach(t => {
+    const btn = document.getElementById(`theme-btn-${t}`);
+    if (btn) btn.classList.toggle('active', theme === t);
+  });
+}
+
+function updateBrandTexts(theme) {
+  const logoEl = document.querySelector('.brand-logo');
+  const brandTitleEl = document.querySelector('.brand-text h1');
+  const brandSubEl = document.querySelector('.brand-text p');
+  const avatarEl = document.querySelector('.user-avatar');
+
+  if (theme === 'classic') {
+    if (logoEl) {
+      logoEl.innerHTML = '∑';
+      logoEl.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+      logoEl.style.color = '#FFFFFF';
+    }
+    if (brandTitleEl) brandTitleEl.textContent = 'TOÁN THCS';
+    if (brandSubEl) {
+      brandSubEl.textContent = window.location.pathname.includes('exam.html') ? 'Phòng Làm Bài Trực Tuyến' : 'Cổng Học Sinh';
+    }
+    if (avatarEl) avatarEl.style.background = '#10b981';
+  } else if (theme === 'minimal') {
+    if (logoEl) {
+      logoEl.innerHTML = 'TL';
+      logoEl.style.background = 'var(--text-main)';
+      logoEl.style.color = 'var(--bg-page)';
+    }
+    if (brandTitleEl) brandTitleEl.textContent = 'TỰ LUẬN';
+    if (brandSubEl) brandSubEl.textContent = 'Học tập & Ôn luyện';
+    if (avatarEl) avatarEl.style.background = '#2563EB';
+  } else {
+    if (logoEl) {
+      logoEl.innerHTML = '🏛️';
+      logoEl.style.background = '#788268';
+      logoEl.style.color = '#FFFCF5';
+    }
+    if (brandTitleEl) brandTitleEl.textContent = 'THƯ VIỆN TOÁN 9';
+    if (brandSubEl) brandSubEl.textContent = 'Phòng Ôn Thi Vào 10';
+    if (avatarEl) avatarEl.style.background = '#788268';
+  }
+}
+
+function mountThemeSwitcher() {
+  if (document.getElementById('app-theme-switcher')) return;
+
+  const current = getCurrentTheme();
+  const switcher = document.createElement('div');
+  switcher.id = 'app-theme-switcher';
+  switcher.className = 'theme-switch-wrapper';
+  switcher.title = 'Chuyển đổi giao diện: Thư viện ấm / Hiện đại / Tối giản';
+  switcher.innerHTML = `
+    <button type="button" class="theme-switch-btn ${current === 'cozy' ? 'active' : ''}" id="theme-btn-cozy" onclick="applyTheme('cozy')">
+      🏛️ Thư viện
+    </button>
+    <button type="button" class="theme-switch-btn ${current === 'classic' ? 'active' : ''}" id="theme-btn-classic" onclick="applyTheme('classic')">
+      ⚡ Hiện đại
+    </button>
+    <button type="button" class="theme-switch-btn ${current === 'minimal' ? 'active' : ''}" id="theme-btn-minimal" onclick="applyTheme('minimal')">
+      ◻️ Tối giản
+    </button>
+  `;
+
+  // Chèn vào vị trí thuận tiện nhất trên navbar
+  const navUser = document.querySelector('.nav-user');
+  if (navUser) {
+    navUser.insertBefore(switcher, navUser.firstChild);
+  } else {
+    const navContainer = document.querySelector('.nav-container');
+    if (navContainer) navContainer.appendChild(switcher);
+  }
+}
+
+// Chạy khởi tạo lớp Theme ngay lập tức để tránh chớp màn hình (FOUC)
+(function initThemeImmediately() {
+  const saved = localStorage.getItem('app-theme') || 'cozy';
+  document.documentElement.classList.add(`theme-${saved}`);
+})();
+
+// Khi tài liệu tải xong, gắn giao diện nút chuyển đổi và áp dụng các thành phần giao diện
+document.addEventListener('DOMContentLoaded', () => {
+  const current = getCurrentTheme();
+  applyTheme(current);
+  mountThemeSwitcher();
+});

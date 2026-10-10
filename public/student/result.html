@@ -9,13 +9,13 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
   <style>
     .result-question-card {
-      background: #ffffff;
-      border: 1.5px solid var(--border-color);
-      border-radius: 22px;
+      background: #FFFCF5;
+      border: 1.5px solid #E2D9CB;
+      border-radius: 16px;
       padding: 24px;
       margin-bottom: 24px;
-      border-left: 6px solid #10b981;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      border-left: 5px solid #788268;
+      box-shadow: 0 2px 8px rgba(48, 46, 41, 0.04);
     }
   </style>
 </head>
@@ -24,10 +24,10 @@
   <header class="navbar">
     <div class="nav-container">
       <a href="/student/index.html" class="nav-brand">
-        <div class="brand-logo" style="background: linear-gradient(135deg, #10b981, #059669);">∑</div>
+        <div class="brand-logo" style="background: #788268; color: #FFFCF5; font-family: var(--font-serif); font-size: 1.3rem;">🏛️</div>
         <div class="brand-text">
-          <h1>TOÁN THCS</h1>
-          <p>Cổng Học Sinh</p>
+          <h1>THƯ VIỆN TOÁN 9</h1>
+          <p>Phòng Đánh Giá & Kết Quả</p>
         </div>
       </a>
 
@@ -35,13 +35,13 @@
 
       <div class="nav-user">
         <div class="user-badge">
-          <div class="user-avatar" style="background: #10b981;">HS</div>
+          <div class="user-avatar" style="background: #788268; color: #FFFCF5;">HS</div>
           <div class="user-info">
             <span class="user-name">Học sinh</span>
-            <span class="user-role">Học sinh</span>
+            <span class="user-role">Sĩ tử Lớp 9</span>
           </div>
         </div>
-        <a href="/student/index.html" class="btn btn-secondary btn-sm">Về danh sách bài tập</a>
+        <a href="/student/index.html" class="btn btn-secondary btn-sm" style="border-radius: 6px;">Về danh sách bài tập</a>
       </div>
     </div>
   </header>
@@ -50,35 +50,35 @@
   <main class="main-wrapper">
     <div class="page-header">
       <div class="page-title">
-        <h2 id="result-title">Kết quả bài làm</h2>
-        <p id="result-meta">Đang tải thông tin kết quả...</p>
+        <h2 id="result-title" style="font-family: var(--font-serif); color: #302E29;">Kết quả bài làm</h2>
+        <p id="result-meta" style="color: #6E685F;">Đang tải thông tin kết quả...</p>
       </div>
       <div class="page-actions">
-        <a href="/student/index.html" class="btn btn-secondary">
-          ⬅️ Danh sách bài tập
+        <a href="/student/index.html" class="btn btn-secondary" style="border-radius: 8px;">
+          ⬅️ Về bàn học bài tập
         </a>
       </div>
     </div>
 
     <!-- HỘP NHẬN XÉT CỦA THẦY CÔ -->
-    <div class="card" id="grade-summary-card">
+    <div class="card" id="grade-summary-card" style="background: #FFFCF5; border: 1.5px solid #E2D9CB; border-radius: 16px;">
       <div class="card-body" style="padding: 24px;">
         <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
           <div>
             <div id="status-badge-container"></div>
-            <h3 style="font-size: 1.25rem; font-weight: 800; color: #1e3a8a; margin-top: 6px;">
+            <h3 style="font-size: 1.25rem; font-family: var(--font-serif); font-weight: 700; color: #302E29; margin-top: 6px;">
               Lời Phê & Nhận Xét Của Thầy Cô
             </h3>
-            <p id="submission-time-text" style="font-size: 0.85rem; color: #64748b; margin-top: 2px;"></p>
+            <p id="submission-time-text" style="font-size: 0.85rem; color: #6E685F; margin-top: 2px;"></p>
           </div>
         </div>
 
         <!-- LỜI PHÊ CỦA GIÁO VIÊN -->
-        <div id="teacher-feedback-box" style="margin-top: 18px; padding: 18px 22px; background: #eff6ff; border-left: 5px solid #2563eb; border-radius: 18px;">
-          <h4 style="font-size: 1rem; font-weight: 800; color: #1e40af; margin-bottom: 6px;">
-            💬 Lời phê / Nhận xét của Thầy Cô:
+        <div id="teacher-feedback-box" style="margin-top: 18px; padding: 18px 22px; background: #FAF7EE; border-left: 4px solid #788268; border-top: 1px solid #E2D9CB; border-right: 1px solid #E2D9CB; border-bottom: 1px solid #E2D9CB; border-radius: 12px;">
+          <h4 style="font-size: 1rem; font-family: var(--font-serif); font-weight: 700; color: #788268; margin-bottom: 6px;">
+            💬 Lời phê & Chỉ dẫn khắc phục:
           </h4>
-          <p id="feedback-content" style="font-size: 1.05rem; color: #1e293b; line-height: 1.6;">
+          <p id="feedback-content" style="font-size: 1.05rem; color: #302E29; line-height: 1.6;">
             Chưa có nhận xét.
           </p>
         </div>
@@ -519,24 +519,34 @@
           }
         }
 
+        const isMinimal = getCurrentTheme() === 'minimal';
+        const hasScore = sub.total_score !== null && sub.total_score !== undefined;
+
         // Trạng thái bài nộp
         if (sub.status === 'graded') {
-          statusContainer.innerHTML = '<span class="badge badge-green" style="font-size: 0.9rem; padding: 6px 14px;">✅ ĐÃ CÓ NHẬN XÉT CỦA THẦY CÔ</span>';
+          statusContainer.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+              <span class="badge" style="color: var(--success); border: 1px solid rgba(22, 163, 74, 0.3); background: var(--success-light); font-size: 0.9rem; padding: 6px 14px; border-radius: 4px;">
+                ${isMinimal ? 'Đã chấm điểm' : '✅ ĐÃ CÓ NHẬN XÉT CỦA THẦY CÔ'}
+              </span>
+              ${hasScore ? `<span style="font-size: 1.15rem; font-weight: 700; color: var(--text-main);">Điểm số: <span style="color: var(--primary);">${sub.total_score}</span> / ${assign.max_score || 10} điểm</span>` : ''}
+            </div>
+          `;
           document.getElementById('feedback-content').textContent = sub.feedback || 'Thầy cô đã xem bài và không có nhận xét thêm.';
         } else if (sub.status === 'resubmission_requested') {
-          statusContainer.innerHTML = '<span class="badge badge-amber" style="font-size: 0.9rem; padding: 6px 14px;">⚠️ YÊU CẦU LÀM LẠI BÀI</span>';
+          statusContainer.innerHTML = `<span class="badge" style="color: var(--danger); border: 1px solid rgba(220, 38, 38, 0.3); background: var(--danger-light); font-size: 0.9rem; padding: 6px 14px; border-radius: 4px;">${isMinimal ? 'Yêu cầu làm lại' : '⚠️ YÊU CẦU LÀM LẠI BÀI'}</span>`;
           feedbackBox.innerHTML = `
-            <h4 style="font-size: 1rem; font-weight: 800; color: #b45309; margin-bottom: 4px;">
-              ⚠️ Thầy cô yêu cầu bạn làm lại bài tập này:
+            <h4 style="font-size: 1rem; font-weight: 700; color: var(--danger); margin-bottom: 4px;">
+              ${isMinimal ? 'Yêu cầu làm lại bài:' : '⚠️ Thầy cô yêu cầu bạn làm lại bài tập này:'}
             </h4>
-            <p style="font-size: 1rem; color: #1e293b;">${sub.feedback || 'Vui lòng kiểm tra lại lời giải hoặc chụp lại ảnh rõ nét hơn.'}</p>
-            <div style="margin-top: 14px;">
-              <a href="/student/exam.html?id=${assignmentId}" class="btn btn-primary">✏️ Bấm vào đây để làm lại bài</a>
+            <p style="font-size: 1rem; color: var(--text-main); margin-bottom: 12px;">${sub.feedback || 'Vui lòng kiểm tra lại lời giải hoặc chụp lại ảnh rõ nét hơn.'}</p>
+            <div>
+              <a href="/student/exam.html?id=${assignmentId}" class="btn btn-primary">Làm lại bài</a>
             </div>
           `;
         } else {
-          statusContainer.innerHTML = '<span class="badge badge-blue" style="font-size: 0.9rem; padding: 6px 14px;">⏳ ĐÃ NỘP BÀI - ĐANG CHỜ THẦY CÔ NHẬN XÉT</span>';
-          feedbackBox.innerHTML = '<p style="color: #64748b; font-size: 0.95rem;">Bài làm của bạn đã gửi thành công đến thầy cô. Nhận xét sẽ xuất hiện tại đây sau khi thầy cô xem bài.</p>';
+          statusContainer.innerHTML = `<span class="badge" style="color: var(--primary); border: 1px solid rgba(37, 99, 235, 0.3); background: var(--primary-light); font-size: 0.9rem; padding: 6px 14px; border-radius: 4px;">${isMinimal ? 'Đã nộp bài (Chờ chấm)' : '⏳ ĐÃ NỘP BÀI - ĐANG CHỜ THẦY CÔ NHẬN XÉT'}</span>`;
+          feedbackBox.innerHTML = '<p style="color: var(--text-muted); font-size: 0.95rem; margin: 0;">Bài làm của bạn đã gửi thành công đến thầy cô. Điểm số và nhận xét sẽ xuất hiện tại đây sau khi thầy cô chấm bài.</p>';
         }
 
         // Render từng câu hỏi

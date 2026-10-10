@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-minimal">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tra cứu tiến độ học tập - Tự Luận</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/toast.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    .lookup-container {
+      max-width: 720px;
+      margin: 40px auto;
+      padding: 0 16px;
+    }
+    .lookup-header {
+      margin-bottom: 32px;
+      text-align: left;
+    }
+    .lookup-header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 1.3;
+      margin: 0 0 8px 0;
+      color: var(--text-main);
+    }
+    .lookup-header p {
+      font-size: 16px;
+      color: var(--text-muted);
+      margin: 0;
+      line-height: 1.6;
+    }
+    .lookup-form {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+    }
+    .lookup-input {
+      flex: 1;
+      min-width: 240px;
+      height: 44px;
+      padding: 0 16px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background: var(--bg-card);
+      color: var(--text-main);
+      font-size: 16px;
+      font-family: inherit;
+    }
+    .lookup-input:focus {
+      outline: 2px solid var(--primary);
+      border-color: var(--primary);
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .stat-box {
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 16px;
+      background: var(--bg-card);
+    }
+    .stat-label {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    .stat-val {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .student-badge-bar {
+      padding: 16px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background: var(--bg-card-hover);
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .report-card {
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 16px;
+      background: var(--bg-card);
+    }
+    .report-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+      gap: 12px;
+    }
+    .report-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-main);
+      margin: 0 0 4px 0;
+    }
+    .report-date {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+    .tag-status {
+      font-size: 13px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border-color);
+      white-space: nowrap;
+    }
+    .tag-graded {
+      color: var(--success);
+      border-color: rgba(22, 163, 74, 0.2);
+      background: var(--success-light);
+    }
+    .tag-submitted {
+      color: var(--primary);
+      border-color: rgba(37, 99, 235, 0.2);
+      background: var(--primary-light);
+    }
+    .tag-pending {
+      color: var(--warning);
+      border-color: rgba(217, 119, 6, 0.2);
+      background: var(--warning-light);
+    }
+    .feedback-box {
+      margin-top: 12px;
+      padding: 12px 16px;
+      border-left: 3px solid var(--primary);
+      background: var(--bg-card-hover);
+      border-radius: 0 6px 6px 0;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 48px 16px;
+      color: var(--text-muted);
+      border: 1px dashed var(--border-color);
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body class="theme-minimal">
+  <!-- THANH ĐIỀU HƯỚNG TỐI GIẢN -->
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="/" class="nav-brand">
+        <div class="brand-logo">TL</div>
+        <div class="brand-text">
+          <h1>TỰ LUẬN</h1>
+          <p>Cổng Phụ Huynh Tra Cứu</p>
+        </div>
+      </a>
+      <div class="nav-user">
+        <a href="/login.html" class="btn btn-secondary btn-sm">Đăng nhập</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="lookup-container">
+    <div class="lookup-header">
+      <h1>Tra cứu tiến độ học tập</h1>
+      <p>Nhập Mã học sinh (hoặc tên đăng nhập của con) để theo dõi bài tập, hạn nộp và lời phê của giáo viên.</p>
+    </div>
+
+    <!-- FORM TRA CỨU -->
+    <form class="lookup-form" id="lookup-form" onsubmit="handleLookup(event)">
+      <input type="text" id="student-code" class="lookup-input" placeholder="Ví dụ: hs01, hs02..." required autocomplete="off" />
+      <button type="submit" class="btn btn-primary" id="submit-btn" style="min-width: 110px;">Tra cứu</button>
+    </form>
+
+    <!-- KẾT QUẢ TRA CỨU -->
+    <div id="result-section" style="display: none;">
+      <!-- THÔNG TIN HỌC SINH -->
+      <div class="student-badge-bar">
+        <div>
+          <span style="font-size: 13px; color: var(--text-muted); display: block;">Học sinh</span>
+          <strong style="font-size: 18px; color: var(--text-main);" id="student-name">—</strong>
+        </div>
+        <div>
+          <span style="font-size: 13px; color: var(--text-muted); display: block;">Lớp / Nhóm</span>
+          <span style="font-size: 15px; font-weight: 500;" id="student-class">—</span>
+        </div>
+        <div>
+          <span style="font-size: 13px; color: var(--text-muted); display: block;">Mã học sinh</span>
+          <code style="font-size: 14px; font-weight: 600;" id="student-id-display">—</code>
+        </div>
+      </div>
+
+      <!-- THỐNG KÊ NHANH -->
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-label">Tổng số bài</div>
+          <div class="stat-val" id="stat-total">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Đã hoàn thành</div>
+          <div class="stat-val" style="color: var(--success);" id="stat-done">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Chưa nộp / Đang làm</div>
+          <div class="stat-val" style="color: var(--warning);" id="stat-pending">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Điểm trung bình</div>
+          <div class="stat-val" style="color: var(--primary);" id="stat-avg">—</div>
+        </div>
+      </div>
+
+      <!-- TIÊU ĐỀ KHU VỰC BÀI TẬP -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h2 style="font-size: 20px; font-weight: 600; margin: 0; color: var(--text-main);">Danh sách bài tập tự luận</h2>
+      </div>
+
+      <!-- DANH SÁCH BÀI TẬP -->
+      <div id="assignment-list"></div>
+    </div>
+
+    <!-- KHUNG RỖNG / KHỞI TẠO -->
+    <div id="initial-state" class="empty-state">
+      <p style="margin: 0; font-size: 15px;">Vui lòng nhập Mã học sinh ở ô trên và bấm "Tra cứu".</p>
+    </div>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/common.js"></script>
+  <script>
+    // Kiểm tra query param ?code=...
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get('code');
+      if (code) {
+        document.getElementById('student-code').value = code;
+        executeLookup(code);
+      }
+    });
+
+    function handleLookup(e) {
+      e.preventDefault();
+      const code = document.getElementById('student-code').value.trim();
+      if (!code) return;
+      executeLookup(code);
+    }
+
+    async function executeLookup(code) {
+      const btn = document.getElementById('submit-btn');
+      const resultSec = document.getElementById('result-section');
+      const initialSec = document.getElementById('initial-state');
+      const listEl = document.getElementById('assignment-list');
+
+      btn.disabled = true;
+      btn.textContent = 'Đang tìm...';
+
+      try {
+        const res = await apiRequest(`/api/parent/lookup/${encodeURIComponent(code)}`);
+
+        initialSec.style.display = 'none';
+        resultSec.style.display = 'block';
+
+        // Điền thông tin học sinh
+        document.getElementById('student-name').textContent = res.student.full_name;
+        document.getElementById('student-class').textContent = res.student.classes;
+        document.getElementById('student-id-display').textContent = res.student.code;
+
+        // Điền thống kê
+        document.getElementById('stat-total').textContent = res.stats.total;
+        document.getElementById('stat-done').textContent = res.stats.graded + res.stats.submitted;
+        document.getElementById('stat-pending').textContent = res.stats.pending;
+        document.getElementById('stat-avg').textContent = res.stats.average_score !== null ? res.stats.average_score : '—';
+
+        // Danh sách bài tập
+        if (res.assignments.length === 0) {
+          listEl.innerHTML = '<div class="empty-state">Học sinh chưa có bài tập nào được giao.</div>';
+          return;
+        }
+
+        listEl.innerHTML = res.assignments.map(a => {
+          let badgeClass = 'tag-pending';
+          if (a.status === 'graded') badgeClass = 'tag-graded';
+          else if (a.status === 'submitted') badgeClass = 'tag-submitted';
+
+          const formattedDue = formatDateTime(a.due_date);
+          const formattedSubmit = a.submitted_at ? formatDateTime(a.submitted_at) : null;
+
+          return `
+            <div class="report-card">
+              <div class="report-header">
+                <div>
+                  <h3 class="report-title">${escapeHtml(a.title)}</h3>
+                  <div class="report-date">
+                    Hạn nộp: ${formattedDue}
+                    ${formattedSubmit ? ` • Nộp lúc: ${formattedSubmit}` : ''}
+                    ${a.is_late ? ' • <span style="color: var(--danger);">(Nộp trễ)</span>' : ''}
+                  </div>
+                </div>
+                <div>
+                  <span class="tag-status ${badgeClass}">${a.status_text}</span>
+                  ${a.score !== null ? `<strong style="margin-left: 8px; font-size: 16px; color: var(--text-main);">${a.score}/${a.max_score} đ</strong>` : ''}
+                </div>
+              </div>
+
+              ${a.feedback ? `
+                <div class="feedback-box">
+                  <strong style="color: var(--text-main); display: block; font-size: 14px; margin-bottom: 2px;">Nhận xét của giáo viên:</strong>
+                  <div>${escapeHtml(a.feedback)}</div>
+                </div>
+              ` : ''}
+            </div>
+          `;
+        }).join('');
+
+      } catch (err) {
+        showToast(err.message || 'Không tìm thấy dữ liệu', 'error');
+        resultSec.style.display = 'none';
+        initialSec.style.display = 'block';
+        initialSec.innerHTML = `<p style="color: var(--danger); margin: 0;">${escapeHtml(err.message || 'Không tìm thấy học sinh.')}</p>`;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Tra cứu';
+      }
+    }
+  </script>
+</body>
+</html>

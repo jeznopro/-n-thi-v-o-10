@@ -125,42 +125,61 @@
       </div>
 
       <div class="custom-modal-body" style="flex: 1; overflow-y: auto; padding: 24px;">
-        <!-- DANH SÁCH TỪNG CÂU HỎI KÈM ẢNH HỌC SINH NỘP -->
-        <div id="grading-questions-list"></div>
-
-        <!-- BANNER CẢNH BÁO LỖ HỔNG KIẾN THỨC TỪ AI (NẾU CÓ) -->
-        <div id="grading-ai-diagnostic-banner" style="display: none; border-radius: var(--radius-md); padding: 16px 20px; margin-top: 20px;"></div>
-
-        <!-- Ô NHẬP NHẬN XÉT CỦA GIÁO VIÊN -->
-        <div style="background: #f8fafc; border: 2px solid #cbd5e1; border-radius: var(--radius-md); padding: 20px; margin-top: 20px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 8px;">
-            <h4 style="font-size: 1.1rem; font-weight: 800; color: #1e3a8a; margin: 0;">
-              💬 Lời phê / Nhận xét của Thầy Cô dành cho học sinh:
-            </h4>
-            <button type="button" class="btn btn-ai btn-sm" id="btn-ai-review" onclick="generateAiReviewFeedback()">
-              ✨ AI Phân tích bài làm & Gợi ý lời phê
-            </button>
+        <div class="grading-split-layout" style="display: flex; gap: 24px; align-items: flex-start;">
+          <!-- CỘT TRÁI (60%): ĐỀ BÀI, BÀI LÀM VĂN BẢN VÀ ẢNH VIẾT TAY CỦA HỌC SINH -->
+          <div class="grading-split-left" style="flex: 1.4; min-width: 0;">
+            <div id="grading-questions-list"></div>
+            <!-- BANNER CẢNH BÁO LỖ HỔNG KIẾN THỨC TỪ AI (NẾU CÓ) -->
+            <div id="grading-ai-diagnostic-banner" style="display: none; border-radius: var(--radius-md); padding: 16px 20px; margin-top: 16px;"></div>
           </div>
-          <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 10px;">
-            AI sẽ đọc nội dung các câu hỏi, lời giải và ảnh chụp bài viết tay của học sinh để gợi ý lời phê sư phạm. Thầy Cô có thể chỉnh sửa trước khi lưu.
-          </p>
-          <div class="form-group" style="margin-bottom: 0;">
-            <textarea id="grade-feedback" class="form-control" style="min-height: 110px; font-size: 1rem;"
-                      placeholder="Ví dụ: Em giải câu 1 và câu 2 rất tốt, cách trình bày rõ ràng. Câu 3 hình vẽ cần chú ý đánh dấu góc vuông..."></textarea>
+
+          <!-- CỘT PHẢI (40%): KHUNG ĐIỂM SỐ & NHẬN XÉT CỦA GIÁO VIÊN (STICKY) -->
+          <div class="grading-split-right" style="flex: 1; min-width: 320px; position: sticky; top: 0; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 20px;">
+            <h4 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin: 0 0 16px 0; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+              📝 Điểm số & Nhận xét
+            </h4>
+
+            <!-- Ô NHẬP ĐIỂM -->
+            <div class="form-group" style="margin-bottom: 16px;">
+              <label style="font-size: 0.9rem; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;">
+                Điểm số (Thang điểm 10):
+              </label>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <input type="number" id="grade-total-score" class="form-control" step="0.25" min="0" max="10" placeholder="Ví dụ: 8.5" style="font-size: 1.1rem; font-weight: 700; max-width: 130px;" />
+                <span style="color: var(--text-muted); font-size: 0.95rem;">/ 10 điểm</span>
+              </div>
+            </div>
+
+            <!-- Ô NHẬP NHẬN XÉT -->
+            <div class="form-group" style="margin-bottom: 16px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <label style="font-size: 0.9rem; font-weight: 600; color: var(--text-main); margin: 0;">
+                  Lời phê của giáo viên:
+                </label>
+                <button type="button" class="btn btn-sm btn-secondary" id="btn-ai-review" onclick="generateAiReviewFeedback()" style="font-size: 0.75rem; padding: 4px 8px;">
+                  ✨ AI gợi ý lời phê
+                </button>
+              </div>
+              <textarea id="grade-feedback" class="form-control" style="min-height: 140px; font-size: 0.95rem; line-height: 1.6;"
+                        placeholder="Nhập nhận xét chi tiết (ví dụ: trình bày sạch đẹp, cần chú ý bước khử mẫu câu 2)..."></textarea>
+              <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Mẹo: Bấm <code>Ctrl + Enter</code> để lưu nhanh.</div>
+            </div>
+
+            <!-- NÚT THAO TÁC CỘT PHẢI -->
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <button type="button" id="btn-save-grade" class="btn btn-primary" style="width: 100%; min-height: 42px;" onclick="handleSaveGrade()">
+                Lưu điểm & Trả bài
+              </button>
+              <button type="button" class="btn btn-secondary" style="width: 100%;" onclick="handleRequestResubmission()">
+                Yêu cầu làm lại (Lần 2)
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="custom-modal-footer" style="justify-content: space-between;">
-        <button type="button" class="btn btn-outline" onclick="handleRequestResubmission()">
-          🔄 Yêu cầu học sinh làm lại (Lần 2)
-        </button>
-        <div style="display: flex; gap: 10px;">
-          <button type="button" class="btn btn-secondary" onclick="closeGradingModal()">Đóng</button>
-          <button type="button" id="btn-save-grade" class="btn btn-primary" onclick="handleSaveGrade()">
-            💾 Hoàn tất nhận xét & Trả bài
-          </button>
-        </div>
+      <div class="custom-modal-footer" style="justify-content: flex-end;">
+        <button type="button" class="btn btn-secondary" onclick="closeGradingModal()">Đóng</button>
       </div>
     </div>
   </div>
@@ -498,7 +517,11 @@
           console.warn('Lỗi lấy chẩn đoán AI trong trang chấm:', diagErr.message);
         }
 
-        // Lời phê chung
+        // Điểm số và Lời phê
+        const scoreInput = document.getElementById('grade-total-score');
+        if (scoreInput) {
+          scoreInput.value = (sub.grade && sub.grade.total_score !== null && sub.grade.total_score !== undefined) ? sub.grade.total_score : '';
+        }
         document.getElementById('grade-feedback').value = (sub.grade && sub.grade.feedback) ? sub.grade.feedback : '';
 
         modal.classList.add('active');
@@ -513,15 +536,17 @@
 
     async function handleSaveGrade() {
       const feedback = document.getElementById('grade-feedback').value.trim();
+      const scoreInput = document.getElementById('grade-total-score');
+      const totalScore = scoreInput ? scoreInput.value : '';
       const saveBtn = document.getElementById('btn-save-grade');
 
       saveBtn.disabled = true;
-      saveBtn.textContent = 'Đang lưu nhận xét...';
+      saveBtn.textContent = 'Đang lưu...';
 
       try {
         const res = await apiRequest(`/api/grading/submissions/${currentSubmissionId}/grade`, {
           method: 'POST',
-          body: JSON.stringify({ rubric_scores: [], feedback })
+          body: JSON.stringify({ rubric_scores: [], feedback, total_score: totalScore })
         });
 
         showToast(res.message, 'success');
@@ -531,9 +556,20 @@
         showToast(err.message, 'error');
       } finally {
         saveBtn.disabled = false;
-        saveBtn.textContent = '💾 Hoàn tất nhận xét & Trả bài';
+        saveBtn.textContent = 'Lưu điểm & Trả bài';
       }
     }
+
+    // Phím tắt Ctrl + Enter để lưu điểm nhanh
+    document.addEventListener('keydown', (e) => {
+      const modal = document.getElementById('modal-grading');
+      if (modal && modal.classList.contains('active')) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+          e.preventDefault();
+          handleSaveGrade();
+        }
+      }
+    });
 
     async function handleRequestResubmission() {
       const ok = await showConfirm(
