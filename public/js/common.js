@@ -497,15 +497,6 @@ function getThemeDropdownHTML(current) {
           </div>
         `;
       }).join('')}
-      <a href="/focus" class="theme-dropdown-item" style="border-top:1px solid var(--border-color); margin-top:4px; padding-top:10px; text-decoration:none;">
-        <div class="theme-item-left">
-          <span class="theme-item-icon">🚀</span>
-          <div>
-            <div class="theme-item-title" style="color:var(--primary-color, #64745B);">Mở không gian Focus OS</div>
-            <div class="theme-item-desc">Bàn học Quiet Academic cá nhân độc lập</div>
-          </div>
-        </div>
-      </a>
     </div>
   `;
 }
