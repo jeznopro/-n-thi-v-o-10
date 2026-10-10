@@ -280,6 +280,91 @@ function updateThemeSwitcherUI(theme) {
   });
 }
 
+function cleanOrRestoreEmojis(isMinimal) {
+  const emojiRegex = /[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1FA00}-\u{1FAFF}]/gu;
+
+  // 1. Navigation links
+  document.querySelectorAll('.nav-menu a, .student-nav-menu a, nav ul li a').forEach(a => {
+    if (!a.hasAttribute('data-orig-text')) {
+      a.setAttribute('data-orig-text', a.textContent.trim());
+    }
+    if (isMinimal) {
+      a.textContent = a.getAttribute('data-orig-text').replace(emojiRegex, '').trim();
+    } else {
+      a.textContent = a.getAttribute('data-orig-text');
+    }
+  });
+
+  // 2. Action buttons
+  document.querySelectorAll('.page-actions .btn').forEach(btn => {
+    if (!btn.hasAttribute('data-orig-html')) {
+      btn.setAttribute('data-orig-html', btn.innerHTML);
+    }
+    if (isMinimal) {
+      btn.innerHTML = btn.getAttribute('data-orig-html').replace(emojiRegex, '').trim();
+    } else {
+      btn.innerHTML = btn.getAttribute('data-orig-html');
+    }
+  });
+
+  // 3. Filter tabs
+  document.querySelectorAll('.filter-tab').forEach(tab => {
+    if (!tab.hasAttribute('data-orig-text')) {
+      tab.setAttribute('data-orig-text', tab.textContent.trim());
+    }
+    if (isMinimal) {
+      tab.textContent = tab.getAttribute('data-orig-text').replace(emojiRegex, '').trim();
+    } else {
+      tab.textContent = tab.getAttribute('data-orig-text');
+    }
+  });
+
+  // 4. Card titles
+  document.querySelectorAll('.card-title').forEach(title => {
+    if (!title.hasAttribute('data-orig-text')) {
+      title.setAttribute('data-orig-text', title.textContent.trim());
+    }
+    if (isMinimal) {
+      title.textContent = title.getAttribute('data-orig-text').replace(emojiRegex, '').trim();
+    } else {
+      title.textContent = title.getAttribute('data-orig-text');
+    }
+  });
+
+  // 5. Special hero elements
+  const heroCandle = document.getElementById('student-hero-candle');
+  const heroIcon = document.getElementById('student-hero-icon');
+  const heroTag = document.getElementById('student-hero-tag');
+  const heroBtn = document.getElementById('student-hero-btn');
+
+  if (heroCandle) heroCandle.style.display = isMinimal ? 'none' : '';
+  if (heroIcon) heroIcon.style.display = isMinimal ? 'none' : '';
+  if (heroTag) {
+    heroTag.textContent = isMinimal ? 'Bài tập tự luận' : 'Bàn Học Sĩ Tử';
+  }
+  if (heroBtn) {
+    if (!heroBtn.hasAttribute('data-orig-text')) {
+      heroBtn.setAttribute('data-orig-text', heroBtn.textContent.trim());
+    }
+    heroBtn.textContent = isMinimal ? 'Tài liệu lý thuyết' : heroBtn.getAttribute('data-orig-text');
+  }
+
+  // 6. Teacher greeting waving hand
+  const pageTitleH2 = document.querySelector('.page-title h2');
+  if (pageTitleH2) {
+    pageTitleH2.childNodes.forEach(node => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        if (!node.origValue) node.origValue = node.nodeValue;
+        if (isMinimal) {
+          node.nodeValue = node.origValue.replace(emojiRegex, '').trimEnd();
+        } else {
+          node.nodeValue = node.origValue;
+        }
+      }
+    });
+  }
+}
+
 function updateBrandTexts(theme) {
   const logoEl = document.querySelector('.brand-logo');
   const brandTitleEl = document.querySelector('.brand-text h1');
@@ -297,6 +382,7 @@ function updateBrandTexts(theme) {
       brandSubEl.textContent = window.location.pathname.includes('exam.html') ? 'Phòng Làm Bài Trực Tuyến' : 'Cổng Học Sinh';
     }
     if (avatarEl) avatarEl.style.background = '#10b981';
+    cleanOrRestoreEmojis(false);
   } else if (theme === 'minimal') {
     if (logoEl) {
       logoEl.innerHTML = 'TL';
@@ -306,6 +392,7 @@ function updateBrandTexts(theme) {
     if (brandTitleEl) brandTitleEl.textContent = 'TỰ LUẬN';
     if (brandSubEl) brandSubEl.textContent = 'Học tập & Ôn luyện';
     if (avatarEl) avatarEl.style.background = '#2563EB';
+    cleanOrRestoreEmojis(true);
   } else {
     if (logoEl) {
       logoEl.innerHTML = '🏛️';
@@ -315,6 +402,7 @@ function updateBrandTexts(theme) {
     if (brandTitleEl) brandTitleEl.textContent = 'THƯ VIỆN TOÁN 9';
     if (brandSubEl) brandSubEl.textContent = 'Phòng Ôn Thi Vào 10';
     if (avatarEl) avatarEl.style.background = '#788268';
+    cleanOrRestoreEmojis(false);
   }
 }
 
@@ -431,4 +519,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const current = getCurrentTheme();
   applyTheme(current);
   mountThemeSwitcher();
+
+  // Quét làm sạch emoji nếu đang ở chế độ Tối Giản sau khi các dữ liệu động tải
+  if (current === 'minimal') {
+    setTimeout(() => cleanOrRestoreEmojis(true), 300);
+    setTimeout(() => cleanOrRestoreEmojis(true), 1200);
+  }
 });
