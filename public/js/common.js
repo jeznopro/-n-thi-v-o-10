@@ -177,14 +177,20 @@ async function checkAuthAndLoad(expectedRole = null) {
 
     if (userNameEl) userNameEl.textContent = user.full_name;
     if (userRoleEl) userRoleEl.textContent = user.role === 'teacher' ? 'Giáo viên Toán' : 'Học sinh';
-    if (userAvatarEl) userAvatarEl.textContent = user.full_name.charAt(0).toUpperCase();
+    if (userAvatarEl) {
+      userAvatarEl.textContent = user.full_name.charAt(0).toUpperCase();
+      userAvatarEl.setAttribute('title', `${user.full_name} (${user.role === 'teacher' ? 'Giáo viên Toán' : 'Học sinh'})`);
+    }
 
     // Gắn sự kiện nút đăng xuất
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) {
+      logoutBtn.innerHTML = '🚪';
+      logoutBtn.setAttribute('title', 'Đăng xuất');
+      logoutBtn.setAttribute('aria-label', 'Đăng xuất');
       logoutBtn.onclick = async (e) => {
         e.preventDefault();
-        const confirmLogout = await showConfirm('Đăng xuất', 'Thầy/Cô có chắc chắn muốn đăng xuất khỏi hệ thống không?');
+        const confirmLogout = await showConfirm('Đăng xuất', 'Bạn có chắc chắn muốn đăng xuất khỏi hệ thống không?');
         if (confirmLogout) {
           try {
             await apiRequest('/api/auth/logout', { method: 'POST' });
@@ -196,6 +202,8 @@ async function checkAuthAndLoad(expectedRole = null) {
         }
       };
     }
+
+    enforceIconOnlyNavbar();
 
     // Toggle menu di động
     const mobileToggle = document.querySelector('.mobile-toggle');
@@ -280,20 +288,61 @@ function updateThemeSwitcherUI(theme) {
   });
 }
 
+// ============================================================
+// CHUẨN HOÁ THANH TRÊN CÙNG THÀNH DẠNG ICON-ONLY (CHỈ HIỂN THỊ ICON)
+// ============================================================
+function enforceIconOnlyNavbar() {
+  // 1. Phân tách icon và nhãn văn bản cho toàn bộ liên kết điều hướng
+  document.querySelectorAll('.nav-menu a, .student-nav-menu a, nav a.nav-link').forEach(link => {
+    if (!link.querySelector('.nav-icon')) {
+      const fullText = link.textContent.trim();
+      const match = fullText.match(/^([\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1FA00}-\u{1FAFF}✨🏛️⚡◻️📊👥📝📖📜💾]+)\s*(.*)$/u);
+      if (match) {
+        const icon = match[1];
+        const label = match[2];
+        link.innerHTML = `<span class="nav-icon">${icon}</span><span class="nav-text">${label}</span>`;
+        if (!link.getAttribute('title')) {
+          link.setAttribute('title', label || fullText);
+        }
+      } else {
+        if (!link.getAttribute('title')) {
+          link.setAttribute('title', fullText);
+        }
+      }
+    }
+  });
+
+  // 2. Gắn tooltip cho Logo thương hiệu
+  const brandLink = document.querySelector('.nav-brand');
+  const brandTitle = document.querySelector('.brand-text h1');
+  if (brandLink && !brandLink.getAttribute('title')) {
+    brandLink.setAttribute('title', brandTitle ? brandTitle.textContent.trim() : 'Trang chủ');
+  }
+
+  // 3. Gắn tooltip cho Avatar người dùng
+  const userAvatar = document.querySelector('.user-avatar');
+  const userName = document.querySelector('.user-name');
+  const userRole = document.querySelector('.user-role');
+  if (userAvatar && !userAvatar.getAttribute('title')) {
+    const nameStr = userName ? userName.textContent.trim() : 'Người dùng';
+    const roleStr = userRole ? userRole.textContent.trim() : '';
+    userAvatar.setAttribute('title', roleStr ? `${nameStr} (${roleStr})` : nameStr);
+  }
+
+  // 4. Biến nút Đăng xuất thành icon 🚪
+  const logoutBtn = document.getElementById('logout-btn');
+  if (logoutBtn && logoutBtn.textContent.trim() === 'Đăng xuất') {
+    logoutBtn.innerHTML = '🚪';
+    logoutBtn.setAttribute('title', 'Đăng xuất');
+    logoutBtn.setAttribute('aria-label', 'Đăng xuất');
+  }
+}
+
 function cleanOrRestoreEmojis(isMinimal) {
   const emojiRegex = /[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1FA00}-\u{1FAFF}]/gu;
 
-  // 1. Navigation links
-  document.querySelectorAll('.nav-menu a, .student-nav-menu a, nav ul li a').forEach(a => {
-    if (!a.hasAttribute('data-orig-text')) {
-      a.setAttribute('data-orig-text', a.textContent.trim());
-    }
-    if (isMinimal) {
-      a.textContent = a.getAttribute('data-orig-text').replace(emojiRegex, '').trim();
-    } else {
-      a.textContent = a.getAttribute('data-orig-text');
-    }
-  });
+  // 1. Navigation links: Thanh trên cùng là icon-only nên luôn duy trì icon
+  enforceIconOnlyNavbar();
 
   // 2. Action buttons
   document.querySelectorAll('.page-actions .btn').forEach(btn => {
@@ -519,6 +568,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const current = getCurrentTheme();
   applyTheme(current);
   mountThemeSwitcher();
+  enforceIconOnlyNavbar();
+
+  // Đảm bảo thanh trên cùng luôn duy trì dạng icon-only sau khi nạp dữ liệu động
+  setTimeout(enforceIconOnlyNavbar, 100);
+  setTimeout(enforceIconOnlyNavbar, 500);
+  setTimeout(enforceIconOnlyNavbar, 1500);
 
   // Quét làm sạch emoji nếu đang ở chế độ Tối Giản sau khi các dữ liệu động tải
   if (current === 'minimal') {

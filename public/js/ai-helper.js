@@ -11,8 +11,9 @@ function setupAiNavButton() {
   if (navMenu && !document.getElementById('nav-ai-settings-btn')) {
     const li = document.createElement('li');
     li.innerHTML = `
-      <a href="javascript:void(0)" id="nav-ai-settings-btn" class="nav-link" onclick="openAiSettingsModal()" style="display: flex; align-items: center; gap: 6px; color: #7c3aed; font-weight: 700;">
-        <span style="font-size: 1.1rem;">✨</span> Trợ lý AI
+      <a href="javascript:void(0)" id="nav-ai-settings-btn" class="nav-link" onclick="openAiSettingsModal()" title="Trợ lý AI (Cấu hình mô hình AI)" aria-label="Trợ lý AI">
+        <span class="nav-icon">✨</span>
+        <span class="nav-text">Trợ lý AI</span>
       </a>
     `;
     navMenu.appendChild(li);
