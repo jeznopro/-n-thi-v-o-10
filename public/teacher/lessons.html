@@ -122,6 +122,7 @@
     .cat-viet { background: #fef3c7; color: #b45309; }
     .cat-bdt { background: #faf5ff; color: #7e22ce; }
     .cat-thucte { background: #fff1f2; color: #be123c; }
+    .cat-thongke { background: #eef2ff; color: #4338ca; }
 
     .filter-tabs {
       display: flex;
@@ -342,6 +343,7 @@
         <button type="button" class="filter-tab" onclick="filterCategory('Hình học', this)">⭕ Hình học & Tứ giác nội tiếp</button>
         <button type="button" class="filter-tab" onclick="filterCategory('Bất đẳng thức & Cực trị', this)">🏆 Bất đẳng thức & Cực trị</button>
         <button type="button" class="filter-tab" onclick="filterCategory('Toán thực tế', this)">📊 Toán thực tế</button>
+        <button type="button" class="filter-tab" onclick="filterCategory('Xác suất & Thống kê', this)">🎲 Xác suất & Thống kê</button>
       </div>
     </div>
 
@@ -427,6 +429,7 @@
                 <option value="Hình học">Hình học & Đường tròn</option>
                 <option value="Bất đẳng thức & Cực trị">Bất đẳng thức & Cực trị</option>
                 <option value="Toán thực tế">Toán thực tế</option>
+                <option value="Xác suất & Thống kê">Xác suất & Thống kê (Chương 7, 8)</option>
               </select>
             </div>
             <div class="form-group">
@@ -836,6 +839,7 @@
       else if (l.category === 'Hệ thức Vi-ét') catClass = 'cat-viet';
       else if (l.category === 'Bất đẳng thức & Cực trị') catClass = 'cat-bdt';
       else if (l.category === 'Toán thực tế') catClass = 'cat-thucte';
+      else if (l.category === 'Xác suất & Thống kê') catClass = 'cat-thongke';
 
       return `
         <div class="lesson-card">
@@ -1215,7 +1219,9 @@
       catBadge.className = 'category-badge ' + (
         lesson.category === 'Hình học' ? 'cat-hinhhoc' :
         lesson.category === 'Hệ thức Vi-ét' ? 'cat-viet' :
-        lesson.category === 'Bất đẳng thức & Cực trị' ? 'cat-bdt' : 'cat-daiso'
+        lesson.category === 'Bất đẳng thức & Cực trị' ? 'cat-bdt' :
+        lesson.category === 'Toán thực tế' ? 'cat-thucte' :
+        lesson.category === 'Xác suất & Thống kê' ? 'cat-thongke' : 'cat-daiso'
       );
 
       document.getElementById('view-lesson-summary').textContent = lesson.summary || 'Chưa có mô tả tóm tắt.';

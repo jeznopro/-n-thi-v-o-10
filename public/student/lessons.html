@@ -270,6 +270,7 @@
     .cat-viet { background: #FAF6EB; color: #C29B38; border: 1px solid #EBDCB4; }
     .cat-bdt { background: #F7EEE7; color: #A87552; border: 1px solid #E8D3C4; }
     .cat-thucte { background: #FDF2F2; color: #9B4A4A; border: 1px solid #F5CECE; }
+    .cat-thongke { background: #EEF2FF; color: #4F46E5; border: 1px solid #C7D2FE; }
 
     .media-badge {
       display: inline-flex;
@@ -559,6 +560,7 @@
         <button type="button" class="filter-tab" onclick="filterCategory('Hình học', this)">⭕ Hình học & Tứ giác nội tiếp</button>
         <button type="button" class="filter-tab" onclick="filterCategory('Bất đẳng thức & Cực trị', this)">🏆 Bất đẳng thức & Cực trị</button>
         <button type="button" class="filter-tab" onclick="filterCategory('Toán thực tế', this)">📊 Toán thực tế</button>
+        <button type="button" class="filter-tab" onclick="filterCategory('Xác suất & Thống kê', this)">🎲 Xác suất & Thống kê</button>
       </div>
     </div>
 
@@ -1132,6 +1134,7 @@
       else if (l.category === 'Hệ thức Vi-ét') catClass = 'cat-viet';
       else if (l.category === 'Bất đẳng thức & Cực trị') catClass = 'cat-bdt';
       else if (l.category === 'Toán thực tế') catClass = 'cat-thucte';
+      else if (l.category === 'Xác suất & Thống kê') catClass = 'cat-thongke';
 
       const isClassic = document.body.classList.contains('theme-classic');
       const authorText = isClassic ? (l.author_name ? escapeHtml(l.author_name) : 'Thầy cô Toán') : (l.author_name ? 'Biên soạn: ' + escapeHtml(l.author_name) : 'Tài liệu Thư Viện');
@@ -1261,7 +1264,9 @@
       catBadge.className = 'category-badge ' + (
         lesson.category === 'Hình học' ? 'cat-hinhhoc' :
         lesson.category === 'Hệ thức Vi-ét' ? 'cat-viet' :
-        lesson.category === 'Bất đẳng thức & Cực trị' ? 'cat-bdt' : 'cat-daiso'
+        lesson.category === 'Bất đẳng thức & Cực trị' ? 'cat-bdt' :
+        lesson.category === 'Toán thực tế' ? 'cat-thucte' :
+        lesson.category === 'Xác suất & Thống kê' ? 'cat-thongke' : 'cat-daiso'
       );
 
       document.getElementById('modal-summary').textContent = lesson.summary || 'Chưa có mô tả tóm tắt.';

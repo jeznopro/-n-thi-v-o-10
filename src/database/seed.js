@@ -8,47 +8,70 @@ function seedSampleChaptersAndLessons(db) {
     let teacher = db.prepare("SELECT id FROM users WHERE role = 'teacher' LIMIT 1").get();
     const teacherId = teacher ? teacher.id : 1;
 
-    // 1. Kiểm tra bảng chapters
-    let chapterCount = db.prepare('SELECT COUNT(*) AS count FROM chapters').get()?.count || 0;
-    if (chapterCount === 0) {
-      console.log('📂 Đang khởi tạo 5 Chương học Toán 9 chuẩn...');
-      const insertChapter = db.prepare(`
-        INSERT INTO chapters (title, description, order_index, class_id, created_by)
-        VALUES (?, ?, ?, NULL, ?)
-      `);
+    const standardChapters = [
+      {
+        title: 'Chương 1: Phương trình và hệ phương trình bậc nhất hai ẩn',
+        description: 'Phương trình bậc nhất hai ẩn, hệ hai phương trình bậc nhất hai ẩn, các phương pháp giải hệ và giải bài toán bằng cách lập hệ phương trình.',
+        order_index: 1
+      },
+      {
+        title: 'Chương 2: Phương trình và bất phương trình bậc nhất 1 ẩn',
+        description: 'Bất đẳng thức, bất phương trình bậc nhất một ẩn và các bài toán bất đẳng thức ôn thi vào 10.',
+        order_index: 2
+      },
+      {
+        title: 'Chương 3: Căn bậc hai và căn bậc ba',
+        description: 'Căn bậc hai, căn bậc ba, các phép tính biến đổi căn thức và kỹ thuật rút gọn biểu thức chứa căn bậc hai.',
+        order_index: 3
+      },
+      {
+        title: 'Chương 4: Hệ thức lượng trong tam giác',
+        description: 'Một số hệ thức về cạnh và đường cao trong tam giác vuông, tỉ số lượng giác góc nhọn và ứng dụng thực tế giải tam giác.',
+        order_index: 4
+      },
+      {
+        title: 'Chương 5: Đường tròn',
+        description: 'Sự xác định của đường tròn, tính chất đối xứng, vị trí tương đối và tiếp tuyến của đường tròn.',
+        order_index: 5
+      },
+      {
+        title: 'Chương 6: Hàm số y = ax² (a ≠ 0). Phương trình bậc hai một ẩn',
+        description: 'Hàm số y = ax² (a ≠ 0), đồ thị Parabol, phương trình bậc hai một ẩn, công thức nghiệm và định lý Vi-ét ứng dụng ôn thi vào 10.',
+        order_index: 6
+      },
+      {
+        title: 'Chương 7: Tần số và tần số tương đối',
+        description: 'Bảng tần số, bảng tần số tương đối, biểu đồ tần số tương đối, biểu đồ đoạn thẳng và biểu đồ hình quạt tròn biểu diễn mẫu số liệu.',
+        order_index: 7
+      },
+      {
+        title: 'Chương 8: Xác suất của biến cố trong một số mô hình xác suất đơn giản',
+        description: 'Không gian mẫu, biến cố ngẫu nhiên, xác suất của biến cố trong một số mô hình xác suất đơn giản (tung đồng xu, xúc xắc, rút thẻ...).',
+        order_index: 8
+      },
+      {
+        title: 'Chương 9: Đường tròn ngoại tiếp và đường tròn nội tiếp',
+        description: 'Đường tròn ngoại tiếp và nội tiếp tam giác, tứ giác nội tiếp đường tròn, đa giác đều và các bài toán hình học ôn thi vào 10.',
+        order_index: 9
+      },
+      {
+        title: 'Chương 10: Một số hình khối trong thực tiễn',
+        description: 'Hình trụ, hình nón, hình cầu, công thức tính diện tích xung quanh, diện tích toàn phần, thể tích và các bài toán thực tế.',
+        order_index: 10
+      }
+    ];
 
-      insertChapter.run(
-        'Chương 1: Phương trình và hệ phương trình bậc nhất hai ẩn',
-        'Phương trình bậc nhất hai ẩn, hệ hai phương trình bậc nhất hai ẩn, các phương pháp giải hệ và giải bài toán bằng cách lập hệ phương trình.',
-        1,
-        teacherId
-      );
-      insertChapter.run(
-        'Chương 2: Phương trình và bất phương trình bậc nhất 1 ẩn',
-        'Bất đẳng thức, bất phương trình bậc nhất một ẩn, phương trình bậc hai một ẩn và định lý Vi-ét ứng dụng ôn thi vào 10.',
-        2,
-        teacherId
-      );
-      insertChapter.run(
-        'Chương 3: Căn bậc hai và căn bậc ba',
-        'Căn bậc hai, căn bậc ba, các phép tính biến đổi căn thức và kỹ thuật rút gọn biểu thức chứa căn bậc hai.',
-        3,
-        teacherId
-      );
-      insertChapter.run(
-        'Chương 4: Hệ thức lượng trong tam giác',
-        'Một số hệ thức về cạnh và đường cao trong tam giác vuông, tỉ số lượng giác góc nhọn và ứng dụng thực tế giải tam giác.',
-        4,
-        teacherId
-      );
-      insertChapter.run(
-        'Chương 5: Đường tròn',
-        'Sự xác định của đường tròn, tính chất đối xứng, vị trí tương đối, tiếp tuyến của đường tròn và tứ giác nội tiếp.',
-        5,
-        teacherId
-      );
-      console.log('✅ Đã nạp thành công 5 Chương học!');
-    }
+    const insertChapter = db.prepare(`
+      INSERT INTO chapters (title, description, order_index, class_id, created_by)
+      VALUES (?, ?, ?, NULL, ?)
+    `);
+
+    standardChapters.forEach(c => {
+      const existing = db.prepare('SELECT id FROM chapters WHERE title LIKE ?').get(`%Chương ${c.order_index}%`);
+      if (!existing) {
+        insertChapter.run(c.title, c.description, c.order_index, teacherId);
+      }
+    });
 
     // Lấy ID các chương
     const ch1 = db.prepare("SELECT id FROM chapters WHERE title LIKE '%Chương 1%' LIMIT 1").get();
@@ -56,17 +79,24 @@ function seedSampleChaptersAndLessons(db) {
     const ch3 = db.prepare("SELECT id FROM chapters WHERE title LIKE '%Chương 3%' LIMIT 1").get();
     const ch4 = db.prepare("SELECT id FROM chapters WHERE title LIKE '%Chương 4%' LIMIT 1").get();
     const ch5 = db.prepare("SELECT id FROM chapters WHERE title LIKE '%Chương 5%' LIMIT 1").get();
+    const ch6 = db.prepare("SELECT id FROM chapters WHERE title LIKE '%Chương 6%' LIMIT 1").get();
+    const ch7 = db.prepare("SELECT id FROM chapters WHERE title LIKE '%Chương 7%' LIMIT 1").get();
+    const ch8 = db.prepare("SELECT id FROM chapters WHERE title LIKE '%Chương 8%' LIMIT 1").get();
+    const ch9 = db.prepare("SELECT id FROM chapters WHERE title LIKE '%Chương 9%' LIMIT 1").get();
+    const ch10 = db.prepare("SELECT id FROM chapters WHERE title LIKE '%Chương 10%' LIMIT 1").get();
 
     // 2. Gán các bài giảng hiện có vào các chương tương ứng nếu chưa có chapter_id
     if (ch3) {
       db.prepare(`UPDATE lessons SET chapter_id = ?, order_index = 1 WHERE (id = 1 OR title LIKE '%Rút gọn%') AND (chapter_id IS NULL OR chapter_id = 0)`).run(ch3.id);
     }
-    if (ch2) {
-      db.prepare(`UPDATE lessons SET chapter_id = ?, order_index = 2 WHERE (id = 2 OR title LIKE '%Vi-ét%') AND (chapter_id IS NULL OR chapter_id = 0)`).run(ch2.id);
-      db.prepare(`UPDATE lessons SET chapter_id = ?, order_index = 3 WHERE (id = 4 OR title LIKE '%Cô-si%') AND (chapter_id IS NULL OR chapter_id = 0)`).run(ch2.id);
+    if (ch6) {
+      db.prepare(`UPDATE lessons SET chapter_id = ?, order_index = 1 WHERE (id = 2 OR title LIKE '%Vi-ét%') AND (chapter_id IS NULL OR chapter_id = 0 OR chapter_id = ${ch2 ? ch2.id : 0})`).run(ch6.id);
     }
-    if (ch5) {
-      db.prepare(`UPDATE lessons SET chapter_id = ?, order_index = 1 WHERE (id = 3 OR title LIKE '%Tứ giác nội tiếp%') AND (chapter_id IS NULL OR chapter_id = 0)`).run(ch5.id);
+    if (ch2) {
+      db.prepare(`UPDATE lessons SET chapter_id = ?, order_index = 1 WHERE (id = 4 OR title LIKE '%Cô-si%') AND (chapter_id IS NULL OR chapter_id = 0)`).run(ch2.id);
+    }
+    if (ch9) {
+      db.prepare(`UPDATE lessons SET chapter_id = ?, order_index = 1 WHERE (id = 3 OR title LIKE '%Tứ giác nội tiếp%') AND (chapter_id IS NULL OR chapter_id = 0 OR chapter_id = ${ch5 ? ch5.id : 0})`).run(ch9.id);
     }
 
     // 3. Bổ sung bài giảng mẫu cho Chương 1 và Chương 4 nếu chưa có
