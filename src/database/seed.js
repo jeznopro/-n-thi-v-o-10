@@ -58,6 +58,26 @@ function seedSampleChaptersAndLessons(db) {
         title: 'Chương 10: Một số hình khối trong thực tiễn',
         description: 'Hình trụ, hình nón, hình cầu, công thức tính diện tích xung quanh, diện tích toàn phần, thể tích và các bài toán thực tế.',
         order_index: 10
+      },
+      {
+        title: 'Chuyên đề: Ôn tập Giữa học kỳ 1 (Đại số & Hình học)',
+        description: 'Tổng hợp kiến thức trọng tâm giữa học kỳ 1: Rút gọn biểu thức chứa căn, hệ hai phương trình bậc nhất hai ẩn, giải bài toán bằng cách lập hệ phương trình và các hệ thức lượng trong tam giác vuông.',
+        order_index: 11
+      },
+      {
+        title: 'Chuyên đề: Ôn tập Cuối học kỳ 1 (Tổng ôn toàn diện HK1)',
+        description: 'Tổng ôn toàn diện toàn bộ học kỳ 1: Phương trình & BPT bậc nhất 1 ẩn, bất đẳng thức Cô-si, sự xác định đường tròn, tính chất tiếp tuyến và các dạng toán ôn thi học kỳ 1 có đáp án chi tiết.',
+        order_index: 12
+      },
+      {
+        title: 'Chuyên đề: Ôn tập Giữa học kỳ 2 (Phương trình bậc hai & Xác suất Thống kê)',
+        description: 'Trọng tâm giữa học kỳ 2: Hàm số y = ax² và đồ thị Parabol, sự tương giao (d) và (P), định lý Vi-ét ứng dụng, bảng tần số - biểu đồ thống kê và xác suất của biến cố đơn giản.',
+        order_index: 13
+      },
+      {
+        title: 'Chuyên đề: Ôn tập Cuối học kỳ 2 & Luyện đề tuyển sinh vào 10',
+        description: 'Tổng ôn tập toàn bộ kiến thức Toán 9 cả năm: Tứ giác nội tiếp, các bài toán hình khối trong thực tiễn (trụ, nón, cầu), kỹ thuật chứng minh hình học 9 và bộ đề thi thử vào 10 cấu trúc chuẩn.',
+        order_index: 14
       }
     ];
 
@@ -67,7 +87,7 @@ function seedSampleChaptersAndLessons(db) {
     `);
 
     standardChapters.forEach(c => {
-      const existing = db.prepare('SELECT id FROM chapters WHERE title LIKE ?').get(`%Chương ${c.order_index}%`);
+      const existing = db.prepare('SELECT id FROM chapters WHERE order_index = ? OR title = ?').get(c.order_index, c.title);
       if (!existing) {
         insertChapter.run(c.title, c.description, c.order_index, teacherId);
       }

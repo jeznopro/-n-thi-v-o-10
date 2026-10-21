@@ -123,6 +123,7 @@
     .cat-bdt { background: #faf5ff; color: #7e22ce; }
     .cat-thucte { background: #fff1f2; color: #be123c; }
     .cat-thongke { background: #eef2ff; color: #4338ca; }
+    .cat-ontap { background: #fef3c7; color: #b45309; border: 1px solid #fcd34d; font-weight: 700; }
 
     .filter-tabs {
       display: flex;
@@ -344,6 +345,7 @@
         <button type="button" class="filter-tab" onclick="filterCategory('Bất đẳng thức & Cực trị', this)">🏆 Bất đẳng thức & Cực trị</button>
         <button type="button" class="filter-tab" onclick="filterCategory('Toán thực tế', this)">📊 Toán thực tế</button>
         <button type="button" class="filter-tab" onclick="filterCategory('Xác suất & Thống kê', this)">🎲 Xác suất & Thống kê</button>
+        <button type="button" class="filter-tab" onclick="filterCategory('Ôn tập kiểm tra', this)" style="border-color: #f59e0b; color: #b45309;">🎯 Ôn tập Giữa kỳ & Cuối kỳ</button>
       </div>
     </div>
 
@@ -430,6 +432,7 @@
                 <option value="Bất đẳng thức & Cực trị">Bất đẳng thức & Cực trị</option>
                 <option value="Toán thực tế">Toán thực tế</option>
                 <option value="Xác suất & Thống kê">Xác suất & Thống kê (Chương 7, 8)</option>
+                <option value="Ôn tập kiểm tra">🎯 Ôn tập Giữa kỳ & Cuối kỳ</option>
               </select>
             </div>
             <div class="form-group">
@@ -733,14 +736,17 @@
           return;
         }
 
+        const isReview = ch.title.toLowerCase().includes('ôn tập') || ch.title.toLowerCase().includes('đề thi') || (ch.order_index >= 11);
+
         html += `
-          <div class="chapter-section" id="chapter-card-${ch.id}">
-            <div class="chapter-header" onclick="toggleChapterBody(${ch.id})">
+          <div class="chapter-section" id="chapter-card-${ch.id}" ${isReview ? 'style="border-color: #fcd34d; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.08);"' : ''}>
+            <div class="chapter-header" onclick="toggleChapterBody(${ch.id})" ${isReview ? 'style="background: #fffdf5;"' : ''}>
               <div class="chapter-title-group">
-                <div class="chapter-folder-icon">📂</div>
+                <div class="chapter-folder-icon" ${isReview ? 'style="background: #fef3c7; color: #b45309; border: 1.5px solid #fcd34d;"' : ''}>${isReview ? '🎯' : '📂'}</div>
                 <div>
                   <h3 class="chapter-name">
-                    ${escapeHtml(ch.title)}
+                    ${isReview ? '<span style="font-size:0.75rem; background:#fef3c7; color:#b45309; border:1px solid #fcd34d; padding:2px 8px; border-radius:4px; font-weight:800; margin-right:6px; letter-spacing:0.04em;">ÔN TẬP</span>' : ''}
+                    <span>${escapeHtml(ch.title)}</span>
                     <span class="chapter-badge-count">${filteredLessons.length} bài học</span>
                   </h3>
                   ${ch.description ? `<p class="chapter-desc">${escapeHtml(ch.description)}</p>` : ''}
@@ -840,6 +846,7 @@
       else if (l.category === 'Bất đẳng thức & Cực trị') catClass = 'cat-bdt';
       else if (l.category === 'Toán thực tế') catClass = 'cat-thucte';
       else if (l.category === 'Xác suất & Thống kê') catClass = 'cat-thongke';
+      else if (l.category === 'Ôn tập kiểm tra') catClass = 'cat-ontap';
 
       return `
         <div class="lesson-card">
@@ -1221,7 +1228,8 @@
         lesson.category === 'Hệ thức Vi-ét' ? 'cat-viet' :
         lesson.category === 'Bất đẳng thức & Cực trị' ? 'cat-bdt' :
         lesson.category === 'Toán thực tế' ? 'cat-thucte' :
-        lesson.category === 'Xác suất & Thống kê' ? 'cat-thongke' : 'cat-daiso'
+        lesson.category === 'Xác suất & Thống kê' ? 'cat-thongke' :
+        lesson.category === 'Ôn tập kiểm tra' ? 'cat-ontap' : 'cat-daiso'
       );
 
       document.getElementById('view-lesson-summary').textContent = lesson.summary || 'Chưa có mô tả tóm tắt.';
