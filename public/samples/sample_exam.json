@@ -1,0 +1,26 @@
+{
+  "title": "Đề kiểm tra Tự luận Toán 9 - Căn thức và Phương trình",
+  "time_limit_minutes": 90,
+  "questions": [
+    {
+      "title": "Câu 1 (2.0 điểm): Rút gọn biểu thức chứa căn bậc hai",
+      "content": "Cho biểu thức: $$P = \\left( \\frac{\\sqrt{x}}{\\sqrt{x}-1} - \\frac{1}{x-\\sqrt{x}} \\right) : \\frac{\\sqrt{x}+1}{x-1}$$ với $x > 0, x \\ne 1$.<br>a) Rút gọn biểu thức $P$.<br>b) Tìm các giá trị của $x$ để $P = \\frac{1}{2}$."
+    },
+    {
+      "title": "Câu 2 (2.0 điểm): Giải bài toán bằng cách lập hệ phương trình",
+      "content": "Hai tổ công nhân cùng làm chung một công việc trong 12 giờ thì hoàn thành. Nếu tổ thứ nhất làm trong 4 giờ rồi tổ thứ hai làm tiếp một mình trong 7 giờ thì cả hai tổ hoàn thành được $\\frac{5}{12}$ công việc. Hỏi nếu làm một mình thì mỗi tổ phải mất bao nhiêu thời gian để hoàn thành toàn bộ công việc?"
+    },
+    {
+      "title": "Câu 3 (2.0 điểm): Hệ phương trình & Định lý Vi-ét",
+      "content": "1) Giải hệ phương trình sau:<br>$$\\begin{cases} 2x + 3y = 7 \\\\ 3x - y = 5 \\end{cases}$$<br>2) Cho phương trình: $x^2 - 2(m-1)x + 2m - 5 = 0$ ($m$ là tham số). Tìm $m$ để phương trình có hai nghiệm $x_1, x_2$ thỏa mãn $x_1^2 + x_2^2 = 10$."
+    },
+    {
+      "title": "Câu 4 (3.5 điểm): Hình học đường tròn",
+      "content": "Từ điểm $A$ nằm ngoài đường tròn $(O; R)$, kẻ hai tiếp tuyến $AB$ và $AC$ với đường tròn ($B, C$ là các tiếp điểm). Gọi $H$ là giao điểm của $OA$ và $BC$.<br>a) Chứng minh tứ giác $ABOC$ nội tiếp đường tròn.<br>b) Kẻ đường kính $BD$ của đường tròn $(O)$. Đoạn thẳng $AD$ cắt đường tròn $(O)$ tại điểm thứ hai là $E$. Chứng minh $AH \\cdot AO = AE \\cdot AD$."
+    },
+    {
+      "title": "Câu 5 (0.5 điểm): Bất đẳng thức cực trị",
+      "content": "Cho các số thực dương $a, b, c$ thỏa mãn $a + b + c \\le 3$. Tìm giá trị nhỏ nhất của biểu thức:<br>$$P = \\frac{1}{a^2 + b^2 + c^2} + \\frac{2026}{ab + bc + ca}$$"
+    }
+  ]
+}

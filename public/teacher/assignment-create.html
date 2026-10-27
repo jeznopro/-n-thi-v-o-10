@@ -125,6 +125,9 @@
             <button type="button" class="btn btn-secondary btn-sm" onclick="triggerWordImport()" style="font-weight: 700; background: #f0fdf4; color: #166534; border: 1px solid #86efac; border-radius: 8px; display: inline-flex; align-items: center; gap: 4px;">
               📄 Nhập từ file Word
             </button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="openJsonImportModal()" style="font-weight: 700; background: #f0f9ff; color: #0284c7; border: 1px solid #7dd3fc; border-radius: 8px; display: inline-flex; align-items: center; gap: 4px;">
+              📋 Nhập từ JSON
+            </button>
             <button type="button" class="btn btn-ai btn-sm" onclick="openAiQuestionGeneratorModal()">
               ✨ AI Soạn Đề Tự Động
             </button>
@@ -368,6 +371,120 @@
     </div>
   </div>
 
+  <!-- INPUT FILE ẨN ĐỂ CHỌN FILE JSON -->
+  <input type="file" id="json-file-input" accept=".json,application/json" style="display: none;" onchange="handleJsonFileChosen(event)">
+
+  <!-- MODAL NHẬP ĐỀ THEO MẪU JSON -->
+  <div id="modal-json-import" class="custom-modal-overlay">
+    <div class="custom-modal" style="max-width: 880px; max-height: 92vh; display: flex; flex-direction: column;">
+      <div class="custom-modal-header" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff;">
+        <div>
+          <h3 class="custom-modal-title" style="color: #fff; display: flex; align-items: center; gap: 8px;">
+            📋 Nhập Đề Bài Tự Luận Theo Mẫu JSON
+          </h3>
+          <p style="font-size: 0.825rem; color: #e0f2fe; margin-top: 2px;">
+            Dán mã JSON hoặc tải tệp .json để hệ thống tự động trích xuất tiêu đề, thời lượng và danh sách câu hỏi
+          </p>
+        </div>
+        <button class="toast-close" style="color: #fff;" onclick="closeJsonImportModal()">&times;</button>
+      </div>
+
+      <div class="custom-modal-body" style="padding: 20px; overflow-y: auto; flex: 1;">
+        <!-- KHUNG HƯỚNG DẪN MẪU JSON -->
+        <div style="background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 12px; padding: 14px 18px; margin-bottom: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+            <div style="font-weight: 700; color: #0369a1; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">
+              💡 Cấu trúc JSON mẫu chuẩn hỗ trợ công thức Toán KaTeX ($...$):
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <a href="/samples/sample_exam.json" download="de_thi_toan_9_mau.json" class="btn btn-secondary btn-sm" style="font-size: 0.775rem; font-weight: 700; background: #fff; color: #166534; border: 1px solid #86efac; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                📥 Tải file mẫu .json
+              </a>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="copyJsonSampleTemplate()" style="font-size: 0.775rem; font-weight: 700; background: #fff; color: #0284c7; border: 1px solid #7dd3fc;">
+                📋 Sao chép mẫu JSON
+              </button>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="insertJsonSampleToEditor()" style="font-size: 0.775rem; font-weight: 700; background: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc;">
+                ✏️ Dán mẫu vào ô nhập
+              </button>
+            </div>
+          </div>
+          <p style="font-size: 0.825rem; color: #475569; margin: 0 0 8px 0; line-height: 1.5;">
+            Hệ thống nhận diện linh hoạt: <strong>Mảng câu hỏi <code>[...]</code></strong> hoặc <strong>Đối tượng đề bài đầy đủ <code>{ "title": "...", "time_limit_minutes": 90, "questions": [...] }</code></strong>.
+          </p>
+          <pre id="json-sample-code" style="background: #1e293b; color: #f8fafc; padding: 12px 14px; border-radius: 8px; font-size: 0.825rem; font-family: Consolas, Menlo, Monaco, monospace; max-height: 140px; overflow-y: auto; margin: 0; line-height: 1.4;">{
+  "title": "Đề kiểm tra Toán 9 - Chương 3: Căn thức bậc hai",
+  "time_limit_minutes": 90,
+  "questions": [
+    {
+      "title": "Câu 1: Rút gọn biểu thức chứa căn",
+      "content": "Cho biểu thức $P = \\left(\\frac{\\sqrt{x}}{\\sqrt{x}-1} - \\frac{1}{x-\\sqrt{x}}\\right) : \\frac{\\sqrt{x}+1}{x-1}$ với $x > 0, x \\ne 1$.<br>a) Rút gọn biểu thức $P$.<br>b) Tìm $x$ để $P = 1/2$."
+    },
+    {
+      "title": "Câu 2: Giải toán bằng cách lập hệ phương trình",
+      "content": "Hai tổ công nhân cùng làm chung một công việc trong 12 giờ thì hoàn thành. Nếu tổ một làm trong 4 giờ và tổ hai làm tiếp trong 7 giờ thì cả hai tổ hoàn thành được $5/12$ công việc. Hỏi mỗi tổ làm một mình thì sau bao lâu sẽ hoàn thành?"
+    }
+  ]
+}</pre>
+        </div>
+
+        <!-- KHUNG SOẠN THẢO JSON -->
+        <div class="form-group" style="margin-bottom: 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 8px;">
+            <label class="form-label" style="font-weight: 700; color: #1e3a8a; margin: 0;">
+              📝 Dán nội dung JSON vào đây:
+            </label>
+            <div style="display: flex; gap: 8px;">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="triggerJsonFileInput()" style="font-size: 0.8rem; font-weight: 700; background: #fff; color: #166534; border: 1.5px solid #86efac;">
+                📂 Chọn tệp .json từ máy
+              </button>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="clearJsonInputEditor()" style="font-size: 0.8rem; color: #dc2626;">
+                🧹 Xóa
+              </button>
+            </div>
+          </div>
+
+          <textarea id="json-input-editor" class="form-control" rows="8" style="font-family: Consolas, Menlo, Monaco, monospace; font-size: 0.9rem; line-height: 1.5; background: #fafafa;" placeholder="Dán mã JSON đề bài vào đây..." oninput="validateAndPreviewJson()"></textarea>
+          
+          <div id="json-validation-status" style="margin-top: 6px; font-size: 0.85rem; font-weight: 600;"></div>
+        </div>
+
+        <!-- KHUNG XEM TRƯỚC CÂU HỎI TRÍCH XUẤT ĐƯỢC -->
+        <div id="json-preview-container" style="display: none; margin-top: 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <label class="form-label" style="font-weight: 700; color: #1e3a8a; margin: 0;">
+              👁️ Xem trước các câu hỏi sẽ nhập (<span id="json-preview-count">0</span> câu):
+            </label>
+            <small style="color: #64748b; font-style: italic;">* Công thức KaTeX hiển thị trực tiếp</small>
+          </div>
+
+          <div id="json-preview-list" style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 4px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc;"></div>
+        </div>
+
+        <!-- TÙY CHỌN CHÈN VÀO FORM -->
+        <div style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 14px; padding: 12px 18px; margin-top: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+          <div style="display: flex; gap: 16px;">
+            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 700; font-size: 0.875rem; color: #1e293b;">
+              <input type="radio" name="json-insert-mode" value="replace" checked>
+              <span>Thay thế toàn bộ câu hỏi hiện tại</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 700; font-size: 0.875rem; color: #1e293b;">
+              <input type="radio" name="json-insert-mode" value="append">
+              <span>Thêm tiếp vào sau câu hỏi đã có</span>
+            </label>
+          </div>
+
+          <button type="button" class="btn btn-success" id="btn-apply-json" onclick="applyJsonQuestionsToForm()" disabled style="font-weight: 800; padding: 9px 20px; border-radius: 10px; font-size: 0.95rem;">
+            ✅ Áp dụng vào đề thi
+          </button>
+        </div>
+      </div>
+
+      <div class="custom-modal-footer" style="padding: 12px 20px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end;">
+        <button type="button" class="btn btn-secondary" onclick="closeJsonImportModal()">Đóng / Hủy</button>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
   <script src="/js/api.js"></script>
@@ -391,6 +508,8 @@
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('action') === 'import-word') {
         setTimeout(() => triggerWordImport(), 350);
+      } else if (urlParams.get('action') === 'import-json') {
+        setTimeout(() => openJsonImportModal(), 350);
       } else {
         // Mẫu 3 câu hỏi mặc định
         addQuestionCard('Câu 1: Rút gọn biểu thức chứa căn', 'Cho biểu thức $P = \\left( \\frac{\\sqrt{x}}{\\sqrt{x}-1} - \\frac{1}{x-\\sqrt{x}} \\right) : \\frac{\\sqrt{x}+1}{x-1}$ với $x > 0, x \\neq 1$.<br>a) Rút gọn $P$.<br>b) Tìm $x$ để $P = 1/2$.');
@@ -899,6 +1018,221 @@
 
       closeWordPreviewModal();
       showToast(`🎉 Đã nhập thành công ${items.length} câu hỏi từ file Word vào đề thi!`, 'success');
+
+      // Cuộn tới danh sách câu hỏi
+      document.getElementById('questions-list-container').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // ==========================================
+    // LOGIC NHẬP ĐỀ BÀI THEO MẪU JSON
+    // ==========================================
+    let parsedJsonData = null;
+
+    function openJsonImportModal() {
+      const modal = document.getElementById('modal-json-import');
+      if (!modal) return;
+      modal.classList.add('active');
+      const editor = document.getElementById('json-input-editor');
+      if (editor && !editor.value.trim()) {
+        insertJsonSampleToEditor();
+      } else {
+        validateAndPreviewJson();
+      }
+    }
+
+    function closeJsonImportModal() {
+      const modal = document.getElementById('modal-json-import');
+      if (modal) modal.classList.remove('active');
+    }
+
+    function triggerJsonFileInput() {
+      const input = document.getElementById('json-file-input');
+      if (input) {
+        input.value = '';
+        input.click();
+      }
+    }
+
+    function handleJsonFileChosen(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const text = e.target.result;
+        const editor = document.getElementById('json-input-editor');
+        if (editor) {
+          editor.value = text;
+          validateAndPreviewJson();
+          showToast(`Đã đọc tệp JSON: ${file.name}`, 'info');
+        }
+      };
+      reader.onerror = () => {
+        showToast('Không thể đọc file JSON này.', 'error');
+      };
+      reader.readAsText(file, 'UTF-8');
+    }
+
+    function copyJsonSampleTemplate() {
+      const sample = document.getElementById('json-sample-code').textContent;
+      navigator.clipboard.writeText(sample).then(() => {
+        showToast('Đã sao chép cấu trúc JSON mẫu vào clipboard!', 'success');
+      }).catch(() => {
+        showToast('Không thể sao chép tự động, vui lòng chọn thủ công.', 'warning');
+      });
+    }
+
+    function insertJsonSampleToEditor() {
+      const sample = document.getElementById('json-sample-code').textContent;
+      const editor = document.getElementById('json-input-editor');
+      if (editor) {
+        editor.value = sample;
+        validateAndPreviewJson();
+      }
+    }
+
+    function clearJsonInputEditor() {
+      const editor = document.getElementById('json-input-editor');
+      if (editor) {
+        editor.value = '';
+        validateAndPreviewJson();
+      }
+    }
+
+    function validateAndPreviewJson() {
+      const editor = document.getElementById('json-input-editor');
+      const statusEl = document.getElementById('json-validation-status');
+      const previewContainer = document.getElementById('json-preview-container');
+      const previewList = document.getElementById('json-preview-list');
+      const countEl = document.getElementById('json-preview-count');
+      const applyBtn = document.getElementById('btn-apply-json');
+
+      if (!editor || !statusEl) return;
+
+      const raw = editor.value.trim();
+      if (!raw) {
+        statusEl.innerHTML = '<span style="color: #64748b;">Vui lòng dán mã JSON hoặc chọn tệp .json để kiểm tra.</span>';
+        previewContainer.style.display = 'none';
+        applyBtn.disabled = true;
+        parsedJsonData = null;
+        return;
+      }
+
+      try {
+        const parsed = JSON.parse(raw);
+        let questions = [];
+        let title = '';
+        let timeLimit = null;
+        let chapterId = null;
+
+        if (Array.isArray(parsed)) {
+          questions = parsed;
+        } else if (typeof parsed === 'object' && parsed !== null) {
+          title = parsed.title || parsed.ten_de || parsed.ten_bai_tap || '';
+          timeLimit = parsed.time_limit_minutes || parsed.thoi_gian || parsed.time || null;
+          chapterId = parsed.chapter_id || null;
+
+          const rawList = parsed.questions || parsed.cau_hoi || parsed.items || parsed.data || [];
+          if (Array.isArray(rawList)) {
+            questions = rawList;
+          }
+        }
+
+        if (questions.length === 0) {
+          statusEl.innerHTML = '<span style="color: #ea580c;">⚠️ JSON hợp lệ nhưng không tìm thấy danh sách câu hỏi nào. Cần có mảng `questions` hoặc các phần tử câu hỏi.</span>';
+          previewContainer.style.display = 'none';
+          applyBtn.disabled = true;
+          parsedJsonData = null;
+          return;
+        }
+
+        // Chuẩn hóa từng câu hỏi
+        const normalized = questions.map((q, idx) => {
+          let qTitle = '';
+          let qContent = '';
+
+          if (typeof q === 'string') {
+            qTitle = `Câu ${idx + 1}`;
+            qContent = q;
+          } else if (typeof q === 'object' && q !== null) {
+            qTitle = q.title || q.cau || q.name || `Câu ${idx + 1}`;
+            qContent = q.content || q.noi_dung || q.de_bai || q.text || '';
+          }
+
+          return { title: qTitle, content: qContent };
+        });
+
+        parsedJsonData = {
+          title,
+          time_limit_minutes: timeLimit,
+          chapter_id: chapterId,
+          questions: normalized
+        };
+
+        statusEl.innerHTML = `<span style="color: #16a34a;">✅ Cấu trúc JSON chuẩn xác! Phát hiện <strong>${normalized.length} câu hỏi</strong>${title ? ` & Tiêu đề: "${escapeHtml(title)}"` : ''}.</span>`;
+        countEl.textContent = normalized.length;
+
+        // Render xem trước
+        previewList.innerHTML = normalized.map((q, idx) => `
+          <div style="background: #fff; border: 1px solid #cbd5e1; border-left: 4px solid #0284c7; border-radius: 6px; padding: 10px 12px;">
+            <div style="font-weight: 700; color: #0369a1; font-size: 0.95rem; margin-bottom: 4px;">
+              ${escapeHtml(q.title || `Câu ${idx + 1}`)}
+            </div>
+            <div class="json-q-content math-preview-box" style="font-size: 0.9rem; line-height: 1.5; color: #1e293b;">
+              ${escapeHtml(q.content).replace(/\n/g, '<br>')}
+            </div>
+          </div>
+        `).join('');
+
+        previewContainer.style.display = 'block';
+        applyBtn.disabled = false;
+        renderMath(previewList);
+      } catch (err) {
+        statusEl.innerHTML = `<span style="color: #dc2626;">❌ Cú pháp JSON không hợp lệ: ${escapeHtml(err.message)}</span>`;
+        previewContainer.style.display = 'none';
+        applyBtn.disabled = true;
+        parsedJsonData = null;
+      }
+    }
+
+    function applyJsonQuestionsToForm() {
+      if (!parsedJsonData || !parsedJsonData.questions || parsedJsonData.questions.length === 0) {
+        showToast('Chưa có dữ liệu câu hỏi hợp lệ để áp dụng.', 'warning');
+        return;
+      }
+
+      const mode = document.querySelector('input[name="json-insert-mode"]:checked').value;
+      const container = document.getElementById('questions-list-container');
+
+      if (mode === 'replace') {
+        container.innerHTML = '';
+        questionCounter = 0;
+      }
+
+      parsedJsonData.questions.forEach(q => {
+        addQuestionCard(q.title, q.content);
+      });
+
+      // Nếu JSON có tiêu đề đề bài -> tự động cập nhật
+      if (parsedJsonData.title) {
+        const titleEl = document.getElementById('assign-title');
+        if (titleEl) titleEl.value = parsedJsonData.title;
+      }
+
+      // Nếu JSON có thời lượng -> cập nhật
+      if (parsedJsonData.time_limit_minutes) {
+        const timeEl = document.getElementById('assign-time-limit');
+        if (timeEl) timeEl.value = parsedJsonData.time_limit_minutes;
+      }
+
+      // Nếu JSON có chapter_id -> cập nhật
+      if (parsedJsonData.chapter_id) {
+        const chEl = document.getElementById('assign-chapter');
+        if (chEl) chEl.value = parsedJsonData.chapter_id;
+      }
+
+      closeJsonImportModal();
+      showToast(`🎉 Đã nhập thành công ${parsedJsonData.questions.length} câu hỏi theo mẫu JSON vào đề thi!`, 'success');
 
       // Cuộn tới danh sách câu hỏi
       document.getElementById('questions-list-container').scrollIntoView({ behavior: 'smooth' });
