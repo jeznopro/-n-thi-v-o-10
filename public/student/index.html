@@ -38,11 +38,120 @@
       border-color: #788268;
       box-shadow: 0 2px 6px rgba(48, 46, 41, 0.15);
     }
+
+    /* CHAPTER ACCORDION (BOOK VOLUME STYLE) */
+    .chapter-accordion {
+      background: #FFFCF5;
+      border: 1px solid #E2D9CB;
+      border-radius: 16px;
+      margin-bottom: 22px;
+      overflow: hidden;
+      box-shadow: 0 3px 12px rgba(48, 46, 41, 0.05);
+      transition: all 0.25s ease;
+      position: relative;
+    }
+    .chapter-accordion::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; bottom: 0;
+      width: 5px;
+      background: #788268;
+      opacity: 0.8;
+    }
+    .chapter-accordion.expanded {
+      border-color: #788268;
+      box-shadow: 0 8px 24px rgba(48, 46, 41, 0.09);
+    }
+    .chapter-header {
+      background: #FDFBF7;
+      padding: 18px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.2s ease;
+      gap: 12px;
+      flex-wrap: wrap;
+      border-bottom: 1px solid transparent;
+    }
+    .chapter-accordion.expanded .chapter-header {
+      border-bottom-color: #E2D9CB;
+      background: #FAF7F0;
+    }
+    .chapter-header:hover {
+      background: #F5EFE4;
+    }
+    .chapter-info {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .chapter-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      background: #EBF0E6;
+      color: #788268;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(48, 46, 41, 0.08);
+      border: 1px solid #D2DEC9;
+    }
+    .chapter-title {
+      font-size: 1.25rem;
+      font-family: var(--font-serif);
+      font-weight: 700;
+      color: #302E29;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .chapter-lessons-count {
+      font-size: 0.75rem;
+      padding: 3px 10px;
+      border-radius: 12px;
+      background: #FAF6EB;
+      color: #A37B32;
+      border: 1px solid #EBDCB4;
+      font-weight: 700;
+      font-family: var(--font-sans);
+    }
+    .chapter-desc {
+      font-size: 0.85rem;
+      color: #6E685F;
+      margin-top: 4px;
+      margin-bottom: 0;
+      font-style: italic;
+    }
+    .chapter-chevron {
+      font-size: 1rem;
+      color: #8C8275;
+      transition: transform 0.25s ease;
+      display: inline-block;
+    }
+    .chapter-accordion.expanded .chapter-chevron {
+      transform: rotate(180deg);
+      color: #788268;
+    }
+    .chapter-body {
+      padding: 22px 24px;
+      background: #FFFCF5;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 18px;
+    }
+
     .assignment-card {
       background: #FFFCF5;
       border: 1.5px solid #E2D9CB;
-      border-radius: 16px;
-      padding: 24px;
+      border-radius: 14px;
+      padding: 20px;
       box-shadow: 0 2px 8px rgba(48, 46, 41, 0.04);
       display: flex;
       flex-direction: column;
@@ -55,7 +164,7 @@
       content: '';
       position: absolute;
       top: 0; left: 0; bottom: 0;
-      width: 5px;
+      width: 4px;
       background: #788268;
       opacity: 0.8;
     }
@@ -64,6 +173,7 @@
       border-color: #788268;
       box-shadow: 0 8px 24px rgba(48, 46, 41, 0.1);
     }
+
     .student-dossier-hero {
       background: #FFFCF5;
       border: 1px solid #E2D9CB;
@@ -128,13 +238,13 @@
       <div>
         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
           <span id="student-hero-tag" style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; color: var(--primary); background: var(--primary-light); padding: 2px 10px; border-radius: 9999px;">Bàn Học Sĩ Tử</span>
-          <span id="student-hero-candle" style="color: var(--accent-terracotta); font-size: 0.85rem;">📚 Bộ Hồ Sơ Ôn Luyện</span>
+          <span id="student-hero-candle" style="color: var(--accent-terracotta); font-size: 0.85rem;">📚 Bộ Hồ Sơ Ôn Luyện Theo Chương</span>
         </div>
         <h2 id="student-hero-title" style="font-size: 1.65rem; margin-bottom: 6px;">
           Chào mừng trở lại, <span id="student-name">Học sinh</span> <span id="student-hero-icon">🕯️</span>
         </h2>
         <p id="student-hero-sub" style="color: var(--text-muted); font-size: 0.925rem; margin: 0; max-width: 620px; line-height: 1.6;">
-          Dưới đây là các đề thi thử, bài tập tự luận và phiếu rèn luyện môn Toán THCS được thầy cô giao riêng cho bạn.
+          Dưới đây là các đề thi thử và bài tập tự luận Toán 9 được phân chia theo từng chương học giúp bạn dễ dàng ôn luyện theo lộ trình.
         </p>
       </div>
 
@@ -154,9 +264,9 @@
       <button class="filter-tab" data-status="graded" onclick="setFilter('graded')">✨ Đã có nhận xét</button>
     </div>
 
-    <!-- DANH SÁCH BÀI TẬP DẠNG GRID -->
-    <div id="assignments-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;">
-      <p style="color: #8C8275;">Đang mở ngăn kéo hồ sơ bài tập...</p>
+    <!-- DANH SÁCH BÀI TẬP PHÂN THEO TỪNG CHƯƠNG -->
+    <div id="student-chapters-container">
+      <p style="color: #8C8275;">Đang mở ngăn kéo hồ sơ bài tập theo chương...</p>
     </div>
   </main>
 
@@ -166,6 +276,9 @@
   <script src="/js/common.js"></script>
   <script>
     let currentFilter = '';
+    let studentAssignments = [];
+    let studentChapters = [];
+    let expandedChapters = {};
 
     async function initStudentPage() {
       const user = await checkAuthAndLoad('student');
@@ -181,112 +294,257 @@
       document.querySelectorAll('.filter-tab').forEach(tab => {
         tab.classList.toggle('active', tab.dataset.status === status);
       });
-      loadAssignments();
+      renderChaptersView();
+    }
+
+    function toggleChapter(chapterId) {
+      expandedChapters[chapterId] = !expandedChapters[chapterId];
+      const card = document.getElementById(`student-chapter-${chapterId}`);
+      const body = document.getElementById(`student-chapter-body-${chapterId}`);
+      if (card && body) {
+        if (expandedChapters[chapterId]) {
+          card.classList.add('expanded');
+          body.style.display = 'grid';
+        } else {
+          card.classList.remove('expanded');
+          body.style.display = 'none';
+        }
+      }
+    }
+
+    function getRomanNumeral(n) {
+      const romans = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI', 'XVII', 'XVIII', 'XIX', 'XX'];
+      return romans[n - 1] || `${n}`;
     }
 
     async function loadAssignments() {
-      const grid = document.getElementById('assignments-grid');
+      const container = document.getElementById('student-chapters-container');
 
       try {
-        let endpoint = '/api/assignments/student';
-        if (currentFilter) endpoint += `?status=${currentFilter}`;
+        const [aRes, cRes] = await Promise.all([
+          apiRequest('/api/assignments/student'),
+          apiRequest('/api/chapters')
+        ]);
 
-        const res = await apiRequest(endpoint);
-        const assignments = res.assignments || [];
+        studentAssignments = aRes.assignments || [];
+        studentChapters = cRes.chapters || [];
 
-        const isMinimal = getCurrentTheme() === 'minimal';
+        // Mặc định mở tất cả các chương
+        studentChapters.forEach(ch => {
+          expandedChapters[ch.id] = true;
+        });
+        expandedChapters['unassigned'] = true;
 
-        if (assignments.length === 0) {
-          grid.innerHTML = isMinimal ? `
-            <div style="grid-column: 1/-1; text-align: center; padding: 48px; background: var(--bg-card); border-radius: 8px; border: 1px dashed var(--border-color);">
-              <h3 style="color: var(--text-main); font-size: 1.1rem; font-weight: 600; margin: 0 0 6px 0;">Không có bài tập nào</h3>
-              <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0;">Hiện tại bạn không có bài tập trong mục này.</p>
-            </div>
-          ` : `
-            <div style="grid-column: 1/-1; text-align: center; padding: 48px; background: #FFFCF5; border-radius: 16px; border: 1.5px dashed #D9CCB8;">
-              <div style="font-size: 2.5rem; margin-bottom: 8px;">🕯️</div>
-              <h3 style="color: #302E29; font-size: 1.2rem; font-family: var(--font-serif); font-weight: 700;">Ngăn kéo hồ sơ hiện đang trống</h3>
-              <p style="color: #6E685F; font-size: 0.9rem; margin-top: 4px;">Hiện tại bạn đã hoàn tất mọi đề thi hoặc thầy cô chưa giao thêm bài mới.</p>
-            </div>
-          `;
-          return;
-        }
-
-        grid.innerHTML = assignments.map(a => {
-          let badgeHtml = '';
-          let actionBtnHtml = '';
-
-          if (isMinimal) {
-            if (a.computed_status === 'graded') {
-              badgeHtml = `<span class="badge" style="color: var(--success); border-color: rgba(22, 163, 74, 0.3); background: var(--success-light);">Đã có điểm</span>`;
-              actionBtnHtml = `<a href="/student/result.html?id=${a.id}" class="btn btn-secondary" style="width: 100%;">Xem kết quả & nhận xét</a>`;
-            } else if (a.computed_status === 'submitted') {
-              badgeHtml = `<span class="badge" style="color: var(--primary); border-color: rgba(37, 99, 235, 0.3); background: var(--primary-light);">Đã nộp ${a.is_late ? '(Trễ)' : ''}</span>`;
-              actionBtnHtml = `<a href="/student/result.html?id=${a.id}" class="btn btn-secondary" style="width: 100%;">Xem bài đã nộp</a>`;
-            } else if (a.computed_status === 'resubmission_requested') {
-              badgeHtml = `<span class="badge" style="color: var(--danger); border-color: rgba(220, 38, 38, 0.3); background: var(--danger-light);">Yêu cầu nộp lại</span>`;
-              actionBtnHtml = `<a href="/student/exam.html?id=${a.id}" class="btn btn-primary" style="width: 100%;">Làm lại bài</a>`;
-            } else if (a.computed_status === 'in_progress') {
-              badgeHtml = `<span class="badge" style="color: var(--warning); border-color: rgba(217, 119, 6, 0.3); background: var(--warning-light);">Đang làm</span>`;
-              actionBtnHtml = `<a href="/student/exam.html?id=${a.id}" class="btn btn-primary" style="width: 100%;">Tiếp tục làm bài</a>`;
-            } else {
-              badgeHtml = `<span class="badge" style="color: var(--text-muted); border-color: var(--border-color); background: var(--bg-card-hover);">Chưa làm</span>`;
-              actionBtnHtml = `<a href="/student/exam.html?id=${a.id}" class="btn btn-primary" style="width: 100%;">Làm bài tập</a>`;
-            }
-          } else {
-            if (a.computed_status === 'graded') {
-              badgeHtml = `<span class="badge badge-green" style="background: #EFF5F0; color: #5F7A61; border: 1px solid #D2DEC9;">✨ Đã có nhận xét</span>`;
-              actionBtnHtml = `<a href="/student/result.html?id=${a.id}" class="btn btn-secondary" style="width: 100%; border-radius: 8px; font-weight: 700; padding: 10px 18px; border-color: #E2D9CB;">👁️ Xem lời phê & điểm số</a>`;
-            } else if (a.computed_status === 'submitted') {
-              badgeHtml = `<span class="badge" style="background: #EBF0E6; color: #788268; border: 1px solid #D2DEC9;">📮 Đã nộp (${a.is_late ? 'Trễ hạn' : 'Đúng hạn'})</span>`;
-              actionBtnHtml = `<a href="/student/result.html?id=${a.id}" class="btn btn-secondary" style="width: 100%; border-radius: 8px; font-weight: 700; padding: 10px 18px; border-color: #E2D9CB;">👁️ Xem lại bài đã nộp</a>`;
-            } else if (a.computed_status === 'resubmission_requested') {
-              badgeHtml = `<span class="badge" style="background: #F7EEE7; color: #A87552; border: 1px solid #E8D3C4;">⚠️ Thầy cô yêu cầu làm lại</span>`;
-              actionBtnHtml = `<a href="/student/exam.html?id=${a.id}" class="btn btn-primary" style="width: 100%; border-radius: 8px; font-weight: 700; padding: 10px 18px;">✏️ Làm lại bài thi</a>`;
-            } else if (a.computed_status === 'in_progress') {
-              badgeHtml = `<span class="badge" style="background: #FAF6EB; color: #C29B38; border: 1px solid #EBDCB4;">⏳ Đang làm dở (Đã lưu)</span>`;
-              actionBtnHtml = `<a href="/student/exam.html?id=${a.id}" class="btn btn-primary" style="width: 100%; border-radius: 8px; font-weight: 700; padding: 10px 18px;">✏️ Tiếp tục làm bài</a>`;
-            } else {
-              badgeHtml = `<span class="badge" style="background: #F5F1E8; color: #6E685F; border: 1px solid #E2D9CB;">Chưa làm</span>`;
-              actionBtnHtml = `<a href="/student/exam.html?id=${a.id}" class="btn btn-primary" style="width: 100%; border-radius: 8px; font-weight: 700; padding: 10px 18px;">🚀 Bắt đầu làm bài</a>`;
-            }
-          }
-
-          const isOverdue = a.is_past_due;
-
-          return `
-            <div class="assignment-card">
-              <div>
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 12px;">
-                  <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-main); line-height: 1.4; margin: 0;">
-                    ${escapeHtml(a.title)}
-                  </h3>
-                  <div style="flex-shrink: 0;">
-                    ${badgeHtml}
-                  </div>
-                </div>
-
-                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 20px;">
-                  <span style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.8rem; font-weight: 500; color: var(--text-muted); background: var(--bg-card-hover); padding: 4px 10px; border-radius: 4px; border: 1px solid var(--border-color);">
-                    ${a.time_limit_minutes ? (isMinimal ? `${a.time_limit_minutes} phút` : `⏱️ ${a.time_limit_minutes} phút`) : (isMinimal ? 'Không giới hạn' : '⏳ Không giới hạn thời gian')}
-                  </span>
-                  <span style="font-size: 0.8rem; color: ${isOverdue ? 'var(--danger)' : 'var(--text-muted)'}; font-weight: ${isOverdue ? '600' : '400'};">
-                    ${isMinimal ? '' : '📅 '}Hạn nộp: ${formatDateTime(a.due_date)} ${isOverdue ? '(Đã hết hạn)' : ''}
-                  </span>
-                </div>
-              </div>
-
-              <div style="margin-top: auto; padding-top: 14px; border-top: 1px solid var(--border-color);">
-                ${actionBtnHtml}
-              </div>
-            </div>
-          `;
-        }).join('');
-
-        renderMath(grid);
+        renderChaptersView();
       } catch (err) {
         showToast('Lỗi tải bài tập: ' + err.message, 'error');
       }
+    }
+
+    function renderChaptersView() {
+      const container = document.getElementById('student-chapters-container');
+      const isMinimal = getCurrentTheme() === 'minimal';
+      const isClassic = document.body.classList.contains('theme-classic');
+
+      // Lọc bài tập theo trạng thái
+      let filteredAssignments = studentAssignments;
+      if (currentFilter) {
+        filteredAssignments = studentAssignments.filter(a => a.computed_status === currentFilter);
+      }
+
+      if (studentAssignments.length === 0) {
+        container.innerHTML = isMinimal ? `
+          <div style="text-align: center; padding: 48px; background: var(--bg-card); border-radius: 8px; border: 1px dashed var(--border-color);">
+            <h3 style="color: var(--text-main); font-size: 1.1rem; font-weight: 600; margin: 0 0 6px 0;">Không có bài tập nào</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0;">Hiện tại bạn chưa được giao bài tập nào.</p>
+          </div>
+        ` : `
+          <div style="text-align: center; padding: 48px; background: #FFFCF5; border-radius: 16px; border: 1.5px dashed #D9CCB8;">
+            <div style="font-size: 2.5rem; margin-bottom: 8px;">🕯️</div>
+            <h3 style="color: #302E29; font-size: 1.2rem; font-family: var(--font-serif); font-weight: 700;">Ngăn kéo hồ sơ hiện đang trống</h3>
+            <p style="color: #6E685F; font-size: 0.9rem; margin-top: 4px;">Hiện tại thầy cô chưa giao bài tập mới cho bạn.</p>
+          </div>
+        `;
+        return;
+      }
+
+      // Gom nhóm bài tập theo chapter_id
+      const byChapter = {};
+      const unassigned = [];
+
+      filteredAssignments.forEach(a => {
+        if (a.chapter_id) {
+          if (!byChapter[a.chapter_id]) byChapter[a.chapter_id] = [];
+          byChapter[a.chapter_id].push(a);
+        } else {
+          unassigned.push(a);
+        }
+      });
+
+      let html = '';
+      let visibleChaptersCount = 0;
+
+      studentChapters.forEach((ch, idx) => {
+        const chAssignments = byChapter[ch.id] || [];
+
+        // Nếu đang bật bộ lọc và chương này không có bài -> ẩn chương
+        if (currentFilter && chAssignments.length === 0) {
+          return;
+        }
+
+        visibleChaptersCount++;
+        const isExpanded = !!expandedChapters[ch.id];
+        const isReview = (ch.order_index >= 11 || (ch.title && ch.title.toLowerCase().includes('ôn tập')));
+        const roman = getRomanNumeral(idx + 1);
+        const chapterLabel = isReview ? '🎯 ÔN TẬP' : (isClassic ? `CHƯƠNG ${idx + 1}` : `TẬP ${roman}`);
+        const chapterIcon = isReview ? '🎯' : (isClassic ? '📁' : roman);
+
+        html += `
+          <div class="chapter-accordion ${isExpanded ? 'expanded' : ''}" id="student-chapter-${ch.id}" ${isReview ? 'style="border-color: #FCD34D; box-shadow: 0 3px 14px rgba(245, 158, 11, 0.08);"' : ''}>
+            <div class="chapter-header" onclick="toggleChapter(${ch.id})" ${isReview ? 'style="background: #FFFDF7;"' : ''}>
+              <div class="chapter-info">
+                <div class="chapter-icon" title="${chapterLabel}" ${isReview ? 'style="background: #FEF3C7; color: #B45309; border: 1.5px solid #FCD34D;"' : ''}>${chapterIcon}</div>
+                <div>
+                  <h3 class="chapter-title">
+                    <span style="font-size: 0.78rem; font-weight: 800; color: ${isReview ? '#B45309' : 'var(--primary)'}; background: ${isReview ? '#FEF3C7' : 'var(--primary-light)'}; border: ${isReview ? '1px solid #FCD34D' : 'none'}; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.04em;">${chapterLabel}</span>
+                    <span>${escapeHtml(ch.title)}</span>
+                    <span class="chapter-lessons-count">${chAssignments.length} bài tập</span>
+                  </h3>
+                  ${ch.description ? `<p class="chapter-desc">${escapeHtml(ch.description)}</p>` : ''}
+                </div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="chapter-chevron">▼</span>
+              </div>
+            </div>
+
+            <div class="chapter-body" id="student-chapter-body-${ch.id}" style="display: ${isExpanded ? 'grid' : 'none'};">
+              ${chAssignments.length > 0 ? chAssignments.map(a => renderAssignmentCard(a, isMinimal)).join('') : `
+                <div style="grid-column: 1 / -1; text-align: center; padding: 24px; color: var(--text-muted); background: var(--bg-card); border-radius: 12px; border: 1px dashed var(--border-color);">
+                  Chưa có bài tập nào trong phần này của ${chapterLabel.toLowerCase()}.
+                </div>
+              `}
+            </div>
+          </div>
+        `;
+      });
+
+      // Bài tập Chung / Bổ trợ chưa phân chương
+      if (unassigned.length > 0 || (!currentFilter && unassigned.length > 0)) {
+        visibleChaptersCount++;
+        const isExpanded = !!expandedChapters['unassigned'];
+        const unassignedLabel = isClassic ? 'CHUYÊN ĐỀ MỞ RỘNG' : 'PHỤ LỤC';
+
+        html += `
+          <div class="chapter-accordion ${isExpanded ? 'expanded' : ''}" id="student-chapter-unassigned" style="border-color: var(--warning);">
+            <div class="chapter-header" onclick="toggleChapter('unassigned')">
+              <div class="chapter-info">
+                <div class="chapter-icon" style="background: var(--warning-light); color: var(--warning);">📌</div>
+                <div>
+                  <h3 class="chapter-title" style="color: var(--warning);">
+                    <span style="font-size: 0.78rem; font-weight: 800; color: var(--warning); background: var(--warning-light); padding: 2px 8px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.04em;">${unassignedLabel}</span>
+                    <span>Bài Tập Bổ Trợ & Đề Thi Mở Rộng</span>
+                    <span class="chapter-lessons-count" style="background: var(--warning-light); color: var(--warning);">${unassigned.length} bài</span>
+                  </h3>
+                  <p class="chapter-desc">Các bài tập tự luận và đề thi tổng hợp ngoài chương trình SGK</p>
+                </div>
+              </div>
+              <div>
+                <span class="chapter-chevron">▼</span>
+              </div>
+            </div>
+
+            <div class="chapter-body" id="student-chapter-body-unassigned" style="display: ${isExpanded ? 'grid' : 'none'};">
+              ${unassigned.map(a => renderAssignmentCard(a, isMinimal)).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      if (visibleChaptersCount === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 48px; background: #FFFCF5; border-radius: 16px; border: 1.5px dashed #D9CCB8;">
+            <div style="font-size: 2.2rem; margin-bottom: 8px;">🔍</div>
+            <h3 style="color: #302E29; font-size: 1.15rem; font-family: var(--font-serif); font-weight: 700;">Không có bài tập nào khớp với mục đã chọn</h3>
+            <p style="color: #6E685F; font-size: 0.9rem; margin-top: 4px;">Bạn có thể chuyển sang tab "Tất cả bài tập" để theo dõi toàn bộ đề thi.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = html;
+      renderMath(container);
+    }
+
+    function renderAssignmentCard(a, isMinimal) {
+      let badgeHtml = '';
+      let actionBtnHtml = '';
+
+      if (isMinimal) {
+        if (a.computed_status === 'graded') {
+          badgeHtml = `<span class="badge" style="color: var(--success); border-color: rgba(22, 163, 74, 0.3); background: var(--success-light);">Đã có điểm</span>`;
+          actionBtnHtml = `<a href="/student/result.html?id=${a.id}" class="btn btn-secondary" style="width: 100%;">Xem kết quả & nhận xét</a>`;
+        } else if (a.computed_status === 'submitted') {
+          badgeHtml = `<span class="badge" style="color: var(--primary); border-color: rgba(37, 99, 235, 0.3); background: var(--primary-light);">Đã nộp ${a.is_late ? '(Trễ)' : ''}</span>`;
+          actionBtnHtml = `<a href="/student/result.html?id=${a.id}" class="btn btn-secondary" style="width: 100%;">Xem bài đã nộp</a>`;
+        } else if (a.computed_status === 'resubmission_requested') {
+          badgeHtml = `<span class="badge" style="color: var(--danger); border-color: rgba(220, 38, 38, 0.3); background: var(--danger-light);">Yêu cầu nộp lại</span>`;
+          actionBtnHtml = `<a href="/student/exam.html?id=${a.id}" class="btn btn-primary" style="width: 100%;">Làm lại bài</a>`;
+        } else if (a.computed_status === 'in_progress') {
+          badgeHtml = `<span class="badge" style="color: var(--warning); border-color: rgba(217, 119, 6, 0.3); background: var(--warning-light);">Đang làm</span>`;
+          actionBtnHtml = `<a href="/student/exam.html?id=${a.id}" class="btn btn-primary" style="width: 100%;">Tiếp tục làm bài</a>`;
+        } else {
+          badgeHtml = `<span class="badge" style="color: var(--text-muted); border-color: var(--border-color); background: var(--bg-card-hover);">Chưa làm</span>`;
+          actionBtnHtml = `<a href="/student/exam.html?id=${a.id}" class="btn btn-primary" style="width: 100%;">Làm bài tập</a>`;
+        }
+      } else {
+        if (a.computed_status === 'graded') {
+          badgeHtml = `<span class="badge badge-green" style="background: #EFF5F0; color: #5F7A61; border: 1px solid #D2DEC9;">✨ Đã có nhận xét</span>`;
+          actionBtnHtml = `<a href="/student/result.html?id=${a.id}" class="btn btn-secondary" style="width: 100%; border-radius: 8px; font-weight: 700; padding: 10px 18px; border-color: #E2D9CB;">👁️ Xem lời phê & điểm số</a>`;
+        } else if (a.computed_status === 'submitted') {
+          badgeHtml = `<span class="badge" style="background: #EBF0E6; color: #788268; border: 1px solid #D2DEC9;">📮 Đã nộp (${a.is_late ? 'Trễ hạn' : 'Đúng hạn'})</span>`;
+          actionBtnHtml = `<a href="/student/result.html?id=${a.id}" class="btn btn-secondary" style="width: 100%; border-radius: 8px; font-weight: 700; padding: 10px 18px; border-color: #E2D9CB;">👁️ Xem lại bài đã nộp</a>`;
+        } else if (a.computed_status === 'resubmission_requested') {
+          badgeHtml = `<span class="badge" style="background: #F7EEE7; color: #A87552; border: 1px solid #E8D3C4;">⚠️ Thầy cô yêu cầu làm lại</span>`;
+          actionBtnHtml = `<a href="/student/exam.html?id=${a.id}" class="btn btn-primary" style="width: 100%; border-radius: 8px; font-weight: 700; padding: 10px 18px;">✏️ Làm lại bài thi</a>`;
+        } else if (a.computed_status === 'in_progress') {
+          badgeHtml = `<span class="badge" style="background: #FAF6EB; color: #C29B38; border: 1px solid #EBDCB4;">⏳ Đang làm dở (Đã lưu)</span>`;
+          actionBtnHtml = `<a href="/student/exam.html?id=${a.id}" class="btn btn-primary" style="width: 100%; border-radius: 8px; font-weight: 700; padding: 10px 18px;">✏️ Tiếp tục làm bài</a>`;
+        } else {
+          badgeHtml = `<span class="badge" style="background: #F5F1E8; color: #6E685F; border: 1px solid #E2D9CB;">Chưa làm</span>`;
+          actionBtnHtml = `<a href="/student/exam.html?id=${a.id}" class="btn btn-primary" style="width: 100%; border-radius: 8px; font-weight: 700; padding: 10px 18px;">🚀 Bắt đầu làm bài</a>`;
+        }
+      }
+
+      const isOverdue = a.is_past_due;
+
+      return `
+        <div class="assignment-card">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 12px;">
+              <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-main); line-height: 1.4; margin: 0;">
+                ${escapeHtml(a.title)}
+              </h3>
+              <div style="flex-shrink: 0;">
+                ${badgeHtml}
+              </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 20px;">
+              <span style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.8rem; font-weight: 500; color: var(--text-muted); background: var(--bg-card-hover); padding: 4px 10px; border-radius: 4px; border: 1px solid var(--border-color);">
+                ${a.time_limit_minutes ? (isMinimal ? `${a.time_limit_minutes} phút` : `⏱️ ${a.time_limit_minutes} phút`) : (isMinimal ? 'Không giới hạn' : '⏳ Không giới hạn thời gian')}
+              </span>
+              <span style="font-size: 0.8rem; color: ${isOverdue ? 'var(--danger)' : 'var(--text-muted)'}; font-weight: ${isOverdue ? '600' : '400'};">
+                ${isMinimal ? '' : '📅 '}Hạn nộp: ${formatDateTime(a.due_date)} ${isOverdue ? '(Đã hết hạn)' : ''}
+              </span>
+            </div>
+          </div>
+
+          <div style="margin-top: auto; padding-top: 14px; border-top: 1px solid var(--border-color);">
+            ${actionBtnHtml}
+          </div>
+        </div>
+      `;
     }
 
     function updateTabsText(theme) {
@@ -326,22 +584,22 @@
         if (tagEl) tagEl.textContent = 'BÀI TẬP TỰ LUẬN';
         if (candleEl) candleEl.style.display = 'none';
         if (iconEl) iconEl.textContent = '';
-        if (subEl) subEl.textContent = 'Danh sách bài tập tự luận và bài kiểm tra được giao.';
+        if (subEl) subEl.textContent = 'Danh sách bài tập tự luận và bài kiểm tra được phân chia theo từng chương học.';
         if (btnEl) btnEl.textContent = 'Lý thuyết & Bài giảng';
       } else if (theme === 'classic') {
         if (tagEl) tagEl.textContent = 'Kỳ Thi Tuyển Sinh Vào 10';
         if (candleEl) candleEl.style.display = 'none';
         if (iconEl) iconEl.textContent = '👋';
-        if (subEl) subEl.textContent = 'Danh sách các bài tập tự luận môn Toán được thầy cô giao cho bạn.';
+        if (subEl) subEl.textContent = 'Danh sách các bài tập tự luận môn Toán theo từng chương học được thầy cô giao cho bạn.';
         if (btnEl) btnEl.textContent = '📖 Xem Bài Giảng Lý Thuyết';
       } else {
         if (tagEl) tagEl.textContent = 'Bàn Học Sĩ Tử';
         if (candleEl) candleEl.style.display = 'inline';
         if (iconEl) iconEl.textContent = '🕯️';
-        if (subEl) subEl.textContent = 'Dưới đây là các đề thi thử, bài tập tự luận và phiếu rèn luyện môn Toán THCS được thầy cô giao riêng cho bạn.';
+        if (subEl) subEl.textContent = 'Dưới đây là các đề thi thử và bài tập tự luận Toán 9 được phân chia theo từng chương học giúp bạn dễ dàng ôn luyện theo lộ trình.';
         if (btnEl) btnEl.textContent = '📖 Mở Giác Thư Lý Thuyết';
       }
-      loadAssignments();
+      renderChaptersView();
     });
 
     initStudentPage();

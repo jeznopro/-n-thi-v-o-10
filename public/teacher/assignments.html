@@ -7,6 +7,117 @@
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="/css/toast.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <style>
+    .chapter-section {
+      background: #ffffff;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 20px;
+      margin-bottom: 24px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      transition: all 0.25s ease;
+    }
+    .chapter-header {
+      background: linear-gradient(to right, #f8fafc, #ffffff);
+      padding: 18px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1.5px solid #e2e8f0;
+      cursor: pointer;
+      user-select: none;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .chapter-header:hover {
+      background: #f1f5f9;
+    }
+    .chapter-title-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .chapter-folder-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: #eff6ff;
+      color: #2563eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(37,99,235,0.12);
+    }
+    .chapter-name {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .chapter-badge-count {
+      font-size: 0.75rem;
+      padding: 3px 10px;
+      border-radius: 9999px;
+      background: #e0f2fe;
+      color: #0369a1;
+      font-weight: 700;
+    }
+    .chapter-desc {
+      font-size: 0.85rem;
+      color: #64748b;
+      margin-top: 4px;
+      margin-bottom: 0;
+    }
+    .chapter-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .chapter-content-body {
+      padding: 0;
+      background: #ffffff;
+    }
+    .filter-tabs {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      margin-top: 14px;
+    }
+    .filter-tab {
+      padding: 8px 18px;
+      border-radius: 9999px;
+      background: #ffffff;
+      border: 1.5px solid #e2e8f0;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #475569;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .filter-tab:hover { background: #f8fafc; border-color: #cbd5e1; }
+    .filter-tab.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+
+    .chevron-icon {
+      font-size: 0.95rem;
+      color: #94a3b8;
+      transition: transform 0.25s ease;
+      display: inline-block;
+    }
+    .chapter-section.collapsed .chevron-icon {
+      transform: rotate(-90deg);
+    }
+    .chapter-section.collapsed .chapter-content-body {
+      display: none;
+    }
+  </style>
 </head>
 <body>
   <!-- NAVBAR -->
@@ -49,8 +160,8 @@
   <main class="main-wrapper">
     <div class="page-header">
       <div class="page-title">
-        <h2>Danh sách Bài tập & Đề thi tự luận Toán</h2>
-        <p>Theo dõi tiến độ nộp bài, nhận xét bài làm và xuất kết quả học tập</p>
+        <h2>📝 Quản lý Bài tập & Đề thi theo Chương học</h2>
+        <p>Tổ chức bài tập tự luận theo từng chương ôn thi vào 10, theo dõi tiến độ nộp bài và chấm nhận xét</p>
       </div>
       <div class="page-actions" style="display: flex; gap: 10px; flex-wrap: wrap;">
         <a href="/teacher/assignment-create.html?action=import-word" class="btn btn-secondary" style="font-weight: 700; background: #f0fdf4; color: #166534; border: 1.5px solid #86efac; border-radius: 12px; display: inline-flex; align-items: center; gap: 6px;">
@@ -65,32 +176,26 @@
       </div>
     </div>
 
-    <div class="card">
-      <div class="card-header">
-        <h3 class="card-title">📝 Toàn bộ bài tập đã giao</h3>
-      </div>
-      <div class="card-body" style="padding: 0;">
-        <div class="table-responsive">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Tên đề bài</th>
-                <th>Thời lượng</th>
-                <th>Hạn nộp</th>
-                <th>Tiến độ nộp bài</th>
-                <th>Đã nhận xét</th>
-                <th>Thao tác</th>
-              </tr>
-            </thead>
-            <tbody id="assignments-tbody">
-              <tr>
-                <td colspan="6" style="text-align: center; padding: 28px; color: #94a3b8;">
-                  Đang tải danh sách bài tập...
-                </td>
-              </tr>
-            </tbody>
-          </table>
+    <!-- TÌM KIẾM VÀ BỘ LỌC CHƯƠNG -->
+    <div style="background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 16px; padding: 18px 24px; margin-bottom: 24px;">
+      <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 250px;">
+          <input type="text" id="assignment-search-input" class="form-control" placeholder="🔍 Tìm kiếm bài tập theo tên đề bài hoặc chương học..." oninput="handleSearch()">
         </div>
+      </div>
+
+      <div class="filter-tabs">
+        <button type="button" class="filter-tab active" onclick="filterType('all', this)">Tất cả chương</button>
+        <button type="button" class="filter-tab" onclick="filterType('standard', this)">📚 10 Chương SGK Toán 9</button>
+        <button type="button" class="filter-tab" onclick="filterType('review', this)" style="border-color: #f59e0b; color: #b45309;">🎯 Đề Ôn tập HK & Vào 10</button>
+        <button type="button" class="filter-tab" onclick="filterType('unassigned', this)">📌 Bài tập bổ trợ khác</button>
+      </div>
+    </div>
+
+    <!-- DANH SÁCH BÀI TẬP PHÂN THEO TỪNG CHƯƠNG -->
+    <div id="chapters-assignments-container">
+      <div style="text-align: center; padding: 48px; color: #94a3b8; background: #fff; border-radius: 16px; border: 1px solid #e2e8f0;">
+        Đang tải danh sách bài tập theo chương...
       </div>
     </div>
   </main>
@@ -101,81 +206,268 @@
   <script src="/js/common.js"></script>
   <script src="/js/ai-helper.js"></script>
   <script>
+    let rawAssignments = [];
+    let rawChapters = [];
+    let currentFilterType = 'all';
+    let collapsedState = {};
+
     async function loadAssignments() {
       const user = await checkAuthAndLoad('teacher');
       if (!user) return;
 
-      const tbody = document.getElementById('assignments-tbody');
-
       try {
-        const res = await apiRequest('/api/assignments/teacher');
-        const assignments = res.assignments || [];
+        const [aRes, cRes] = await Promise.all([
+          apiRequest('/api/assignments/teacher'),
+          apiRequest('/api/chapters')
+        ]);
 
-        if (assignments.length === 0) {
-          tbody.innerHTML = `
-            <tr>
-              <td colspan="6" style="text-align: center; padding: 36px; color: #94a3b8;">
-                Chưa có bài tập nào. Hãy bấm "Soạn đề bài tập mới" để giao bài cho học sinh!
-              </td>
-            </tr>
-          `;
-          return;
-        }
+        rawAssignments = aRes.assignments || [];
+        rawChapters = cRes.chapters || [];
 
-        tbody.innerHTML = assignments.map(a => {
-          const totalAssigned = a.total_assigned_students || 0;
-          const totalSubmitted = a.total_submitted || 0;
-          const totalGraded = a.total_graded || 0;
-          const percent = totalAssigned > 0 ? Math.round((totalSubmitted / totalAssigned) * 100) : 0;
-
-          return `
-            <tr>
-              <td>
-                <div style="font-weight: 700; color: #1e3a8a; font-size: 0.95rem;">${a.title}</div>
-                <div style="font-size: 0.775rem; color: #64748b; margin-top: 3px;">
-                  Tạo ngày: ${formatDateTime(a.created_at)}
-                </div>
-              </td>
-              <td>
-                ${a.time_limit_minutes 
-                  ? `<span class="badge badge-amber">⏱️ ${a.time_limit_minutes} phút</span>` 
-                  : '<span class="badge badge-gray">⏳ Không giới hạn</span>'}
-              </td>
-              <td>${formatDateTime(a.due_date)}</td>
-              <td style="min-width: 150px;">
-                <div style="font-size: 0.825rem; font-weight: 600; margin-bottom: 4px;">
-                  ${totalSubmitted}/${totalAssigned} học sinh (${percent}%)
-                </div>
-                <div style="background: #e2e8f0; height: 6px; border-radius: 4px; overflow: hidden;">
-                  <div style="background: #10b981; width: ${percent}%; height: 100%;"></div>
-                </div>
-              </td>
-              <td>
-                <span class="badge ${totalGraded === totalSubmitted && totalSubmitted > 0 ? 'badge-green' : 'badge-blue'}">
-                  ${totalGraded} / ${totalSubmitted}
-                </span>
-              </td>
-              <td>
-                <div style="display: flex; gap: 6px; align-items: center;">
-                  <a href="/teacher/grade.html?id=${a.id}" class="btn btn-primary btn-sm">
-                    📝 Xem & Nhận xét
-                  </a>
-                  <button class="btn btn-secondary btn-sm" title="Xuất danh sách nộp bài ra file Excel" onclick="exportExcel(${a.id})">
-                    📥 Excel
-                  </button>
-                  <button class="btn btn-danger btn-sm" title="Xóa bài tập" onclick="deleteAssignment(${a.id})">
-                    🗑️
-                  </button>
-                </div>
-              </td>
-            </tr>
-          `;
-        }).join('');
-
-        renderMath(tbody);
+        renderChaptersAssignments();
       } catch (err) {
         showToast('Lỗi tải bài tập: ' + err.message, 'error');
       }
+    }
+
+    function handleSearch() {
+      renderChaptersAssignments();
+    }
+
+    function filterType(type, btn) {
+      currentFilterType = type;
+      document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      renderChaptersAssignments();
+    }
+
+    function toggleChapter(chId) {
+      collapsedState[chId] = !collapsedState[chId];
+      const el = document.getElementById(`chapter-card-${chId}`);
+      if (el) {
+        el.classList.toggle('collapsed', !!collapsedState[chId]);
+      }
+    }
+
+    function renderChaptersAssignments() {
+      const container = document.getElementById('chapters-assignments-container');
+      const search = (document.getElementById('assignment-search-input').value || '').toLowerCase().trim();
+
+      if (rawAssignments.length === 0 && rawChapters.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 48px; background: #ffffff; border-radius: 20px; border: 1.5px dashed #cbd5e1;">
+            <div style="font-size: 3rem; margin-bottom: 12px;">📝</div>
+            <h4 style="font-size: 1.15rem; color: #1e293b; font-weight: 700;">Chưa có bài tập nào</h4>
+            <p style="font-size: 0.9rem; color: #64748b; margin-top: 6px;">Thầy/Cô hãy nhấn "Soạn đề bài tập mới" để bắt đầu giao bài cho học sinh.</p>
+            <a href="/teacher/assignment-create.html" class="btn btn-primary" style="margin-top: 14px;">➕ Soạn đề bài tập mới</a>
+          </div>
+        `;
+        return;
+      }
+
+      // Nhóm bài tập theo chapter_id
+      const assignmentsByChapter = {};
+      const unassignedAssignments = [];
+
+      rawAssignments.forEach(a => {
+        if (a.chapter_id) {
+          if (!assignmentsByChapter[a.chapter_id]) {
+            assignmentsByChapter[a.chapter_id] = [];
+          }
+          assignmentsByChapter[a.chapter_id].push(a);
+        } else {
+          unassignedAssignments.push(a);
+        }
+      });
+
+      let html = '';
+
+      // Duyệt qua từng chương
+      rawChapters.forEach(ch => {
+        const isReview = (ch.order_index >= 11 || (ch.title && ch.title.toLowerCase().includes('ôn tập')));
+        
+        // Kiểm tra filterType
+        if (currentFilterType === 'standard' && isReview) return;
+        if (currentFilterType === 'review' && !isReview) return;
+        if (currentFilterType === 'unassigned') return; // chỉ hiện unassigned
+
+        let chAssignments = assignmentsByChapter[ch.id] || [];
+
+        // Lọc theo search
+        if (search) {
+          chAssignments = chAssignments.filter(a => {
+            return (a.title && a.title.toLowerCase().includes(search)) ||
+                   (ch.title && ch.title.toLowerCase().includes(search));
+          });
+
+          // Nếu có search và chương này không có bài khớp, cũng không khớp tên chương -> ẩn
+          if (chAssignments.length === 0 && !ch.title.toLowerCase().includes(search)) {
+            return;
+          }
+        }
+
+        const isCollapsed = !!collapsedState[ch.id];
+        const chapterPrefix = isReview ? '🎯 ÔN TẬP' : `CHƯƠNG ${ch.order_index}`;
+
+        html += `
+          <div class="chapter-section ${isCollapsed ? 'collapsed' : ''}" id="chapter-card-${ch.id}" ${isReview ? 'style="border-color: #fcd34d; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.08);"' : ''}>
+            <div class="chapter-header" onclick="toggleChapter(${ch.id})" ${isReview ? 'style="background: #fffdf5;"' : ''}>
+              <div class="chapter-title-group">
+                <div class="chapter-folder-icon" ${isReview ? 'style="background: #fef3c7; color: #b45309; border: 1.5px solid #fcd34d;"' : ''}>${isReview ? '🎯' : '📂'}</div>
+                <div>
+                  <h3 class="chapter-name">
+                    <span style="font-size:0.75rem; background:${isReview ? '#fef3c7' : '#eff6ff'}; color:${isReview ? '#b45309' : '#1d4ed8'}; border:${isReview ? '1px solid #fcd34d' : '1px solid #bfdbfe'}; padding:2px 8px; border-radius:4px; font-weight:800; letter-spacing:0.04em;">${chapterPrefix}</span>
+                    <span>${escapeHtml(ch.title)}</span>
+                    <span class="chapter-badge-count" style="background:${isReview ? '#fef3c7' : '#e0f2fe'}; color:${isReview ? '#b45309' : '#0369a1'};">${chAssignments.length} bài tập</span>
+                  </h3>
+                  ${ch.description ? `<p class="chapter-desc">${escapeHtml(ch.description)}</p>` : ''}
+                </div>
+              </div>
+
+              <div class="chapter-actions" onclick="event.stopPropagation()">
+                <a href="/teacher/assignment-create.html?chapter_id=${ch.id}" class="btn btn-primary btn-sm" style="font-weight: 700;">
+                  ➕ Thêm bài tập vào chương
+                </a>
+                <span class="chevron-icon" onclick="toggleChapter(${ch.id})">▼</span>
+              </div>
+            </div>
+
+            <div class="chapter-content-body">
+              ${chAssignments.length > 0 ? renderAssignmentsTable(chAssignments) : `
+                <div style="text-align: center; padding: 28px; color: #64748b; background: #fafafa; border-top: 1px solid #f1f5f9;">
+                  Chưa có bài tập nào trong chương này.
+                  <a href="/teacher/assignment-create.html?chapter_id=${ch.id}" class="btn btn-secondary btn-sm" style="margin-left: 10px; font-weight: 700;">➕ Soạn bài tập ngay</a>
+                </div>
+              `}
+            </div>
+          </div>
+        `;
+      });
+
+      // Hiển thị bài tập Chưa phân chương / Bổ trợ
+      if (currentFilterType === 'all' || currentFilterType === 'unassigned') {
+        let unassignedList = unassignedAssignments;
+        if (search) {
+          unassignedList = unassignedList.filter(a => a.title && a.title.toLowerCase().includes(search));
+        }
+
+        if (unassignedList.length > 0 || currentFilterType === 'unassigned') {
+          const isCollapsed = !!collapsedState['unassigned'];
+          html += `
+            <div class="chapter-section ${isCollapsed ? 'collapsed' : ''}" id="chapter-card-unassigned" style="border-color: #f59e0b;">
+              <div class="chapter-header" style="background: #fffbeb;" onclick="toggleChapter('unassigned')">
+                <div class="chapter-title-group">
+                  <div class="chapter-folder-icon" style="background: #fef3c7; color: #d97706;">📌</div>
+                  <div>
+                    <h3 class="chapter-name" style="color: #92400e;">
+                      <span style="font-size:0.75rem; background:#fef3c7; color:#b45309; border:1px solid #fcd34d; padding:2px 8px; border-radius:4px; font-weight:800;">BỔ TRỢ</span>
+                      <span>Bài tập Chung & Bổ trợ mở rộng</span>
+                      <span class="chapter-badge-count" style="background: #fef3c7; color: #b45309;">${unassignedList.length} bài tập</span>
+                    </h3>
+                    <p class="chapter-desc">Các bài tập tự luận và đề thi chung chưa gán vào chương học cụ thể</p>
+                  </div>
+                </div>
+                <div class="chapter-actions" onclick="event.stopPropagation()">
+                  <a href="/teacher/assignment-create.html" class="btn btn-secondary btn-sm" style="font-weight: 700;">
+                    ➕ Soạn bài mới
+                  </a>
+                  <span class="chevron-icon" onclick="toggleChapter('unassigned')">▼</span>
+                </div>
+              </div>
+
+              <div class="chapter-content-body">
+                ${unassignedList.length > 0 ? renderAssignmentsTable(unassignedList) : `
+                  <div style="text-align: center; padding: 24px; color: #64748b; background: #fafafa;">
+                    Không có bài tập chung nào.
+                  </div>
+                `}
+              </div>
+            </div>
+          `;
+        }
+      }
+
+      if (!html) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 40px; background: #fff; border-radius: 16px; border: 1px dashed #cbd5e1; color: #64748b;">
+            Không tìm thấy bài tập nào khớp với từ khóa tìm kiếm.
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = html;
+      renderMath(container);
+    }
+
+    function renderAssignmentsTable(assignments) {
+      return `
+        <div class="table-responsive">
+          <table class="table" style="margin-bottom: 0;">
+            <thead>
+              <tr style="background: #f8fafc;">
+                <th>Tên đề bài</th>
+                <th>Thời lượng</th>
+                <th>Hạn nộp</th>
+                <th>Tiến độ nộp bài</th>
+                <th>Đã nhận xét</th>
+                <th style="text-align: right;">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${assignments.map(a => {
+                const totalAssigned = a.total_assigned_students || 0;
+                const totalSubmitted = a.total_submitted || 0;
+                const totalGraded = a.total_graded || 0;
+                const percent = totalAssigned > 0 ? Math.round((totalSubmitted / totalAssigned) * 100) : 0;
+
+                return `
+                  <tr>
+                    <td>
+                      <div style="font-weight: 700; color: #1e3a8a; font-size: 0.95rem;">${escapeHtml(a.title)}</div>
+                      <div style="font-size: 0.775rem; color: #64748b; margin-top: 3px;">
+                        Tạo ngày: ${formatDateTime(a.created_at)}
+                      </div>
+                    </td>
+                    <td>
+                      ${a.time_limit_minutes 
+                        ? `<span class="badge badge-amber">⏱️ ${a.time_limit_minutes} phút</span>` 
+                        : '<span class="badge badge-gray">⏳ Không giới hạn</span>'}
+                    </td>
+                    <td>${formatDateTime(a.due_date)}</td>
+                    <td style="min-width: 150px;">
+                      <div style="font-size: 0.825rem; font-weight: 600; margin-bottom: 4px;">
+                        ${totalSubmitted}/${totalAssigned} học sinh (${percent}%)
+                      </div>
+                      <div style="background: #e2e8f0; height: 6px; border-radius: 4px; overflow: hidden;">
+                        <div style="background: #10b981; width: ${percent}%; height: 100%;"></div>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="badge ${totalGraded === totalSubmitted && totalSubmitted > 0 ? 'badge-green' : 'badge-blue'}">
+                        ${totalGraded} / ${totalSubmitted}
+                      </span>
+                    </td>
+                    <td style="text-align: right;">
+                      <div style="display: flex; gap: 6px; align-items: center; justify-content: flex-end;">
+                        <a href="/teacher/grade.html?id=${a.id}" class="btn btn-primary btn-sm" style="font-weight: 700;">
+                          📝 Xem & Nhận xét
+                        </a>
+                        <button class="btn btn-secondary btn-sm" title="Xuất danh sách nộp bài ra file Excel" onclick="exportExcel(${a.id})">
+                          📥 Excel
+                        </button>
+                        <button class="btn btn-danger btn-sm" title="Xóa bài tập" onclick="deleteAssignment(${a.id})">
+                          🗑️
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
     }
 
     async function exportExcel(id) {
@@ -198,6 +490,7 @@
     async function deleteAssignment(id) {
       const ok = await showConfirm('Xóa bài tập', 'Thầy/Cô có chắc chắn muốn xóa bài tập này không? Toàn bộ bài làm của học sinh sẽ bị xóa vĩnh viễn.');
       if (!ok) return;
+
       try {
         await apiRequest(`/api/assignments/${id}`, { method: 'DELETE' });
         showToast('Đã xóa bài tập thành công.', 'success');

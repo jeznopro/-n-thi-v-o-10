@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS assignments (
     time_limit_minutes INTEGER DEFAULT NULL, -- NULL: không giới hạn thời gian làm bài; > 0: số phút đếm ngược
     due_date DATETIME NOT NULL, -- Hạn chót nộp bài
     allow_resubmit INTEGER NOT NULL DEFAULT 0, -- 1: cho phép nộp lại nếu giáo viên yêu cầu
+    chapter_id INTEGER REFERENCES chapters(id) ON DELETE SET NULL,
     created_by INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP

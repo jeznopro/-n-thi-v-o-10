@@ -36,4 +36,7 @@ router.post(
 // Giáo viên xóa bài tập
 router.delete('/:id', authenticate, requireTeacher, assignmentController.deleteAssignment);
 
+// Giáo viên cập nhật bài tập (sửa thông tin, đổi chương)
+router.put('/:id', authenticate, requireTeacher, sanitizeRequestBody, assignmentController.updateAssignment);
+
 module.exports = router;

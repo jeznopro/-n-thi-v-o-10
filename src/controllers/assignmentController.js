@@ -10,6 +10,8 @@ function getTeacherAssignments(req, res, next) {
   try {
     const assignments = db.prepare(`
       SELECT a.*,
+        c.title AS chapter_title,
+        c.order_index AS chapter_order,
         (SELECT COUNT(DISTINCT CASE WHEN target_type = 'student' THEN target_id
                                     ELSE cm.student_id END)
          FROM assignment_targets at
@@ -19,7 +21,8 @@ function getTeacherAssignments(req, res, next) {
         (SELECT COUNT(*) FROM submissions s WHERE s.assignment_id = a.id AND s.status != 'draft') AS total_submitted,
         (SELECT COUNT(*) FROM submissions s WHERE s.assignment_id = a.id AND s.status = 'graded') AS total_graded
       FROM assignments a
-      ORDER BY a.created_at DESC
+      LEFT JOIN chapters c ON a.chapter_id = c.id
+      ORDER BY COALESCE(c.order_index, 999) ASC, a.created_at DESC
     `).all();
 
     return res.json({
@@ -42,10 +45,12 @@ function getStudentAssignments(req, res, next) {
     // Tìm các bài tập được giao trực tiếp cho học sinh hoặc giao cho lớp mà học sinh tham gia
     const query = `
       SELECT DISTINCT a.id, a.title, a.max_score, a.time_limit_minutes, a.due_date, a.allow_resubmit, a.created_at,
+             a.chapter_id, c.title AS chapter_title, c.order_index AS chapter_order,
              s.id AS submission_id, s.status AS submission_status, s.started_at, s.submitted_at, s.is_late,
              s.attempt_number, g.total_score AS grade_score, g.feedback AS teacher_feedback,
              at.custom_content IS NOT NULL AS has_custom_content
       FROM assignments a
+      LEFT JOIN chapters c ON a.chapter_id = c.id
       JOIN assignment_targets at ON a.id = at.assignment_id
       LEFT JOIN class_members cm ON at.target_type = 'class' AND at.target_id = cm.class_id
       LEFT JOIN submissions s ON a.id = s.assignment_id AND s.student_id = ?
@@ -53,7 +58,7 @@ function getStudentAssignments(req, res, next) {
       LEFT JOIN grades g ON s.id = g.submission_id
       WHERE (at.target_type = 'student' AND at.target_id = ?)
          OR (at.target_type = 'class' AND cm.student_id = ?)
-      ORDER BY a.due_date ASC
+      ORDER BY COALESCE(c.order_index, 999) ASC, a.due_date ASC
     `;
 
     let assignments = db.prepare(query).all(studentId, studentId, studentId, studentId);
@@ -187,6 +192,7 @@ function createAssignment(req, res, next) {
       time_limit_minutes = null,
       due_date,
       allow_resubmit = 0,
+      chapter_id = null,
       targets = [], // [{ type: 'class'|'student', id: 1, custom_content?: '' }]
       rubrics = []  // [{ criteria_name: '', description: '', max_score: 2.0 }]
     } = req.body;
@@ -202,8 +208,8 @@ function createAssignment(req, res, next) {
 
     const tx = db.transaction(() => {
       const resAssign = db.prepare(`
-        INSERT INTO assignments (title, content, max_score, time_limit_minutes, due_date, allow_resubmit, created_by)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO assignments (title, content, max_score, time_limit_minutes, due_date, allow_resubmit, chapter_id, created_by)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `).run(
         title.trim(),
         cleanContent,
@@ -211,6 +217,7 @@ function createAssignment(req, res, next) {
         time_limit_minutes ? parseInt(time_limit_minutes, 10) : null,
         due_date,
         allow_resubmit ? 1 : 0,
+        chapter_id ? parseInt(chapter_id, 10) : null,
         req.user.id
       );
 
@@ -326,6 +333,64 @@ function deleteAssignment(req, res, next) {
 }
 
 /**
+ * Cập nhật bài tập (Giáo viên)
+ */
+function updateAssignment(req, res, next) {
+  try {
+    const { id } = req.params;
+    const {
+      title,
+      content,
+      max_score = 10.0,
+      time_limit_minutes = null,
+      due_date,
+      allow_resubmit = 0,
+      chapter_id = null
+    } = req.body;
+
+    const existing = db.prepare('SELECT id FROM assignments WHERE id = ?').get(id);
+    if (!existing) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy bài tập.' });
+    }
+
+    db.prepare(`
+      UPDATE assignments
+      SET title = COALESCE(?, title),
+          content = COALESCE(?, content),
+          max_score = COALESCE(?, max_score),
+          time_limit_minutes = ?,
+          due_date = COALESCE(?, due_date),
+          allow_resubmit = COALESCE(?, allow_resubmit),
+          chapter_id = ?,
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).run(
+      title ? title.trim() : null,
+      content ? cleanHtml(content) : null,
+      max_score ? parseFloat(max_score) : null,
+      time_limit_minutes !== undefined ? (time_limit_minutes ? parseInt(time_limit_minutes, 10) : null) : null,
+      due_date || null,
+      allow_resubmit !== undefined ? (allow_resubmit ? 1 : 0) : null,
+      chapter_id ? parseInt(chapter_id, 10) : null,
+      id
+    );
+
+    logAction({
+      userId: req.user.id,
+      action: 'UPDATE_ASSIGNMENT',
+      targetType: 'assignments',
+      targetId: id,
+      ipAddress: req.ip,
+      details: { title, chapter_id }
+    });
+
+    return res.json({ success: true, message: 'Cập nhật bài tập thành công!' });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
  * Nhập đề thi từ file Word (.docx)
  */
 async function importFromWord(req, res, next) {
@@ -365,6 +430,7 @@ module.exports = {
   getStudentAssignments,
   getAssignmentById,
   createAssignment,
+  updateAssignment,
   deleteAssignment,
   importFromWord
 };

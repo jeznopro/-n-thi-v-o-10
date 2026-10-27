@@ -100,6 +100,14 @@
             </div>
           </div>
 
+          <div class="form-group" style="margin-top: 8px;">
+            <label class="form-label" for="assign-chapter" style="font-weight: 700; color: #1e3a8a;">📁 Thuộc Chương / Chuyên đề học tập</label>
+            <select id="assign-chapter" class="form-control" style="font-weight: 600;">
+              <option value="">-- Chọn chương học (Hoặc để trống làm bài tập chung) --</option>
+            </select>
+            <small style="color: #64748b;">Gắn bài tập vào từng chương để hệ thống tự động phân loại theo cây bài giảng cho học sinh dễ theo dõi.</small>
+          </div>
+
           <div class="form-group" style="margin-top: 10px;">
             <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.95rem;">
               <input type="checkbox" id="assign-allow-resubmit" checked>
@@ -393,10 +401,26 @@
 
     async function loadTargetOptions() {
       try {
-        const [cRes, sRes] = await Promise.all([
+        const [cRes, sRes, chRes] = await Promise.all([
           apiRequest('/api/classes'),
-          apiRequest('/api/students')
+          apiRequest('/api/students'),
+          apiRequest('/api/chapters')
         ]);
+
+        // Đổ danh sách chương học
+        const chSelect = document.getElementById('assign-chapter');
+        if (chSelect && chRes.chapters) {
+          const urlParams = new URLSearchParams(window.location.search);
+          const defaultChapterId = urlParams.get('chapter_id');
+
+          chSelect.innerHTML = '<option value="">-- Chọn chương học (Hoặc để trống làm bài tập chung) --</option>' +
+            chRes.chapters.map(ch => {
+              const isReview = (ch.order_index >= 11 || (ch.title && ch.title.toLowerCase().includes('ôn tập')));
+              const prefix = isReview ? '🎯 ÔN TẬP' : `Chương ${ch.order_index}`;
+              const isSelected = (defaultChapterId && String(ch.id) === String(defaultChapterId)) ? 'selected' : '';
+              return `<option value="${ch.id}" ${isSelected}>${prefix}: ${escapeHtml(ch.title)}</option>`;
+            }).join('');
+        }
 
         const cBox = document.getElementById('classes-checkbox-list');
         cBox.innerHTML = (cRes.classes || []).map((c, i) => `
@@ -414,7 +438,7 @@
           </label>
         `).join('');
       } catch (err) {
-        showToast('Lỗi tải danh sách lớp: ' + err.message, 'error');
+        showToast('Lỗi tải dữ liệu: ' + err.message, 'error');
       }
     }
 
@@ -559,6 +583,12 @@
       if (time_limit_minutes) formData.append('time_limit_minutes', time_limit_minutes);
       formData.append('due_date', due_date);
       formData.append('allow_resubmit', allow_resubmit);
+
+      const chapter_id = document.getElementById('assign-chapter').value.trim();
+      if (chapter_id) {
+        formData.append('chapter_id', chapter_id);
+      }
+
       formData.append('rubrics', JSON.stringify([]));
       formData.append('targets', JSON.stringify(targets));
 
