@@ -113,7 +113,13 @@ function createChapter(req, res, next) {
     return res.status(201).json({
       success: true,
       message: 'Tạo chương học mới thành công!',
-      chapterId: result.lastInsertRowid
+      chapterId: result.lastInsertRowid,
+      chapter: {
+        id: result.lastInsertRowid,
+        title: cleanTitle,
+        description: cleanDesc,
+        order_index: order
+      }
     });
   } catch (error) {
     next(error);
@@ -185,8 +191,9 @@ function deleteChapter(req, res, next) {
       });
     }
 
-    // Chuyển các bài học trong chương về chapter_id = NULL
+    // Chuyển các bài học và bài tập trong chương về chapter_id = NULL
     db.prepare('UPDATE lessons SET chapter_id = NULL WHERE chapter_id = ?').run(id);
+    db.prepare('UPDATE assignments SET chapter_id = NULL WHERE chapter_id = ?').run(id);
 
     // Xóa chương
     db.prepare('DELETE FROM chapters WHERE id = ?').run(id);
@@ -202,7 +209,7 @@ function deleteChapter(req, res, next) {
 
     return res.json({
       success: true,
-      message: 'Đã xóa chương học thành công (các bài học đã được giữ lại).'
+      message: 'Đã xóa chương học thành công (các bài tập và bài giảng đã được giữ lại an toàn).'
     });
   } catch (error) {
     next(error);

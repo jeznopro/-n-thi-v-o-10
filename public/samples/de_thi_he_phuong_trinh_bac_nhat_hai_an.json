@@ -1,0 +1,67 @@
+{
+  "title": "Chuyên đề: Giải hệ phương trình bậc nhất hai ẩn - Toán 9",
+  "time_limit_minutes": 60,
+  "chapter_id": 1,
+  "questions": [
+    {
+      "title": "Câu 1 (Nhận biết): Nhận diện hệ phương trình bậc nhất hai ẩn",
+      "content": "Hệ phương trình nào trong các phương trình sau là hệ phương trình bậc nhất hai ẩn?<br>A. $\\begin{cases} x^2 - y = 3 \\\\ x + y = -1 \\end{cases}$<br>B. $\\begin{cases} 2x + y = 6 \\\\ x - z = 5 \\end{cases}$<br>C. $\\begin{cases} 3x + 2y = 5 \\\\ x = y \\end{cases}$<br>D. $\\begin{cases} 2x + 3y + 4z = 5 \\\\ x + y + z = 1 \\\\ y + 2z = 3 \\end{cases}$"
+    },
+    {
+      "title": "Câu 2 (Nhận biết): Số nghiệm của hệ phương trình chứa tham số",
+      "content": "Cho hệ phương trình: $\\begin{cases} ax - y = a^2 \\\\ bx - y = b^2 \\end{cases}$. Lựa chọn phương án sai:<br>A. Với mọi cặp số $(a; b)$ hệ phương trình luôn có nghiệm.<br>B. Khi $a \\ne b$ thì hệ phương trình có nghiệm duy nhất.<br>C. Khi $a = b = 0$ thì hệ phương trình có nghiệm $y = 0$ và $x \\in \\mathbb{R}$.<br>D. Tồn tại cặp số $(a; b)$ để hệ phương trình vô nghiệm."
+    },
+    {
+      "title": "Câu 3 (Nhận biết): Tìm tham số m để hệ phương trình vô nghiệm",
+      "content": "Với giá trị nào của $m$ thì hệ phương trình sau vô nghiệm:<br>$$\\begin{cases} mx + y = 2m \\\\ x + my = 4 \\end{cases}$$<br>A. $m = \\pm 1$<br>B. $m = 2$<br>C. $m = \\pm 2$<br>D. $m = -2$"
+    },
+    {
+      "title": "Câu 4 (Nhận biết): Tìm tham số m để hệ phương trình có nghiệm duy nhất",
+      "content": "Với giá trị nào của $m$ thì hệ phương trình sau có nghiệm duy nhất:<br>$$\\begin{cases} 4x + 3y = 1 \\\\ m^2x + 3y = 2m \\end{cases}$$<br>A. $m = 2$<br>B. $m = -2$<br>C. $m = \\pm 2$<br>D. $m \\ne \\pm 2$"
+    },
+    {
+      "title": "Câu 5 (Thông hiểu): Tìm tham số a để hệ phương trình có vô số nghiệm",
+      "content": "Với giá trị nào của $a$ thì hệ phương trình sau có vô số nghiệm:<br>$$\\begin{cases} ax + y = 2 \\\\ a^2x + 2y = 2a \\end{cases}$$<br>A. $a = 2$<br>B. $a = \\frac{1}{2}$<br>C. $a = -2$<br>D. $a = -\\frac{1}{2}$"
+    },
+    {
+      "title": "Câu 6 (Thông hiểu): Xác định tham số khi biết trước nghiệm của hệ phương trình",
+      "content": "Với giá trị nào của $m$ thì hệ phương trình $\\begin{cases} m^2x + (m - 2)y = 2(m + 1) \\\\ x + 2my = 1 \\end{cases}$ có nghiệm $(x; y) = (3; -1)$?<br>A. $m = 0$<br>B. $m = 1$<br>C. $m = -1$<br>D. $m = 0$ hoặc $m = 1$"
+    },
+    {
+      "title": "Câu 7 (Thông hiểu): Tìm tham số để hai hệ phương trình tương đương",
+      "content": "Tìm cặp giá trị $(a; b)$ để hai hệ phương trình sau tương đương:<br>$$(I) \\begin{cases} x - 2y = 1 \\\\ x + y = 4 \\end{cases} \\quad \\text{và} \\quad (II) \\begin{cases} ax - y = 2 \\\\ 2ax + by = 7 \\end{cases}$$<br>A. $(-1; -1)$<br>B. $(1; 2)$<br>C. $(-1; 1)$<br>D. $(1; 1)$"
+    },
+    {
+      "title": "Câu 8 (Thông hiểu): Giải hệ phương trình bậc nhất hai ẩn cơ bản",
+      "content": "Cặp số $(x; y)$ là nghiệm của hệ phương trình $\\begin{cases} 3x - 4y = -2 \\\\ 2x + y = 6 \\end{cases}$ là:<br>A. $(-1; -2)$<br>B. $(2; 2)$<br>C. $(2; -1)$<br>D. $(3; 2)$"
+    },
+    {
+      "title": "Câu 9 (Vận dụng): Xác định hệ phương trình thỏa mãn nghiệm cho trước",
+      "content": "Cho $\\begin{cases} x = 1 \\\\ y = 2 \\end{cases}$ là nghiệm của hệ phương trình bậc nhất 2 ẩn nào trong các hệ phương trình sau:<br>A. $\\begin{cases} 2x - y = 0 \\\\ 3x + y = 4 \\end{cases}$<br>B. $\\begin{cases} x + 3y = -2 \\\\ x - y = -1 \\end{cases}$<br>C. $\\begin{cases} \\frac{1}{x+2} + \\frac{1}{y} = 1 \\\\ x + y = 3 \\end{cases}$<br>D. $\\begin{cases} x + y = 3 \\\\ 4x - 3y = -2 \\end{cases}$"
+    },
+    {
+      "title": "Câu 10 (Vận dụng): Giải hệ phương trình bằng phương pháp đặt ẩn phụ",
+      "content": "Nghiệm $(x; y)$ của hệ phương trình $\\begin{cases} \\frac{2}{x + 2y} + \\frac{1}{2x + y} = 3 \\\\ \\frac{4}{x + 2y} + \\frac{3}{2x + y} = 1 \\end{cases}$ là:<br>A. $\\left( \\frac{13}{60}; -\\frac{7}{30} \\right)$<br>B. $\\left( -\\frac{13}{60}; -\\frac{7}{30} \\right)$<br>C. $\\left( -\\frac{13}{60}; \\frac{7}{30} \\right)$<br>D. $\\left( \\frac{13}{60}; \\frac{7}{30} \\right)$"
+    },
+    {
+      "title": "Câu 11 (Vận dụng): Số nghiệm của hệ phương trình chứa dấu giá trị tuyệt đối",
+      "content": "Số nghiệm của hệ phương trình sau: $\\begin{cases} |x| + 4|y| = 18 \\\\ 3|x| + |y| = 10 \\end{cases}$ là:<br>A. 2<br>B. 4<br>C. 3<br>D. 1"
+    },
+    {
+      "title": "Câu 12 (Vận dụng): Giải hệ phương trình chứa ẩn ở mẫu",
+      "content": "Giải hệ phương trình $\\begin{cases} \\frac{8}{x - 1} - \\frac{3}{y + 2} = 1 \\\\ \\frac{16}{x - 1} + \\frac{9}{y + 2} = 7 \\end{cases}$ có cặp nghiệm $(x; y)$ là:<br>A. $(4; 0)$<br>B. $(5; 6)$<br>C. $(5; 1)$<br>D. $(6; 2)$"
+    },
+    {
+      "title": "Câu 13 (Vận dụng): Giải hệ phương trình bằng phương pháp đặt ẩn phụ",
+      "content": "Giải hệ phương trình $\\begin{cases} \\frac{2}{x + y} + \\frac{3}{x - y} = 2 \\\\ \\frac{1}{x + y} + \\frac{2}{x - y} = \\frac{7}{6} \\end{cases}$ có cặp nghiệm $(x; y)$ là:<br>A. $\\left( \\frac{5}{2}; -\\frac{1}{2} \\right)$<br>B. $\\left( \\frac{1}{2}; \\frac{1}{2} \\right)$<br>C. $(1; 2)$<br>D. $(-1; 1)$"
+    },
+    {
+      "title": "Câu 14 (Vận dụng cao): Hệ phương trình biến đổi nâng cao quy về ẩn phụ",
+      "content": "Giải hệ phương trình $\\begin{cases} x^2 + 1 + y(y + x) = 4y \\\\ (x^2 + 1)(y + x - 2) = y \\end{cases}$ có nghiệm $(x; y)$ là:<br>A. $(1; 2); (2; 1)$<br>B. $(1; -1); (2; 5)$<br>C. $(-2; 5); (1; 0)$<br>D. $(1; 2); (-2; 5)$"
+    },
+    {
+      "title": "Câu 15 (Vận dụng cao): Tìm tham số để hệ phương trình đối xứng có nghiệm duy nhất",
+      "content": "Với giá trị nào của $m$ thì hệ phương trình sau có nghiệm duy nhất:<br>$$\\begin{cases} x + y = 8 \\\\ \\frac{x}{y} + \\frac{y}{x} = m \\end{cases}$$<br>A. $m = 4$<br>B. $m = -2$<br>C. $m = 2$<br>D. $m = 1$"
+    }
+  ]
+}

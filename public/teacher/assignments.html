@@ -164,6 +164,9 @@
         <p>Tổ chức bài tập tự luận theo từng chương ôn thi vào 10, theo dõi tiến độ nộp bài và chấm nhận xét</p>
       </div>
       <div class="page-actions" style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <button type="button" class="btn btn-primary" onclick="openCreateChapterModal()" style="font-weight: 700; background: linear-gradient(135deg, #1e3a8a, #2563eb); border: none; display: inline-flex; align-items: center; gap: 6px;">
+          📁 Thêm chương mới
+        </button>
         <a href="/teacher/assignment-create.html?action=import-word" class="btn btn-secondary" style="font-weight: 700; background: #f0fdf4; color: #166534; border: 1.5px solid #86efac; border-radius: 12px; display: inline-flex; align-items: center; gap: 6px;">
           📄 Nhập đề từ file Word (.docx)
         </a>
@@ -331,6 +334,12 @@
                 <a href="/teacher/assignment-create.html?chapter_id=${ch.id}" class="btn btn-primary btn-sm" style="font-weight: 700;">
                   ➕ Thêm bài tập vào chương
                 </a>
+                <button type="button" class="btn btn-secondary btn-sm" title="Sửa tên hoặc mô tả chương" onclick="openEditChapterModal(${ch.id})">
+                  ✏️ Sửa
+                </button>
+                <button type="button" class="btn btn-danger btn-sm" title="Xóa chương học" onclick="confirmDeleteChapter(${ch.id}, '${escapeHtml(ch.title)}')">
+                  🗑️
+                </button>
                 <span class="chevron-icon" onclick="toggleChapter(${ch.id})">▼</span>
               </div>
             </div>
@@ -503,7 +512,128 @@
       }
     }
 
+    // ==========================================
+    // QUẢN LÝ CHƯƠNG HỌC & CHUYÊN ĐỀ (CHAPTER CRUD)
+    // ==========================================
+    function openCreateChapterModal() {
+      document.getElementById('edit-chapter-id').value = '';
+      document.getElementById('modal-chapter-title').textContent = '📁 Thêm Chương Học / Chuyên Đề Mới';
+      document.getElementById('chapter-title').value = '';
+      document.getElementById('chapter-order').value = rawChapters.length + 1;
+      document.getElementById('chapter-desc').value = '';
+      document.getElementById('modal-chapter').classList.add('active');
+      setTimeout(() => document.getElementById('chapter-title').focus(), 150);
+    }
+
+    function openEditChapterModal(chapterId) {
+      const ch = rawChapters.find(c => c.id === chapterId);
+      if (!ch) return;
+
+      document.getElementById('edit-chapter-id').value = ch.id;
+      document.getElementById('modal-chapter-title').textContent = '✏️ Chỉnh Sửa Chương Học / Chuyên Đề';
+      document.getElementById('chapter-title').value = ch.title;
+      document.getElementById('chapter-order').value = ch.order_index || 1;
+      document.getElementById('chapter-desc').value = ch.description || '';
+      document.getElementById('modal-chapter').classList.add('active');
+      setTimeout(() => document.getElementById('chapter-title').focus(), 150);
+    }
+
+    function closeChapterModal() {
+      const modal = document.getElementById('modal-chapter');
+      if (modal) modal.classList.remove('active');
+    }
+
+    async function saveChapter(e) {
+      e.preventDefault();
+      const id = document.getElementById('edit-chapter-id').value;
+      const title = document.getElementById('chapter-title').value.trim();
+      const order_index = document.getElementById('chapter-order').value;
+      const description = document.getElementById('chapter-desc').value.trim();
+
+      const btn = document.getElementById('btn-save-chapter');
+      btn.disabled = true;
+      btn.textContent = 'Đang lưu...';
+
+      try {
+        if (id) {
+          await apiRequest(`/api/chapters/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify({ title, order_index, description })
+          });
+          showToast('Cập nhật chương học thành công!', 'success');
+        } else {
+          await apiRequest('/api/chapters', {
+            method: 'POST',
+            body: JSON.stringify({ title, order_index, description })
+          });
+          showToast('Tạo chương học mới thành công!', 'success');
+        }
+        closeChapterModal();
+        await loadAssignments();
+      } catch (err) {
+        showToast(err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '💾 Lưu chương học';
+      }
+    }
+
+    async function confirmDeleteChapter(id, title) {
+      const ok = await showConfirm(
+        'Xóa chương học',
+        `Thầy/Cô có chắc chắn muốn xóa "${title}"?\n\nLưu ý: Mọi bài tập và đề thi trong chương này sẽ KHÔNG bị mất mà được chuyển về mục "Bài tập Chung & Bổ trợ mở rộng".`
+      );
+      if (!ok) return;
+
+      try {
+        await apiRequest(`/api/chapters/${id}`, { method: 'DELETE' });
+        showToast('Đã xóa chương học thành công. Các bài tập đã được chuyển về mục bổ trợ.', 'success');
+        await loadAssignments();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
     loadAssignments();
+  </script>
+
+  <!-- MODAL THÊM / SỬA CHƯƠNG HỌC -->
+  <div id="modal-chapter" class="custom-modal-overlay">
+    <div class="custom-modal" style="max-width: 580px;">
+      <div class="custom-modal-header" style="background: linear-gradient(135deg, #1e3a8a, #2563eb); color: #fff;">
+        <h3 id="modal-chapter-title" class="custom-modal-title" style="color: #fff; display: flex; align-items: center; gap: 8px;">
+          📁 Thêm Chương Học / Chuyên Đề Mới
+        </h3>
+        <button class="toast-close" style="color: #fff;" onclick="closeChapterModal()">&times;</button>
+      </div>
+      <div class="custom-modal-body" style="padding: 22px;">
+        <form id="chapter-form" onsubmit="saveChapter(event)">
+          <input type="hidden" id="edit-chapter-id">
+          
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label class="form-label" for="chapter-title" style="font-weight: 700;">Tên chương học / Chuyên đề <span class="req">*</span></label>
+            <input type="text" id="chapter-title" class="form-control" placeholder="Ví dụ: Chương 11: Một số dạng toán thực tế nâng cao" required>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label class="form-label" for="chapter-order" style="font-weight: 700;">Thứ tự sắp xếp (Số)</label>
+            <input type="number" id="chapter-order" class="form-control" value="1" min="0">
+            <small style="color: #64748b;">Số thứ tự nhỏ hơn sẽ hiển thị trước (1..10 là các chương SGK, từ 11 trở lên là các chuyên đề ôn tập).</small>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label class="form-label" for="chapter-desc" style="font-weight: 700;">Mô tả tóm tắt nội dung chương</label>
+            <textarea id="chapter-desc" class="form-control" rows="3" placeholder="Mô tả tóm tắt kiến thức trọng tâm hoặc dạng bài trong chương này..."></textarea>
+          </div>
+
+          <div style="padding: 16px 0 0 0; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid #e2e8f0;">
+            <button type="button" class="btn btn-secondary" onclick="closeChapterModal()">Hủy bỏ</button>
+            <button type="submit" id="btn-save-chapter" class="btn btn-primary" style="font-weight: 700;">💾 Lưu chương học</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
   </script>
 </body>
 </html>

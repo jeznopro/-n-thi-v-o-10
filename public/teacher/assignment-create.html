@@ -101,7 +101,12 @@
           </div>
 
           <div class="form-group" style="margin-top: 8px;">
-            <label class="form-label" for="assign-chapter" style="font-weight: 700; color: #1e3a8a;">📁 Thuộc Chương / Chuyên đề học tập</label>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <label class="form-label" for="assign-chapter" style="font-weight: 700; color: #1e3a8a; margin: 0;">📁 Thuộc Chương / Chuyên đề học tập</label>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="openQuickCreateChapterModal()" style="font-size: 0.8rem; font-weight: 700; color: #2563eb; background: #eff6ff; border: 1px solid #bfdbfe; padding: 3px 10px; border-radius: 6px; cursor: pointer;">
+                ➕ Thêm chương mới
+              </button>
+            </div>
             <select id="assign-chapter" class="form-control" style="font-weight: 600;">
               <option value="">-- Chọn chương học (Hoặc để trống làm bài tập chung) --</option>
             </select>
@@ -1238,7 +1243,108 @@
       document.getElementById('questions-list-container').scrollIntoView({ behavior: 'smooth' });
     }
 
+    // ==========================================
+    // LOGIC TẠO NHANH CHƯƠNG MỚI TẠI TRANG SOẠN ĐỀ
+    // ==========================================
+    function openQuickCreateChapterModal() {
+      document.getElementById('quick-chapter-title').value = '';
+      document.getElementById('quick-chapter-desc').value = '';
+      const select = document.getElementById('assign-chapter');
+      document.getElementById('quick-chapter-order').value = (select && select.options ? select.options.length : 11);
+      document.getElementById('modal-quick-chapter').classList.add('active');
+      setTimeout(() => document.getElementById('quick-chapter-title').focus(), 150);
+    }
+
+    function closeQuickCreateChapterModal() {
+      const modal = document.getElementById('modal-quick-chapter');
+      if (modal) modal.classList.remove('active');
+    }
+
+    async function handleQuickCreateChapter(e) {
+      e.preventDefault();
+      const title = document.getElementById('quick-chapter-title').value.trim();
+      const order_index = document.getElementById('quick-chapter-order').value;
+      const description = document.getElementById('quick-chapter-desc').value.trim();
+
+      const btn = document.getElementById('btn-save-quick-chapter');
+      btn.disabled = true;
+      btn.textContent = 'Đang tạo...';
+
+      try {
+        const res = await apiRequest('/api/chapters', {
+          method: 'POST',
+          body: JSON.stringify({ title, order_index, description })
+        });
+
+        showToast('Tạo chương học mới thành công!', 'success');
+        closeQuickCreateChapterModal();
+
+        const newId = res.chapterId || (res.chapter && res.chapter.id);
+        await reloadChaptersSelect(newId);
+      } catch (err) {
+        showToast(err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '💾 Tạo chương ngay';
+      }
+    }
+
+    async function reloadChaptersSelect(selectedId) {
+      try {
+        const chRes = await apiRequest('/api/chapters');
+        const chSelect = document.getElementById('assign-chapter');
+        if (chSelect && chRes.chapters) {
+          chSelect.innerHTML = '<option value="">-- Chọn chương học (Hoặc để trống làm bài tập chung) --</option>' +
+            chRes.chapters.map(ch => {
+              const isReview = (ch.order_index >= 11 || (ch.title && ch.title.toLowerCase().includes('ôn tập')));
+              const prefix = isReview ? '🎯 ÔN TẬP' : `Chương ${ch.order_index}`;
+              const isSelected = (selectedId && String(ch.id) === String(selectedId)) ? 'selected' : '';
+              return `<option value="${ch.id}" ${isSelected}>${prefix}: ${escapeHtml(ch.title)}</option>`;
+            }).join('');
+
+          if (selectedId) {
+            chSelect.value = selectedId;
+          }
+        }
+      } catch (err) {
+        console.error('Lỗi tải lại danh sách chương:', err);
+      }
+    }
+
     initCreatePage();
   </script>
+
+  <!-- MODAL TẠO NHANH CHƯƠNG MỚI (TRONG TRANG SOẠN ĐỀ) -->
+  <div id="modal-quick-chapter" class="custom-modal-overlay">
+    <div class="custom-modal" style="max-width: 540px;">
+      <div class="custom-modal-header" style="background: linear-gradient(135deg, #1e3a8a, #2563eb); color: #fff;">
+        <h3 class="custom-modal-title" style="color: #fff; display: flex; align-items: center; gap: 8px;">
+          📁 Thêm Chương Học / Chuyên Đề Mới
+        </h3>
+        <button class="toast-close" style="color: #fff;" onclick="closeQuickCreateChapterModal()">&times;</button>
+      </div>
+      <div class="custom-modal-body" style="padding: 22px;">
+        <form id="quick-chapter-form" onsubmit="handleQuickCreateChapter(event)">
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label class="form-label" for="quick-chapter-title" style="font-weight: 700;">Tên chương học / Chuyên đề <span class="req">*</span></label>
+            <input type="text" id="quick-chapter-title" class="form-control" placeholder="Ví dụ: Chương 11: Một số bài toán thực tế" required>
+          </div>
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label class="form-label" for="quick-chapter-order" style="font-weight: 700;">Thứ tự sắp xếp (Số)</label>
+            <input type="number" id="quick-chapter-order" class="form-control" value="11" min="0">
+            <small style="color: #64748b;">Số thứ tự càng nhỏ hiển thị càng trước.</small>
+          </div>
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label class="form-label" for="quick-chapter-desc" style="font-weight: 700;">Mô tả tóm tắt nội dung</label>
+            <textarea id="quick-chapter-desc" class="form-control" rows="2" placeholder="Tóm tắt nội dung kiến thức của chương..."></textarea>
+          </div>
+          <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid #e2e8f0; padding-top: 14px;">
+            <button type="button" class="btn btn-secondary" onclick="closeQuickCreateChapterModal()">Hủy</button>
+            <button type="submit" id="btn-save-quick-chapter" class="btn btn-primary" style="font-weight: 700;">💾 Tạo chương ngay</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
