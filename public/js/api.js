@@ -1,4 +1,11 @@
 /**
+ * Lấy token xác thực hiện tại từ localStorage
+ */
+function getToken() {
+  return localStorage.getItem('token') || '';
+}
+
+/**
  * Client API Wrapper với tự động xử lý Cookie, Bearer Token và phản hồi lỗi
  */
 async function apiRequest(endpoint, options = {}) {

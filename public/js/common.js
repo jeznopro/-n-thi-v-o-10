@@ -73,8 +73,9 @@ function formatMathAndMarkdown(rawText) {
     return id;
   });
 
-  // 3. Xử lý Markdown cơ bản: in đậm, nghiêng, ngắt dòng
+  // 3. Xử lý Markdown cơ bản: hình ảnh, in đậm, nghiêng, ngắt dòng
   str = str
+    .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" style="max-width: 100%; max-height: 380px; display: block; margin: 12px auto; border-radius: 8px; border: 1px solid #cbd5e1;">')
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
     .replace(/\n\n+/g, '<div style="height: 8px;"></div>')
