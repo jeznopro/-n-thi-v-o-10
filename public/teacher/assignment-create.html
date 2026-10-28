@@ -127,6 +127,9 @@
         <div class="card-header">
           <h3 class="card-title">2️⃣ Nhập danh sách các câu hỏi</h3>
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <a href="/samples/mau_de_thi_toan_9.docx" download="mau_de_thi_toan_9.docx" class="btn btn-secondary btn-sm" style="font-weight: 700; background: #ffffff; color: #166534; border: 1.5px solid #86efac; border-radius: 8px; display: inline-flex; align-items: center; gap: 4px; text-decoration: none;" title="Tải file Word mẫu chuẩn (.docx) về máy để chỉnh sửa nội dung đề">
+              📥 Tải file Word mẫu
+            </a>
             <button type="button" class="btn btn-secondary btn-sm" onclick="triggerWordImport()" style="font-weight: 700; background: #f0fdf4; color: #166534; border: 1px solid #86efac; border-radius: 8px; display: inline-flex; align-items: center; gap: 4px;">
               📄 Nhập từ file Word
             </button>
@@ -370,7 +373,10 @@
         </div>
       </div>
 
-      <div class="custom-modal-footer">
+      <div class="custom-modal-footer" style="display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; background: #f8fafc; border-top: 1px solid #e2e8f0; flex-wrap: wrap; gap: 10px;">
+        <a href="/samples/mau_de_thi_toan_9.docx" download="mau_de_thi_toan_9.docx" class="btn btn-secondary btn-sm" style="font-weight: 700; color: #166534; background: #f0fdf4; border: 1.5px solid #86efac; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+          📥 Tải file Word mẫu chuẩn (.docx)
+        </a>
         <button type="button" class="btn btn-secondary" onclick="closeWordPreviewModal()">Đóng / Hủy</button>
       </div>
     </div>
@@ -403,7 +409,10 @@
             </div>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
               <a href="/samples/sample_exam.json" download="de_thi_toan_9_mau.json" class="btn btn-secondary btn-sm" style="font-size: 0.775rem; font-weight: 700; background: #fff; color: #166534; border: 1px solid #86efac; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
-                📥 Tải file mẫu .json
+                📥 Mẫu Đại số .json
+              </a>
+              <a href="/samples/de_thi_hinh_hoc_co_hinh_mau.json" download="de_thi_hinh_hoc_co_hinh_mau.json" class="btn btn-secondary btn-sm" style="font-size: 0.775rem; font-weight: 700; background: #fff; color: #9a3412; border: 1px solid #fed7aa; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                🖼️ Mẫu Hình học (Có ảnh)
               </a>
               <button type="button" class="btn btn-secondary btn-sm" onclick="copyJsonSampleTemplate()" style="font-size: 0.775rem; font-weight: 700; background: #fff; color: #0284c7; border: 1px solid #7dd3fc;">
                 📋 Sao chép mẫu JSON
@@ -414,7 +423,7 @@
             </div>
           </div>
           <p style="font-size: 0.825rem; color: #475569; margin: 0 0 8px 0; line-height: 1.5;">
-            Hệ thống nhận diện linh hoạt: <strong>Mảng câu hỏi <code>[...]</code></strong> hoặc <strong>Đối tượng đề bài đầy đủ <code>{ "title": "...", "time_limit_minutes": 90, "questions": [...] }</code></strong>.
+            Hệ thống nhận diện linh hoạt: <strong>Mảng câu hỏi <code>[...]</code></strong> hoặc <strong>Đối tượng đề bài đầy đủ <code>{ "title": "...", "time_limit_minutes": 90, "questions": [...] }</code></strong>. Hỗ trợ chèn công thức KaTeX <code>$...$</code>, xuống dòng <code>&lt;br&gt;</code> và hình ảnh trực tiếp bằng thẻ <code>&lt;img src="..."&gt;</code> hoặc cú pháp Markdown <code>![Tên hình](đường_dẫn_ảnh)</code>.
           </p>
           <pre id="json-sample-code" style="background: #1e293b; color: #f8fafc; padding: 12px 14px; border-radius: 8px; font-size: 0.825rem; font-family: Consolas, Menlo, Monaco, monospace; max-height: 140px; overflow-y: auto; margin: 0; line-height: 1.4;">{
   "title": "Đề kiểm tra Toán 9 - Chương 3: Căn thức bậc hai",
@@ -630,7 +639,11 @@
         return;
       }
 
-      preview.innerHTML = val.replace(/\n/g, '<br>');
+      let formatted = val
+        .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width: 100%; border-radius: 8px;">')
+        .replace(/\n/g, '<br>');
+
+      preview.innerHTML = formatted;
       renderMath(preview);
     }
 
@@ -676,10 +689,14 @@
         const qTitle = card.querySelector('.q-title').value.trim();
         const qContent = card.querySelector('.q-content').value.trim();
 
+        const processedContent = qContent
+          .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width: 100%; border-radius: 8px;">')
+          .replace(/\n/g, '<br>');
+
         questions.push({
           id: index + 1,
           title: qTitle,
-          content: qContent.replace(/\n/g, '<br>')
+          content: processedContent
         });
       });
 
@@ -1177,14 +1194,25 @@
         statusEl.innerHTML = `<span style="color: #16a34a;">✅ Cấu trúc JSON chuẩn xác! Phát hiện <strong>${normalized.length} câu hỏi</strong>${title ? ` & Tiêu đề: "${escapeHtml(title)}"` : ''}.</span>`;
         countEl.textContent = normalized.length;
 
-        // Render xem trước
+        // Render xem trước an toàn hỗ trợ công thức Toán, ảnh <img> và ![alt](url)
+        function formatPreviewItem(raw) {
+          if (!raw) return '';
+          let text = String(raw)
+            .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+            .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+            .replace(/\s*on\w+\s*=\s*(['"]).*?\1/gi, '')
+            .replace(/javascript:/gi, '')
+            .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width: 100%; border-radius: 6px;">');
+          return text.replace(/\n/g, '<br>');
+        }
+
         previewList.innerHTML = normalized.map((q, idx) => `
           <div style="background: #fff; border: 1px solid #cbd5e1; border-left: 4px solid #0284c7; border-radius: 6px; padding: 10px 12px;">
             <div style="font-weight: 700; color: #0369a1; font-size: 0.95rem; margin-bottom: 4px;">
               ${escapeHtml(q.title || `Câu ${idx + 1}`)}
             </div>
             <div class="json-q-content math-preview-box" style="font-size: 0.9rem; line-height: 1.5; color: #1e293b;">
-              ${escapeHtml(q.content).replace(/\n/g, '<br>')}
+              ${formatPreviewItem(q.content)}
             </div>
           </div>
         `).join('');

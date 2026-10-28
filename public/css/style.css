@@ -1819,6 +1819,22 @@ textarea.form-control {
   font-size: 1.05rem;
 }
 
+.math-preview-box img,
+.question-prompt-box img,
+.json-q-content img {
+  max-width: 100%;
+  max-height: 380px;
+  height: auto;
+  object-fit: contain;
+  border-radius: 8px;
+  display: block;
+  margin: 12px auto;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  background: #fff;
+  padding: 4px;
+}
+
 /* LIGHTBOX FOR HANDWRITTEN MATH PAPERS */
 .attachment-grid {
   display: grid;
