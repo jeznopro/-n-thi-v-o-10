@@ -21,7 +21,9 @@ function parseSqliteUtc(dateVal) {
  * @returns {boolean}
  */
 function isLateSubmission(dueDate, submitTime = new Date()) {
+  if (!dueDate) return false; // Không giới hạn hạn nộp thì không bao giờ trễ
   const due = parseSqliteUtc(dueDate);
+  if (!due) return false;
   const submitted = parseSqliteUtc(submitTime);
   return submitted > due;
 }

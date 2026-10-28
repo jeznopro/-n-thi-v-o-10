@@ -62,6 +62,36 @@ function initSchema() {
     db.exec(`ALTER TABLE assignments ADD COLUMN chapter_id INTEGER DEFAULT NULL;`);
   } catch (e) {}
 
+  // Đảm bảo cột due_date trong assignments cho phép NULL (không giới hạn hạn nộp bài)
+  try {
+    const tableInfo = db.prepare('PRAGMA table_info(assignments)').all();
+    const dueDateCol = tableInfo.find(c => c.name === 'due_date');
+    if (dueDateCol && dueDateCol.notnull === 1) {
+      db.exec(`
+        PRAGMA foreign_keys=off;
+        CREATE TABLE assignments_migrated (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          title TEXT NOT NULL,
+          content TEXT NOT NULL,
+          max_score REAL NOT NULL DEFAULT 10.0,
+          time_limit_minutes INTEGER DEFAULT NULL,
+          due_date DATETIME DEFAULT NULL,
+          allow_resubmit INTEGER NOT NULL DEFAULT 0,
+          chapter_id INTEGER REFERENCES chapters(id) ON DELETE SET NULL,
+          created_by INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+        INSERT INTO assignments_migrated SELECT id, title, content, max_score, time_limit_minutes, due_date, allow_resubmit, chapter_id, created_by, created_at, updated_at FROM assignments;
+        DROP TABLE assignments;
+        ALTER TABLE assignments_migrated RENAME TO assignments;
+        PRAGMA foreign_keys=on;
+      `);
+    }
+  } catch (e) {
+    console.warn('Lỗi migrate due_date assignments:', e.message);
+  }
+
   const schemaPath = path.join(__dirname, 'schema.sql');
   const schemaSql = fs.readFileSync(schemaPath, 'utf8');
   db.exec(schemaSql);

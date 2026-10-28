@@ -440,7 +440,7 @@
         }
 
         document.getElementById('exam-title').textContent = assign.title;
-        document.getElementById('exam-meta').textContent = `Hạn nộp: ${formatDateTime(assign.due_date)}`;
+        document.getElementById('exam-meta').textContent = assign.due_date ? `Hạn nộp: ${formatDateTime(assign.due_date)}` : 'Hạn nộp: Vô thời hạn (Không giới hạn)';
 
         // Parse danh sách câu hỏi
         parseQuestions(assign.content);

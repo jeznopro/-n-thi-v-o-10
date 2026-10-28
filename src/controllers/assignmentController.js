@@ -76,7 +76,7 @@ function getStudentAssignments(req, res, next) {
         currentStatus = 'resubmission_requested';
       }
 
-      const isLate = new Date() > new Date(a.due_date) && currentStatus !== 'submitted' && currentStatus !== 'graded';
+      const isLate = a.due_date ? (new Date() > new Date(a.due_date) && currentStatus !== 'submitted' && currentStatus !== 'graded') : false;
 
       return {
         ...a,
@@ -197,14 +197,15 @@ function createAssignment(req, res, next) {
       rubrics = []  // [{ criteria_name: '', description: '', max_score: 2.0 }]
     } = req.body;
 
-    if (!title || !content || !due_date) {
+    if (!title || !content) {
       return res.status(400).json({
         success: false,
-        message: 'Tiêu đề, nội dung đề bài và hạn nộp là bắt buộc.'
+        message: 'Tiêu đề và nội dung đề bài là bắt buộc.'
       });
     }
 
     const cleanContent = cleanHtml(content);
+    const dueDateVal = due_date && String(due_date).trim() ? String(due_date).trim() : null;
 
     const tx = db.transaction(() => {
       const resAssign = db.prepare(`
@@ -215,7 +216,7 @@ function createAssignment(req, res, next) {
         cleanContent,
         parseFloat(max_score) || 10.0,
         time_limit_minutes ? parseInt(time_limit_minutes, 10) : null,
-        due_date,
+        dueDateVal,
         allow_resubmit ? 1 : 0,
         chapter_id ? parseInt(chapter_id, 10) : null,
         req.user.id
@@ -341,48 +342,117 @@ function updateAssignment(req, res, next) {
     const {
       title,
       content,
-      max_score = 10.0,
-      time_limit_minutes = null,
+      max_score,
+      time_limit_minutes,
       due_date,
-      allow_resubmit = 0,
-      chapter_id = null
+      allow_resubmit,
+      chapter_id,
+      targets,
+      rubrics
     } = req.body;
 
-    const existing = db.prepare('SELECT id FROM assignments WHERE id = ?').get(id);
+    const existing = db.prepare('SELECT * FROM assignments WHERE id = ?').get(id);
     if (!existing) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy bài tập.' });
     }
 
-    db.prepare(`
-      UPDATE assignments
-      SET title = COALESCE(?, title),
-          content = COALESCE(?, content),
-          max_score = COALESCE(?, max_score),
-          time_limit_minutes = ?,
-          due_date = COALESCE(?, due_date),
-          allow_resubmit = COALESCE(?, allow_resubmit),
-          chapter_id = ?,
-          updated_at = CURRENT_TIMESTAMP
-      WHERE id = ?
-    `).run(
-      title ? title.trim() : null,
-      content ? cleanHtml(content) : null,
-      max_score ? parseFloat(max_score) : null,
-      time_limit_minutes !== undefined ? (time_limit_minutes ? parseInt(time_limit_minutes, 10) : null) : null,
-      due_date || null,
-      allow_resubmit !== undefined ? (allow_resubmit ? 1 : 0) : null,
-      chapter_id ? parseInt(chapter_id, 10) : null,
-      id
-    );
+    const titleVal = title !== undefined && title.trim() ? title.trim() : existing.title;
+    const contentVal = content !== undefined ? cleanHtml(content) : existing.content;
+    const maxScoreVal = max_score !== undefined ? (parseFloat(max_score) || 10.0) : existing.max_score;
+    
+    // Xử lý time_limit_minutes: nếu truyền chuỗi rỗng hoặc null => xóa thời gian giới hạn (thành không giới hạn)
+    let timeLimitVal = existing.time_limit_minutes;
+    if (time_limit_minutes !== undefined) {
+      timeLimitVal = (time_limit_minutes && String(time_limit_minutes).trim() !== '') ? parseInt(time_limit_minutes, 10) : null;
+    }
 
-    logAction({
-      userId: req.user.id,
-      action: 'UPDATE_ASSIGNMENT',
-      targetType: 'assignments',
-      targetId: id,
-      ipAddress: req.ip,
-      details: { title, chapter_id }
+    // Xử lý due_date: nếu truyền chuỗi rỗng hoặc null => xóa hạn nộp (thành vô thời hạn)
+    let dueDateVal = existing.due_date;
+    if (due_date !== undefined) {
+      dueDateVal = (due_date && String(due_date).trim() !== '') ? String(due_date).trim() : null;
+    }
+
+    let allowResubmitVal = existing.allow_resubmit;
+    if (allow_resubmit !== undefined) {
+      allowResubmitVal = allow_resubmit ? 1 : 0;
+    }
+
+    let chapterIdVal = existing.chapter_id;
+    if (chapter_id !== undefined) {
+      chapterIdVal = (chapter_id && String(chapter_id).trim() !== '') ? parseInt(chapter_id, 10) : null;
+    }
+
+    const tx = db.transaction(() => {
+      db.prepare(`
+        UPDATE assignments
+        SET title = ?,
+            content = ?,
+            max_score = ?,
+            time_limit_minutes = ?,
+            due_date = ?,
+            allow_resubmit = ?,
+            chapter_id = ?,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+      `).run(
+        titleVal,
+        contentVal,
+        maxScoreVal,
+        timeLimitVal,
+        dueDateVal,
+        allowResubmitVal,
+        chapterIdVal,
+        id
+      );
+
+      // Cập nhật targets nếu được gửi lên
+      if (targets !== undefined) {
+        db.prepare('DELETE FROM assignment_targets WHERE assignment_id = ?').run(id);
+        const insertTargetStmt = db.prepare(`
+          INSERT INTO assignment_targets (assignment_id, target_type, target_id, custom_content)
+          VALUES (?, ?, ?, ?)
+        `);
+        const targetList = Array.isArray(targets) ? targets : JSON.parse(targets || '[]');
+        for (const t of targetList) {
+          insertTargetStmt.run(
+            id,
+            t.type,
+            parseInt(t.id, 10),
+            t.custom_content ? cleanHtml(t.custom_content) : null
+          );
+        }
+      }
+
+      // Cập nhật rubrics nếu được gửi lên
+      if (rubrics !== undefined) {
+        db.prepare('DELETE FROM rubrics WHERE assignment_id = ?').run(id);
+        const insertRubricStmt = db.prepare(`
+          INSERT INTO rubrics (assignment_id, criteria_name, description, max_score, order_index)
+          VALUES (?, ?, ?, ?, ?)
+        `);
+        const rubricList = Array.isArray(rubrics) ? rubrics : JSON.parse(rubrics || '[]');
+        rubricList.forEach((r, idx) => {
+          insertRubricStmt.run(
+            id,
+            r.criteria_name.trim(),
+            r.description ? r.description.trim() : null,
+            parseFloat(r.max_score) || 0,
+            idx + 1
+          );
+        });
+      }
+
+      logAction({
+        userId: req.user.id,
+        action: 'UPDATE_ASSIGNMENT',
+        targetType: 'assignments',
+        targetId: id,
+        ipAddress: req.ip,
+        details: { title: titleVal, chapter_id: chapterIdVal, due_date: dueDateVal, time_limit_minutes: timeLimitVal }
+      });
     });
+
+    tx();
 
     return res.json({ success: true, message: 'Cập nhật bài tập thành công!' });
   } catch (error) {

@@ -60,8 +60,8 @@
   <main class="main-wrapper">
     <div class="page-header">
       <div class="page-title">
-        <h2>Soạn bài tập tự luận Toán (Nhập theo từng câu)</h2>
-        <p>Hệ thống hiển thị từng câu ngang màn hình trên máy học sinh kèm ô chèn ảnh bài giải riêng cho từng câu</p>
+        <h2 id="page-heading">Soạn bài tập tự luận Toán (Nhập theo từng câu)</h2>
+        <p id="page-subheading">Hệ thống hiển thị từng câu ngang màn hình trên máy học sinh kèm ô chèn ảnh bài giải riêng cho từng câu</p>
       </div>
       <div class="page-actions" style="display: flex; gap: 10px; flex-wrap: wrap;">
         <button type="button" class="btn btn-secondary" onclick="triggerWordImport()" style="font-weight: 700; background: #f0fdf4; color: #166534; border: 1.5px solid #86efac; border-radius: 12px; display: inline-flex; align-items: center; gap: 6px;">
@@ -95,8 +95,14 @@
               <small style="color: #64748b;">Nếu nhập, học sinh sẽ có đồng hồ đếm ngược và tự nộp khi hết giờ.</small>
             </div>
             <div class="form-group">
-              <label class="form-label">Hạn chót nộp bài <span class="req">*</span></label>
-              <input type="datetime-local" id="assign-due-date" class="form-control" required>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <label class="form-label" style="margin: 0;">Hạn chót nộp bài</label>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="clearDueDate()" style="font-size: 0.75rem; padding: 2px 8px; border-radius: 6px; color: #64748b; background: #f8fafc; border: 1px solid #cbd5e1;" title="Bấm vào để không đặt thời hạn nộp bài">
+                  ❌ Để trống (Vô thời hạn)
+                </button>
+              </div>
+              <input type="datetime-local" id="assign-due-date" class="form-control">
+              <small style="color: #64748b;">Để trống nếu <strong>không có thời hạn nộp bài</strong> (Học sinh có thể làm và nộp bất cứ lúc nào mà không bị tính trễ hạn).</small>
             </div>
           </div>
 
@@ -513,28 +519,158 @@
   <script>
     let questionCounter = 0;
     let activeTextareaId = null;
+    let isEditMode = false;
+    let editingAssignmentId = null;
+
+    function clearDueDate() {
+      document.getElementById('assign-due-date').value = '';
+      showToast('Đã xóa hạn nộp (Bài tập này sẽ không có thời hạn nộp bài).', 'info');
+    }
 
     async function initCreatePage() {
       const user = await checkAuthAndLoad('teacher');
       if (!user) return;
 
-      const defaultDue = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);
-      defaultDue.setHours(23, 59, 0, 0);
-      const isoLocal = new Date(defaultDue.getTime() - defaultDue.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-      document.getElementById('assign-due-date').value = isoLocal;
-
       await loadTargetOptions();
 
       const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('action') === 'import-word') {
-        setTimeout(() => triggerWordImport(), 350);
-      } else if (urlParams.get('action') === 'import-json') {
-        setTimeout(() => openJsonImportModal(), 350);
+      const editId = urlParams.get('id');
+      const action = urlParams.get('action');
+
+      if (editId && (action === 'edit' || !action)) {
+        // Chế độ CHỈNH SỬA BÀI TẬP ĐÃ GIAO
+        await loadAssignmentForEdit(editId);
       } else {
-        // Mẫu 3 câu hỏi mặc định
-        addQuestionCard('Câu 1: Rút gọn biểu thức chứa căn', 'Cho biểu thức $P = \\left( \\frac{\\sqrt{x}}{\\sqrt{x}-1} - \\frac{1}{x-\\sqrt{x}} \\right) : \\frac{\\sqrt{x}+1}{x-1}$ với $x > 0, x \\neq 1$.<br>a) Rút gọn $P$.<br>b) Tìm $x$ để $P = 1/2$.');
-        addQuestionCard('Câu 2: Giải bài toán bằng cách lập hệ phương trình', 'Hai tổ công nhân cùng làm chung một công việc thì hoàn thành trong 12 giờ. Nếu tổ một làm trong 4 giờ rồi tổ hai làm tiếp một mình trong 7 giờ thì cả hai tổ hoàn thành được $5/12$ công việc. Hỏi mỗi tổ làm một mình thì sau bao lâu sẽ hoàn thành công việc?');
-        addQuestionCard('Câu 3: Bài toán Hình học đường tròn', 'Từ điểm $A$ ngoài đường tròn $(O; R)$, kẻ hai tiếp tuyến $AB, AC$ với đường tròn ($B, C$ là các tiếp điểm).<br>a) Chứng minh bốn điểm $A, B, O, C$ cùng thuộc một đường tròn.<br>b) Kẻ đường kính $BD$. Đoạn thẳng $AD$ cắt $(O)$ tại $E$. Chứng minh $AH \\cdot AO = AE \\cdot AD$.');
+        // Chế độ SOẠN BÀI TẬP MỚI
+        const defaultDue = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);
+        defaultDue.setHours(23, 59, 0, 0);
+        const isoLocal = new Date(defaultDue.getTime() - defaultDue.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+        document.getElementById('assign-due-date').value = isoLocal;
+
+        if (action === 'import-word') {
+          setTimeout(() => triggerWordImport(), 350);
+        } else if (action === 'import-json') {
+          setTimeout(() => openJsonImportModal(), 350);
+        } else {
+          // Mẫu 3 câu hỏi mặc định
+          addQuestionCard('Câu 1: Rút gọn biểu thức chứa căn', 'Cho biểu thức $P = \\left( \\frac{\\sqrt{x}}{\\sqrt{x}-1} - \\frac{1}{x-\\sqrt{x}} \\right) : \\frac{\\sqrt{x}+1}{x-1}$ với $x > 0, x \\neq 1$.<br>a) Rút gọn $P$.<br>b) Tìm $x$ để $P = 1/2$.');
+          addQuestionCard('Câu 2: Giải bài toán bằng cách lập hệ phương trình', 'Hai tổ công nhân cùng làm chung một công việc thì hoàn thành trong 12 giờ. Nếu tổ một làm trong 4 giờ rồi tổ hai làm tiếp một mình trong 7 giờ thì cả hai tổ hoàn thành được $5/12$ công việc. Hỏi mỗi tổ làm một mình thì sau bao lâu sẽ hoàn thành công việc?');
+          addQuestionCard('Câu 3: Bài toán Hình học đường tròn', 'Từ điểm $A$ ngoài đường tròn $(O; R)$, kẻ hai tiếp tuyến $AB, AC$ với đường tròn ($B, C$ là các tiếp điểm).<br>a) Chứng minh bốn điểm $A, B, O, C$ cùng thuộc một đường tròn.<br>b) Kẻ đường kính $BD$. Đoạn thẳng $AD$ cắt $(O)$ tại $E$. Chứng minh $AH \\cdot AO = AE \\cdot AD$.');
+        }
+      }
+    }
+
+    async function loadAssignmentForEdit(id) {
+      try {
+        isEditMode = true;
+        editingAssignmentId = id;
+
+        // Cập nhật giao diện sang chế độ chỉnh sửa
+        const heading = document.getElementById('page-heading');
+        if (heading) heading.textContent = '✏️ Chỉnh sửa bài tập đã giao';
+        const subheading = document.getElementById('page-subheading');
+        if (subheading) subheading.textContent = 'Cập nhật lại nội dung câu hỏi, điều chỉnh thời gian làm bài hoặc hạn chót nộp bài';
+
+        const submitBtn = document.getElementById('btn-create-submit');
+        if (submitBtn) {
+          submitBtn.textContent = '💾 Lưu & Cập nhật bài tập';
+          submitBtn.style.background = '#2563eb';
+        }
+
+        showToast('Đang tải dữ liệu bài tập...', 'info');
+        const res = await apiRequest(`/api/assignments/${id}`);
+        const assign = res.assignment;
+
+        if (!assign) {
+          showToast('Không tìm thấy dữ liệu bài tập!', 'error');
+          return;
+        }
+
+        // 1. Tiêu đề bài tập
+        document.getElementById('assign-title').value = assign.title || '';
+
+        // 2. Thời gian làm bài (phút)
+        document.getElementById('assign-time-limit').value = assign.time_limit_minutes || '';
+
+        // 3. Hạn nộp
+        if (assign.due_date) {
+          let dStr = assign.due_date;
+          if (!dStr.includes('T') && !dStr.includes('Z')) {
+            dStr = dStr.replace(' ', 'T');
+          }
+          const d = new Date(dStr);
+          if (!isNaN(d.getTime())) {
+            const isoLocal = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+            document.getElementById('assign-due-date').value = isoLocal;
+          } else {
+            document.getElementById('assign-due-date').value = '';
+          }
+        } else {
+          document.getElementById('assign-due-date').value = '';
+        }
+
+        // 4. Chương học
+        const chSelect = document.getElementById('assign-chapter');
+        if (chSelect && assign.chapter_id) {
+          chSelect.value = String(assign.chapter_id);
+        }
+
+        // 5. Cho phép nộp lại
+        document.getElementById('assign-allow-resubmit').checked = !!assign.allow_resubmit;
+
+        // 6. Danh sách câu hỏi
+        const container = document.getElementById('questions-list-container');
+        container.innerHTML = '';
+        questionCounter = 0;
+
+        let questionsParsed = [];
+        if (assign.content) {
+          try {
+            const parsed = JSON.parse(assign.content);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              questionsParsed = parsed;
+            }
+          } catch (e) {
+            // Không phải JSON
+          }
+        }
+
+        if (questionsParsed.length > 0) {
+          questionsParsed.forEach(q => {
+            let textContent = q.content || '';
+            textContent = textContent.replace(/<br\s*[\/]?>/gi, '\n');
+            addQuestionCard(q.title || `Câu ${q.id || (questionCounter + 1)}`, textContent);
+          });
+        } else if (assign.content) {
+          let textContent = assign.content.replace(/<br\s*[\/]?>/gi, '\n');
+          addQuestionCard('Câu 1', textContent);
+        } else {
+          addQuestionCard('Câu 1', '');
+        }
+
+        // 7. Đối tượng giao bài (lớp / học sinh)
+        if (assign.targets && assign.targets.length > 0) {
+          const hasClassTarget = assign.targets.some(t => t.target_type === 'class');
+          if (hasClassTarget) {
+            const radioClass = document.querySelector('input[name="target-mode"][value="class"]');
+            if (radioClass) radioClass.checked = true;
+            toggleTargetMode();
+            document.querySelectorAll('input[name="target-class"]').forEach(cb => {
+              cb.checked = assign.targets.some(t => t.target_type === 'class' && String(t.target_id) === String(cb.value));
+            });
+          } else {
+            const radioStudent = document.querySelector('input[name="target-mode"][value="student"]');
+            if (radioStudent) radioStudent.checked = true;
+            toggleTargetMode();
+            document.querySelectorAll('input[name="target-student"]').forEach(cb => {
+              cb.checked = assign.targets.some(t => t.target_type === 'student' && String(t.target_id) === String(cb.value));
+            });
+          }
+        }
+
+        showToast('Đã tải dữ liệu bài tập vào form để chỉnh sửa!', 'success');
+      } catch (err) {
+        showToast('Lỗi khi tải bài tập: ' + err.message, 'error');
       }
     }
 
@@ -681,8 +817,9 @@
 
       const title = document.getElementById('assign-title').value.trim();
       const time_limit_minutes = document.getElementById('assign-time-limit').value.trim() || null;
-      const due_date = document.getElementById('assign-due-date').value;
+      const due_date = document.getElementById('assign-due-date').value.trim() || null;
       const allow_resubmit = document.getElementById('assign-allow-resubmit').checked ? 1 : 0;
+      const chapter_id = document.getElementById('assign-chapter').value.trim() || null;
 
       const cards = document.querySelectorAll('.question-builder-card');
       if (cards.length === 0) {
@@ -723,40 +860,65 @@
         return;
       }
 
-      const formData = new FormData();
-      formData.append('title', title);
-      formData.append('content', JSON.stringify(questions));
-      formData.append('max_score', 10);
-      if (time_limit_minutes) formData.append('time_limit_minutes', time_limit_minutes);
-      formData.append('due_date', due_date);
-      formData.append('allow_resubmit', allow_resubmit);
-
-      const chapter_id = document.getElementById('assign-chapter').value.trim();
-      if (chapter_id) {
-        formData.append('chapter_id', chapter_id);
-      }
-
-      formData.append('rubrics', JSON.stringify([]));
-      formData.append('targets', JSON.stringify(targets));
-
       const submitBtn = document.getElementById('btn-create-submit');
       submitBtn.disabled = true;
-      submitBtn.textContent = 'Đang xuất bản đề bài...';
 
       try {
-        await apiRequest('/api/assignments', {
-          method: 'POST',
-          body: formData
-        });
+        if (isEditMode && editingAssignmentId) {
+          // CHẾ ĐỘ CẬP NHẬT / SỬA BÀI TẬP ĐÃ GIAO
+          submitBtn.textContent = 'Đang lưu cập nhật...';
 
-        showToast('Xuất bản bài tập thành công!', 'success');
-        setTimeout(() => {
-          window.location.href = '/teacher/assignments.html';
-        }, 800);
+          const updatePayload = {
+            title,
+            content: JSON.stringify(questions),
+            max_score: 10,
+            time_limit_minutes: time_limit_minutes ? parseInt(time_limit_minutes, 10) : null,
+            due_date: due_date || null,
+            allow_resubmit,
+            chapter_id: chapter_id ? parseInt(chapter_id, 10) : null,
+            targets,
+            rubrics: []
+          };
+
+          await apiRequest(`/api/assignments/${editingAssignmentId}`, {
+            method: 'PUT',
+            body: JSON.stringify(updatePayload)
+          });
+
+          showToast('Cập nhật bài tập thành công!', 'success');
+          setTimeout(() => {
+            window.location.href = '/teacher/assignments.html';
+          }, 800);
+        } else {
+          // CHẾ ĐỘ TẠO MỚI BÀI TẬP
+          submitBtn.textContent = 'Đang xuất bản đề bài...';
+
+          const formData = new FormData();
+          formData.append('title', title);
+          formData.append('content', JSON.stringify(questions));
+          formData.append('max_score', 10);
+          if (time_limit_minutes) formData.append('time_limit_minutes', time_limit_minutes);
+          if (due_date) formData.append('due_date', due_date);
+          formData.append('allow_resubmit', allow_resubmit);
+          if (chapter_id) formData.append('chapter_id', chapter_id);
+
+          formData.append('rubrics', JSON.stringify([]));
+          formData.append('targets', JSON.stringify(targets));
+
+          await apiRequest('/api/assignments', {
+            method: 'POST',
+            body: formData
+          });
+
+          showToast('Xuất bản bài tập thành công!', 'success');
+          setTimeout(() => {
+            window.location.href = '/teacher/assignments.html';
+          }, 800);
+        }
       } catch (err) {
         showToast(err.message, 'error');
         submitBtn.disabled = false;
-        submitBtn.textContent = '🚀 Xuất bản & Giao bài tập';
+        submitBtn.textContent = isEditMode ? '💾 Lưu & Cập nhật bài tập' : '🚀 Xuất bản & Giao bài tập';
       }
     }
 

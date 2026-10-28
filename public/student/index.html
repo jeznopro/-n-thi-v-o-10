@@ -535,7 +535,7 @@
                 ${a.time_limit_minutes ? (isMinimal ? `${a.time_limit_minutes} phút` : `⏱️ ${a.time_limit_minutes} phút`) : (isMinimal ? 'Không giới hạn' : '⏳ Không giới hạn thời gian')}
               </span>
               <span style="font-size: 0.8rem; color: ${isOverdue ? 'var(--danger)' : 'var(--text-muted)'}; font-weight: ${isOverdue ? '600' : '400'};">
-                ${isMinimal ? '' : '📅 '}Hạn nộp: ${formatDateTime(a.due_date)} ${isOverdue ? '(Đã hết hạn)' : ''}
+                ${a.due_date ? `${isMinimal ? '' : '📅 '}Hạn nộp: ${formatDateTime(a.due_date)} ${isOverdue ? '(Đã hết hạn)' : ''}` : `${isMinimal ? '' : '⏳ '}Hạn nộp: Vô thời hạn (Không giới hạn)`}
               </span>
             </div>
           </div>
