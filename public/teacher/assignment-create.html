@@ -64,8 +64,8 @@
         <p id="page-subheading">Hệ thống hiển thị từng câu ngang màn hình trên máy học sinh kèm ô chèn ảnh bài giải riêng cho từng câu</p>
       </div>
       <div class="page-actions" style="display: flex; gap: 10px; flex-wrap: wrap;">
-        <button type="button" class="btn btn-secondary" onclick="triggerWordImport()" style="font-weight: 700; background: #f0fdf4; color: #166534; border: 1.5px solid #86efac; border-radius: 12px; display: inline-flex; align-items: center; gap: 6px;">
-          📄 Nhập đề từ file Word (.docx)
+        <button type="button" class="btn btn-secondary" onclick="triggerWordImport()" style="font-weight: 700; background: #f0fdf4; color: #166534; border: 1.5px solid #86efac; border-radius: 12px; display: inline-flex; align-items: center; gap: 6px;" title="Tải file Word (.docx) để AI Groq tự động đọc đề, tách từng câu và chuẩn hóa công thức KaTeX">
+          ⚡ Nhập đề từ file Word (AI Groq)
         </button>
         <button type="button" class="btn btn-ai" onclick="openAiQuestionGeneratorModal()">
           ✨ Trợ lý AI Soạn Đề Toán
@@ -142,8 +142,11 @@
             <a href="/samples/de_thi_he_phuong_trinh_chuan.docx" download="de_thi_he_phuong_trinh_chuan.docx" class="btn btn-secondary btn-sm" style="font-weight: 700; background: #ffffff; color: #1e40af; border: 1.5px solid #bfdbfe; border-radius: 8px; display: inline-flex; align-items: center; gap: 4px; text-decoration: none;" title="Tải file Word chuyên đề Đại số Hệ phương trình (15 câu)">
               🧮 Mẫu Word Hệ phương trình (15 câu)
             </a>
-            <button type="button" class="btn btn-secondary btn-sm" onclick="triggerWordImport()" style="font-weight: 700; background: #f0fdf4; color: #166534; border: 1px solid #86efac; border-radius: 8px; display: inline-flex; align-items: center; gap: 4px;">
-              📄 Nhập từ file Word
+            <button type="button" class="btn btn-secondary btn-sm" onclick="triggerWordImport()" style="font-weight: 700; background: #f0fdf4; color: #166534; border: 1.5px solid #86efac; border-radius: 8px; display: inline-flex; align-items: center; gap: 4px;" title="Tải file Word để AI Groq tự động tách từng câu, nhận diện hình ảnh và chuẩn hóa công thức KaTeX">
+              ⚡ Nhập từ file Word (AI Groq)
+            </button>
+            <button type="button" class="btn btn-ai btn-sm" onclick="openAiRawParseModal()" style="font-weight: 700; display: inline-flex; align-items: center; gap: 4px;" title="Dán nội dung đề bài thô từ Word, PDF, Web để AI Groq tự động tách từng câu">
+              ⚡ Dán đề thô (AI Groq)
             </button>
             <button type="button" class="btn btn-secondary btn-sm" onclick="openJsonImportModal()" style="font-weight: 700; background: #f0f9ff; color: #0284c7; border: 1px solid #7dd3fc; border-radius: 8px; display: inline-flex; align-items: center; gap: 4px;">
               📋 Nhập từ JSON
@@ -332,7 +335,7 @@
     <div class="custom-modal" style="max-width: 840px;">
       <div class="custom-modal-header" style="background: linear-gradient(135deg, #065f46, #059669); color: #fff;">
         <h3 class="custom-modal-title" style="color: #fff; display: flex; align-items: center; gap: 8px;">
-          📄 Nhập đề bài tự luận từ file Word (.docx)
+          📄 Nhập đề bài từ file Word (.docx) — ⚡ Tích hợp AI Groq
         </h3>
         <button class="toast-close" style="color: #fff;" onclick="closeWordPreviewModal()">&times;</button>
       </div>
@@ -340,14 +343,19 @@
       <div class="custom-modal-body">
         <div style="background: #ecfdf5; border: 1.5px solid #a7f3d0; border-radius: 14px; padding: 14px 18px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
           <div>
-            <strong style="color: #065f46; font-size: 1rem;" id="word-filename-display">📁 Tên file: math_exam.docx</strong>
-            <div style="font-size: 0.825rem; color: #047857; margin-top: 3px;">
-              Hệ thống đã tự động nhận diện danh sách câu hỏi, tiêu đề và thang điểm.
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <strong style="color: #065f46; font-size: 1rem;" id="word-filename-display">📁 Tên file: math_exam.docx</strong>
+              <span id="word-ai-badge" class="badge" style="background: linear-gradient(135deg, #4f46e5, #7c3aed); color: #fff; font-weight: 700; padding: 4px 10px; border-radius: 9999px; font-size: 0.775rem;">⚡ AI Groq tối ưu</span>
+            </div>
+            <div style="font-size: 0.825rem; color: #047857; margin-top: 3px;" id="word-status-desc">
+              AI Groq đã tự động bóc tách từng câu, thang điểm, chuẩn hóa công thức KaTeX và trích xuất hình vẽ minh họa.
             </div>
           </div>
-          <span class="badge badge-green" id="word-questions-count-badge" style="font-size: 0.875rem; padding: 6px 14px; font-weight: 700;">
-            0 câu hỏi
-          </span>
+          <div style="display: flex; gap: 6px; align-items: center;">
+            <span class="badge badge-green" id="word-questions-count-badge" style="font-size: 0.875rem; padding: 6px 14px; font-weight: 700;">
+              0 câu hỏi
+            </span>
+          </div>
         </div>
 
         <div class="form-group" style="margin-bottom: 16px;">
@@ -390,6 +398,119 @@
           📥 Tải file Word mẫu chuẩn (.docx)
         </a>
         <button type="button" class="btn btn-secondary" onclick="closeWordPreviewModal()">Đóng / Hủy</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL BÓC TÁCH ĐỀ THI THÔ BẰNG AI GROQ -->
+  <div id="modal-ai-raw-parse" class="custom-modal-overlay">
+    <div class="custom-modal" style="max-width: 860px; max-height: 92vh; display: flex; flex-direction: column;">
+      <div class="custom-modal-header" style="background: linear-gradient(135deg, #4f46e5, #7c3aed); color: #fff;">
+        <div>
+          <h3 class="custom-modal-title" style="color: #fff; display: flex; align-items: center; gap: 8px;">
+            ⚡ Tự Động Bóc Tách Đề Thi Bằng AI Groq
+          </h3>
+          <p style="font-size: 0.825rem; color: #e0e7ff; margin-top: 2px;">
+            Dán nội dung đề bài thô (từ Word, PDF, Web, tin nhắn) — AI Groq sẽ tự động nhận diện từng câu, thang điểm và chuẩn hóa công thức KaTeX ($...$).
+          </p>
+        </div>
+        <button class="toast-close" style="color: #fff;" onclick="closeAiRawParseModal()">&times;</button>
+      </div>
+
+      <div class="custom-modal-body" style="padding: 20px; overflow-y: auto; flex: 1;">
+        <!-- KHUNG NHẬP VĂN BẢN ĐỀ THI -->
+        <div style="margin-bottom: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+            <label class="form-label" style="font-weight: 700; color: #3730a3; margin: 0; display: flex; align-items: center; gap: 6px;">
+              📝 Dán nội dung đề bài thô vào đây:
+            </label>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="pasteRawSampleExam()" style="font-size: 0.775rem; font-weight: 700; background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe;">
+                📋 Dán đề mẫu thử nghiệm
+              </button>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="clearAiRawInput()" style="font-size: 0.775rem; color: #dc2626; border: 1px solid #fecaca;">
+                🧹 Xóa
+              </button>
+            </div>
+          </div>
+
+          <textarea id="ai-raw-text-input" class="form-control" rows="8" style="font-size: 0.925rem; line-height: 1.5; background: #fafafa; font-family: inherit;" placeholder="Dán toàn bộ đề kiểm tra hoặc bài tập vào đây...
+Ví dụ:
+Đề kiểm tra Giữa kì 1 Toán 9
+Thời gian làm bài: 90 phút
+
+Bài 1 (2,0 điểm): Rút gọn biểu thức:
+A = (căn(x)/(căn(x) - 1)) + (3/(căn(x) + 1)) - (6*sqrt(x) - 4)/(x - 1) với x >= 0, x khác 1.
+
+Bài 2 (2,0 điểm): Giải bài toán bằng cách lập hệ phương trình...
+Bài 3 (3,0 điểm): Cho tam giác ABC vuông tại A..."></textarea>
+          
+          <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+            <span style="font-size: 0.8rem; color: #64748b;">
+              💡 Mẹo: Hỗ trợ cả công thức viết thường <code>căn(x)</code>, <code>x^2</code>, <code>pi</code> hoặc ký hiệu LaTeX. AI sẽ tự động chuẩn hóa sang KaTeX <code>$...$</code>.
+            </span>
+            <button type="button" id="btn-execute-ai-parse" class="btn btn-ai" onclick="executeAiRawParse()" style="font-weight: 700; padding: 9px 20px; border-radius: 10px; display: inline-flex; align-items: center; gap: 6px;">
+              ⚡ Bóc tách đề thi bằng AI Groq
+            </button>
+          </div>
+        </div>
+
+        <!-- KHUNG KẾT QUẢ XEM TRƯỚC (HIỆN KHI AI ĐÃ PHÂN TÍCH XONG) -->
+        <div id="ai-raw-result-container" style="display: none; border-top: 2px dashed #cbd5e1; padding-top: 16px;">
+          <div style="background: #eef2ff; border: 1.5px solid #c7d2fe; border-radius: 14px; padding: 14px 18px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <strong style="color: #3730a3; font-size: 1rem;">✨ Kết quả phân tích từ AI Groq</strong>
+                <span class="badge" style="background: linear-gradient(135deg, #10b981, #059669); color: #fff; font-weight: 700; padding: 3px 10px; border-radius: 9999px; font-size: 0.775rem;">Đã chuẩn hóa KaTeX</span>
+              </div>
+              <div style="font-size: 0.825rem; color: #4338ca; margin-top: 3px;">
+                Bạn có thể bấm vào từng ô để chỉnh sửa tiêu đề, thang điểm hoặc nội dung trước khi áp dụng vào đề thi.
+              </div>
+            </div>
+            <span class="badge badge-green" id="ai-raw-count-badge" style="font-size: 0.875rem; padding: 6px 14px; font-weight: 700;">
+              0 câu hỏi
+            </span>
+          </div>
+
+          <!-- THÔNG TIN CHUNG TÁCH ĐƯỢC -->
+          <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 16px;">
+            <div>
+              <label class="form-label" style="font-weight: 700; color: #1e293b; font-size: 0.85rem;">Tiêu đề đề thi trích xuất được:</label>
+              <input type="text" id="ai-raw-preview-title" class="form-control" placeholder="Tiêu đề bài tập">
+            </div>
+            <div>
+              <label class="form-label" style="font-weight: 700; color: #1e293b; font-size: 0.85rem;">Thời gian (phút):</label>
+              <input type="number" id="ai-raw-preview-timelimit" class="form-control" placeholder="Không giới hạn" min="5" step="5">
+            </div>
+          </div>
+
+          <!-- DANH SÁCH CÂU HỎI -->
+          <div id="ai-raw-questions-list" style="display: flex; flex-direction: column; gap: 14px; max-height: 400px; overflow-y: auto; padding-right: 4px;">
+            <!-- Render động bằng JS -->
+          </div>
+
+          <!-- TÙY CHỌN ÁP DỤNG -->
+          <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 700; font-size: 0.875rem; color: #1e293b;">
+                <input type="radio" name="ai-raw-insert-mode" value="replace" checked>
+                <span>Thay thế toàn bộ câu hỏi hiện tại</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 700; font-size: 0.875rem; color: #1e293b;">
+                <input type="radio" name="ai-raw-insert-mode" value="append">
+                <span>Thêm tiếp vào sau câu hỏi đã có</span>
+              </label>
+            </div>
+
+            <button type="button" class="btn btn-success" onclick="applyAiRawQuestionsToForm()" style="font-weight: 800; padding: 10px 24px; border-radius: 12px; font-size: 0.95rem;">
+              ✅ Áp dụng vào đề thi ngay
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="custom-modal-footer" style="padding: 12px 20px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end;">
+        <button type="button" class="btn btn-secondary" onclick="closeAiRawParseModal()">Đóng / Hủy</button>
       </div>
     </div>
   </div>
@@ -549,6 +670,8 @@
 
         if (action === 'import-word') {
           setTimeout(() => triggerWordImport(), 350);
+        } else if (action === 'ai-parse') {
+          setTimeout(() => openAiRawParseModal(), 350);
         } else if (action === 'import-json') {
           setTimeout(() => openJsonImportModal(), 350);
         } else {
@@ -1096,7 +1219,7 @@
         return;
       }
 
-      showToast(`⏳ Đang tải và phân tích cấu trúc đề từ file "${file.name}"...`, 'info');
+      showToast(`⚡ Đang tải tệp "${file.name}" và dùng AI Groq bóc tách cấu trúc đề...`, 'info');
 
       const formData = new FormData();
       formData.append('wordFile', file);
@@ -1113,7 +1236,8 @@
 
         wordParsedData = data.data;
         openWordPreviewModal(file.name, wordParsedData);
-        showToast(`Đã nhận diện ${wordParsedData.questions.length} câu hỏi từ file Word!`, 'success');
+        const aiNote = wordParsedData.aiPowered ? ' bằng AI Groq' : '';
+        showToast(`✅ Đã bóc tách thành công ${wordParsedData.questions.length} câu hỏi${aiNote}!`, 'success');
       } catch (err) {
         showToast('Lỗi nhập file Word: ' + err.message, 'error');
       }
@@ -1126,6 +1250,30 @@
       document.getElementById('word-filename-display').textContent = `📁 Tệp: ${filename}`;
       document.getElementById('word-questions-count-badge').textContent = `${parsed.questions.length} câu hỏi`;
       document.getElementById('word-preview-title').value = parsed.title || filename.replace(/\.(docx|doc)$/i, '');
+
+      const aiBadge = document.getElementById('word-ai-badge');
+      if (aiBadge) {
+        if (parsed.aiPowered) {
+          aiBadge.style.display = 'inline-block';
+          aiBadge.textContent = '⚡ AI Groq đã tối ưu KaTeX';
+          aiBadge.style.background = 'linear-gradient(135deg, #4f46e5, #7c3aed)';
+        } else {
+          aiBadge.style.display = 'inline-block';
+          aiBadge.textContent = '📄 Trích xuất tiêu chuẩn';
+          aiBadge.style.background = '#64748b';
+        }
+      }
+
+      const descEl = document.getElementById('word-status-desc');
+      if (descEl) {
+        let desc = parsed.aiPowered 
+          ? 'AI Groq đã phân tích ngữ nghĩa, nhận diện từng câu hỏi, chuẩn hóa công thức KaTeX và gắn hình vẽ tương ứng.'
+          : 'Hệ thống đã nhận diện danh sách câu hỏi và cấu trúc đề thi từ tệp Word.';
+        if (parsed.extractedImagesCount && parsed.extractedImagesCount > 0) {
+          desc += ` (Đã trích xuất ${parsed.extractedImagesCount} hình vẽ minh họa đính kèm)`;
+        }
+        descEl.textContent = desc;
+      }
 
       const listContainer = document.getElementById('word-preview-list');
       if (!parsed.questions || parsed.questions.length === 0) {
@@ -1210,6 +1358,220 @@
 
       closeWordPreviewModal();
       showToast(`🎉 Đã nhập thành công ${items.length} câu hỏi từ file Word vào đề thi!`, 'success');
+
+      // Cuộn tới danh sách câu hỏi
+      document.getElementById('questions-list-container').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // ==========================================
+    // LOGIC BÓC TÁCH ĐỀ THI BẰNG AI GROQ (DÁN VĂN BẢN THÔ)
+    // ==========================================
+    let aiRawParsedData = null;
+
+    function openAiRawParseModal() {
+      const modal = document.getElementById('modal-ai-raw-parse');
+      if (modal) {
+        modal.classList.add('active');
+        const input = document.getElementById('ai-raw-text-input');
+        if (input && !input.value.trim()) {
+          input.focus();
+        }
+      }
+    }
+
+    function closeAiRawParseModal() {
+      const modal = document.getElementById('modal-ai-raw-parse');
+      if (modal) modal.classList.remove('active');
+    }
+
+    function clearAiRawInput() {
+      const input = document.getElementById('ai-raw-text-input');
+      if (input) {
+        input.value = '';
+        input.focus();
+      }
+      const resCont = document.getElementById('ai-raw-result-container');
+      if (resCont) resCont.style.display = 'none';
+      aiRawParsedData = null;
+    }
+
+    function pasteRawSampleExam() {
+      const sampleText = `Đề kiểm tra Định kỳ Toán 9 - Học kỳ 1
+Thời gian làm bài: 90 phút
+
+Bài 1 (2,0 điểm):
+Cho biểu thức A = (sqrt(x) / (sqrt(x) - 1)) - (1 / (x - sqrt(x))) : ((sqrt(x) + 1) / (x - 1)) với x > 0, x khác 1.
+a) Rút gọn biểu thức A.
+b) Tìm các giá trị của x để A = 1/2.
+
+Bài 2 (2,0 điểm):
+Giải bài toán bằng cách lập hệ phương trình:
+Hai tổ sản xuất cùng làm chung một lô hàng thì trong 12 giờ hoàn thành. Nếu tổ một làm trong 4 giờ và tổ hai làm tiếp trong 7 giờ thì cả hai tổ hoàn thành được 5/12 khối lượng công việc. Hỏi mỗi tổ làm một mình thì sau bao lâu sẽ hoàn thành lô hàng đó?
+
+Bài 3 (2,0 điểm):
+1) Giải hệ phương trình sau:
+   2x + y = 5
+   3x - 2y = 4
+2) Cho hàm số bậc nhất y = (m - 1)x + 3. Tìm m để đồ thị hàm số đi qua điểm M(1; 5).
+
+Bài 4 (3,5 điểm):
+Từ một điểm A nằm ngoài đường tròn (O; R), vẽ hai tiếp tuyến AB, AC với đường tròn (B, C là các tiếp điểm). Gọi H là giao điểm của AO và BC.
+a) Chứng minh bốn điểm A, B, O, C cùng thuộc một đường tròn và AO vuông góc với BC tại H.
+b) Vẽ đường kính BD của đường tròn (O). Đoạn thẳng AD cắt (O) tại điểm thứ hai là E (E khác D). Chứng minh: AH . AO = AE . AD.
+c) Tiếp tuyến tại D của (O) cắt BC tại F. Chứng minh FA là tiếp tuyến của (O).
+
+Bài 5 (0,5 điểm):
+Cho các số thực dương a, b thỏa mãn a + b = 2. Tìm giá trị nhỏ nhất của biểu thức:
+P = 1 / (a^2 + b^2) + 1 / (2ab).`;
+
+      const input = document.getElementById('ai-raw-text-input');
+      if (input) {
+        input.value = sampleText;
+        showToast('Đã dán đề mẫu thử nghiệm vào ô nhập.', 'info');
+      }
+    }
+
+    async function executeAiRawParse() {
+      const input = document.getElementById('ai-raw-text-input');
+      const rawText = input ? input.value.trim() : '';
+
+      if (!rawText) {
+        showToast('Vui lòng dán hoặc nhập nội dung đề thi cần phân tích.', 'warning');
+        return;
+      }
+
+      const btn = document.getElementById('btn-execute-ai-parse');
+      const originalBtnText = btn ? btn.innerHTML : '';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '⏳ AI Groq đang phân tích đề & chuẩn hóa KaTeX...';
+      }
+
+      showToast('⚡ AI Groq đang đọc đề, bóc tách từng câu và chuẩn hóa công thức KaTeX...', 'info');
+
+      try {
+        const res = await apiRequest('/api/assignments/ai-parse', {
+          method: 'POST',
+          body: JSON.stringify({ rawText })
+        });
+
+        if (!res || !res.success || !res.data) {
+          throw new Error(res?.message || 'Không thể bóc tách đề thi.');
+        }
+
+        aiRawParsedData = res.data;
+        renderAiRawPreview(aiRawParsedData);
+        showToast(`🎉 AI Groq đã bóc tách thành công ${aiRawParsedData.questions ? aiRawParsedData.questions.length : 0} câu hỏi!`, 'success');
+      } catch (err) {
+        showToast('Lỗi AI bóc tách: ' + err.message, 'error');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = originalBtnText;
+        }
+      }
+    }
+
+    function renderAiRawPreview(data) {
+      const resCont = document.getElementById('ai-raw-result-container');
+      if (!resCont) return;
+
+      resCont.style.display = 'block';
+
+      // Title & Timelimit
+      const titleInput = document.getElementById('ai-raw-preview-title');
+      if (titleInput) titleInput.value = data.title || 'Đề kiểm tra Toán';
+
+      const timeInput = document.getElementById('ai-raw-preview-timelimit');
+      if (timeInput) timeInput.value = data.time_limit_minutes || '';
+
+      // Count badge
+      const countBadge = document.getElementById('ai-raw-count-badge');
+      const qList = data.questions || [];
+      if (countBadge) countBadge.textContent = `${qList.length} câu hỏi`;
+
+      // List of questions
+      const listContainer = document.getElementById('ai-raw-questions-list');
+      if (!listContainer) return;
+
+      if (qList.length === 0) {
+        listContainer.innerHTML = '<p style="text-align: center; color: #94a3b8; padding: 20px;">AI không tìm thấy câu hỏi nào. Vui lòng kiểm tra lại văn bản đề bài.</p>';
+        return;
+      }
+
+      listContainer.innerHTML = qList.map((q, idx) => `
+        <div class="ai-raw-preview-item" style="background: #ffffff; border: 1.5px solid #cbd5e1; border-left: 5px solid #6366f1; border-radius: 14px; padding: 14px 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+            <div style="flex: 1; min-width: 220px;">
+              <input type="text" class="form-control ai-raw-item-title" value="${escapeHtml(q.title || `Câu ${idx + 1}`)}" style="font-weight: 700; color: #3730a3;" placeholder="Tiêu đề câu hỏi">
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <label style="font-size: 0.8rem; font-weight: 600; color: #64748b;">Điểm:</label>
+              <input type="number" class="form-control ai-raw-item-score" value="${q.score || 2}" min="0.25" step="0.25" style="width: 75px; text-align: center; font-weight: 700;">
+            </div>
+          </div>
+
+          <div style="margin-bottom: 6px;">
+            <textarea class="form-control ai-raw-item-content" rows="3" style="font-size: 0.95rem; line-height: 1.5;" oninput="updateAiRawItemPreview(this)" placeholder="Nội dung câu hỏi...">${escapeHtml(q.content || '')}</textarea>
+          </div>
+
+          <div class="ai-raw-item-katex-preview math-preview-box" style="margin-top: 6px; padding: 8px 12px; font-size: 0.9rem; border-radius: 8px;">
+            ${formatPreviewContent(q.content || '')}
+          </div>
+        </div>
+      `).join('');
+
+      renderMath(listContainer);
+
+      // Smooth scroll down to preview
+      resCont.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function updateAiRawItemPreview(textarea) {
+      const parent = textarea.closest('.ai-raw-preview-item');
+      if (!parent) return;
+      const preview = parent.querySelector('.ai-raw-item-katex-preview');
+      if (preview) {
+        preview.innerHTML = formatPreviewContent(textarea.value);
+        renderMath(preview);
+      }
+    }
+
+    function applyAiRawQuestionsToForm() {
+      const items = document.querySelectorAll('.ai-raw-preview-item');
+      if (items.length === 0) {
+        showToast('Không có câu hỏi nào để áp dụng.', 'warning');
+        return;
+      }
+
+      const modeRadio = document.querySelector('input[name="ai-raw-insert-mode"]:checked');
+      const mode = modeRadio ? modeRadio.value : 'replace';
+      const container = document.getElementById('questions-list-container');
+
+      if (mode === 'replace') {
+        container.innerHTML = '';
+        questionCounter = 0;
+      }
+
+      items.forEach(item => {
+        const title = item.querySelector('.ai-raw-item-title').value.trim();
+        const content = item.querySelector('.ai-raw-item-content').value.trim();
+        addQuestionCard(title, content);
+      });
+
+      // Cập nhật tiêu đề bài tập & thời gian làm bài nếu có
+      const titleVal = document.getElementById('ai-raw-preview-title').value.trim();
+      if (titleVal) {
+        document.getElementById('assign-title').value = titleVal;
+      }
+      const timeVal = document.getElementById('ai-raw-preview-timelimit').value;
+      if (timeVal && parseInt(timeVal) > 0) {
+        const timeInput = document.getElementById('assign-time-limit');
+        if (timeInput) timeInput.value = parseInt(timeVal);
+      }
+
+      closeAiRawParseModal();
+      showToast(`🎉 Đã nhập thành công ${items.length} câu hỏi bóc tách bằng AI Groq vào đề thi!`, 'success');
 
       // Cuộn tới danh sách câu hỏi
       document.getElementById('questions-list-container').scrollIntoView({ behavior: 'smooth' });

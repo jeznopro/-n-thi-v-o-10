@@ -495,6 +495,40 @@ async function importFromWord(req, res, next) {
   }
 }
 
+/**
+ * Dùng AI bóc tách nội dung đề thi thô
+ */
+async function aiParseExam(req, res, next) {
+  try {
+    const { rawText } = req.body;
+    if (!rawText || !rawText.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vui lòng cung cấp nội dung đề thi cần phân tích.'
+      });
+    }
+
+    const { parseExamWithAi } = require('../services/aiService');
+    const result = await parseExamWithAi(rawText);
+
+    logAction({
+      userId: req.user.id,
+      action: 'AI_PARSE_EXAM',
+      targetType: 'assignments',
+      ipAddress: req.ip,
+      details: { questionsCount: result?.questions?.length || 0 }
+    });
+
+    return res.json({
+      success: true,
+      message: `AI đã phân tích thành công ${result.questions ? result.questions.length : 0} câu hỏi!`,
+      data: result
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   getTeacherAssignments,
   getStudentAssignments,
@@ -502,5 +536,6 @@ module.exports = {
   createAssignment,
   updateAssignment,
   deleteAssignment,
-  importFromWord
+  importFromWord,
+  aiParseExam
 };

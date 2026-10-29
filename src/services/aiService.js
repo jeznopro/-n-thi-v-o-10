@@ -385,12 +385,20 @@ async function dispatchAiCall({ systemPrompt, userPrompt, messages: customMessag
       messages: messages
     });
   } catch (err) {
-    if (err.message && (err.message.includes('does not exist') || err.message.includes('not have access') || err.message.includes('not found')) && provider === 'groq') {
-      console.warn('Model Groq không khả dụng, tự động fallback sang llama-3.1-8b-instant...');
+    if (err.message && (
+      err.message.includes('does not exist') ||
+      err.message.includes('not have access') ||
+      err.message.includes('not found') ||
+      err.message.includes('Rate limit reached') ||
+      err.message.includes('rate_limit_exceeded') ||
+      err.message.includes('TPM')
+    ) && provider === 'groq') {
+      const fallbackModel = (config.model === 'openai/gpt-oss-20b') ? 'qwen/qwen3.8-27b' : 'openai/gpt-oss-20b';
+      console.warn(`Model Groq ${config.model} bận hoặc gặp giới hạn, tự động fallback sang ${fallbackModel}...`);
       return await callOpenAiCompatibleApi({
         baseUrl: config.baseUrl || DEFAULT_CONFIGS[provider]?.baseUrl,
         apiKey: config.apiKey,
-        model: 'llama-3.1-8b-instant',
+        model: fallbackModel,
         messages: messages
       });
     }
@@ -498,37 +506,69 @@ async function testAiConnection(testConfig) {
 }
 
 /**
- * Bóc tách JSON từ văn bản
+ * Bóc tách JSON từ văn bản (có xử lý lỗi escape ký hiệu toán học LaTeX / KaTeX)
  */
 function extractJsonFromText(text) {
-  try {
-    return JSON.parse(text);
-  } catch (e) {
-    const match = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-    if (match) {
+  function tryParse(str) {
+    if (!str) return null;
+    try {
+      return JSON.parse(str);
+    } catch (e1) {
       try {
-        return JSON.parse(match[1]);
-      } catch (err2) {}
+        // Tự động escape các ký tự backslash LaTeX chưa hợp lệ trong JSON
+        const fixed = str.replace(/\\(?!["\\/bfnrt]|u[0-9a-fA-F]{4})/g, '\\\\');
+        return JSON.parse(fixed);
+      } catch (e2) {
+        return null;
+      }
     }
-
-    const firstSquare = text.indexOf('[');
-    const lastSquare = text.lastIndexOf(']');
-    if (firstSquare !== -1 && lastSquare > firstSquare) {
-      try {
-        return JSON.parse(text.substring(firstSquare, lastSquare + 1));
-      } catch (err3) {}
-    }
-
-    const firstCurly = text.indexOf('{');
-    const lastCurly = text.lastIndexOf('}');
-    if (firstCurly !== -1 && lastCurly > firstCurly) {
-      try {
-        return JSON.parse(text.substring(firstCurly, lastCurly + 1));
-      } catch (err4) {}
-    }
-
-    throw new Error('Không thể chuyển đổi phản hồi thành định dạng JSON.');
   }
+
+  // 1. Thử parse trực tiếp toàn bộ chuỗi
+  let res = tryParse(text.trim());
+  if (res) return res;
+
+  // 2. Tìm khối markdown ```json ... ```
+  const match = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+  if (match) {
+    res = tryParse(match[1].trim());
+    if (res) return res;
+  }
+
+  // 3. Tìm khối JSON Object { ... }
+  const firstCurly = text.indexOf('{');
+  const lastCurly = text.lastIndexOf('}');
+  if (firstCurly !== -1 && lastCurly > firstCurly) {
+    res = tryParse(text.substring(firstCurly, lastCurly + 1));
+    if (res) return res;
+  }
+
+  // 4. Tìm khối JSON Array [ ... ]
+  const firstSquare = text.indexOf('[');
+  const lastSquare = text.lastIndexOf(']');
+  if (firstSquare !== -1 && lastSquare > firstSquare) {
+    res = tryParse(text.substring(firstSquare, lastSquare + 1));
+    if (res) return res;
+  }
+
+  // 5. Phục hồi phản hồi bị cắt ngang (truncated JSON) do giới hạn độ dài phản hồi
+  if (firstCurly !== -1) {
+    const rawSub = text.substring(firstCurly);
+    const lastValidQ = rawSub.lastIndexOf('}');
+    if (lastValidQ !== -1) {
+      const candidates = [
+        rawSub.substring(0, lastValidQ + 1) + ']}',
+        rawSub.substring(0, lastValidQ + 1) + '}',
+        rawSub.substring(0, lastValidQ + 1) + '"]}'
+      ];
+      for (const cand of candidates) {
+        res = tryParse(cand);
+        if (res && (res.questions || Array.isArray(res) || res.title)) return res;
+      }
+    }
+  }
+
+  throw new Error('Không thể chuyển đổi phản hồi thành định dạng JSON hợp lệ.');
 }
 
 /**
@@ -1491,6 +1531,71 @@ Hãy trả về DUY NHẤT một chuỗi JSON hợp lệ theo cấu trúc sau (k
   };
 }
 
+/**
+ * FEATURE: Dùng AI bóc tách và chuẩn hóa đề thi thô thành danh sách câu hỏi KaTeX
+ */
+async function parseExamWithAi(rawText) {
+  if (!rawText || !rawText.trim()) {
+    throw new Error('Vui lòng cung cấp nội dung đề thi cần phân tích.');
+  }
+
+  const config = getAiConfig();
+  const systemPrompt = `Bạn là trợ lý AI chuyên bóc tách, chuẩn hóa đề thi môn Toán THCS Việt Nam (Lớp 6, 7, 8, 9).
+Nhiệm vụ: Phân tích đoạn văn bản đề thi thô của giáo viên và chuyển đổi thành cấu trúc JSON chuẩn.
+Quy tắc quan trọng:
+1. Nhận diện tiêu đề đề thi (title) và thời gian làm bài nếu có (time_limit_minutes, dạng số phút).
+2. Tách từng câu hỏi/bài toán thành một phần tử trong mảng "questions".
+3. Mỗi câu hỏi gồm:
+   - "title": "Câu 1 (X điểm): [Dạng toán/Nội dung chính]", ví dụ: "Câu 1 (2.0 điểm): Rút gọn biểu thức chứa căn".
+   - "content": Toàn bộ nội dung câu hỏi kèm các ý a), b), c)... TẤT CẢ công thức Toán, biến số, biểu thức, hình học PHẢI được chuyển đổi sang mã KaTeX chuẩn đặt trong cặp dấu $...$ (ví dụ: $AB \\parallel CD$, $\\widehat{ABC} = 60^\\circ$, $\\frac{\\sqrt{x}+1}{x-1}$, $\\perp$, $\\Delta ABC$, $x^2 - 4x + 3 = 0$). Các dòng ngắt dùng '<br>'.
+   - "score": Điểm số tối đa của câu hỏi dạng float (mặc định 2.0 nếu đề không ghi).
+4. CHỈ TRẢ VỀ DUY NHẤT một chuỗi JSON hợp lệ theo định dạng:
+{
+  "title": "Tên bài tập phát hiện được",
+  "time_limit_minutes": 90,
+  "questions": [
+    {
+      "title": "Câu 1 (2.0 điểm): ...",
+      "content": "Nội dung câu hỏi với công thức $...$",
+      "score": 2.0
+    }
+  ]
+}
+Tuyệt đối không kèm bất kỳ câu chào hay lời dẫn nào ngoài JSON.`;
+
+  const userPrompt = `Dưới đây là nội dung đề thi thô do giáo viên cung cấp, hãy phân tích và bóc tách thành JSON chuẩn:\n\n${rawText.trim()}`;
+
+  const { parseWordExamText } = require('../utils/wordParser');
+  const regexResult = parseWordExamText(rawText);
+
+  if (config.provider === PROVIDERS.OFFLINE || (!config.hasKey && config.provider !== PROVIDERS.OLLAMA)) {
+    return regexResult;
+  }
+
+  try {
+    const replyText = await dispatchAiCall({
+      systemPrompt,
+      userPrompt,
+      overrideConfig: config
+    });
+
+    const aiParsed = extractJsonFromText(replyText);
+    const regexCount = regexResult.questions ? regexResult.questions.length : 0;
+    const aiCount = aiParsed && aiParsed.questions ? aiParsed.questions.length : 0;
+
+    // Nếu AI trả về kết quả tốt và không bị cắt cụt quá nhiều câu so với regex
+    if (aiParsed && aiParsed.questions && (regexCount === 0 || aiCount >= Math.max(1, regexCount * 0.7))) {
+      return aiParsed;
+    }
+
+    console.warn(`AI bóc tách được ${aiCount} câu trong khi văn bản gốc có ${regexCount} câu. Ưu tiên giữ trọn vẹn đề.`);
+    return regexResult;
+  } catch (err) {
+    console.warn('Lỗi gọi AI bóc tách đề, tự động dùng bộ phân tích regex:', err.message);
+    return regexResult;
+  }
+}
+
 module.exports = {
   PROVIDERS,
   DEFAULT_CONFIGS,
@@ -1498,6 +1603,7 @@ module.exports = {
   saveAiConfig,
   testAiConnection,
   generateMathQuestions,
+  parseExamWithAi,
   reviewSubmissionWithAi,
   getMathHint,
   chatWithAiTutor,

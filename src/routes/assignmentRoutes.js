@@ -33,6 +33,9 @@ router.post(
   assignmentController.importFromWord
 );
 
+// Giáo viên dùng AI bóc tách đề thi thô
+router.post('/ai-parse', authenticate, requireTeacher, assignmentController.aiParseExam);
+
 // Giáo viên xóa bài tập
 router.delete('/:id', authenticate, requireTeacher, assignmentController.deleteAssignment);
 

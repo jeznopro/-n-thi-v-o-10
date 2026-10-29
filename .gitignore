@@ -22,6 +22,10 @@ uploads/submissions/*
 !uploads/submissions/.gitkeep
 uploads/assignments/*
 !uploads/assignments/.gitkeep
+public/uploads/*
+!public/uploads/.gitkeep
+public/uploads/assignments/*
+!public/uploads/assignments/.gitkeep
 
 # Logs and temp files
 *.log

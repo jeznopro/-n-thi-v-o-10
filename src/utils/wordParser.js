@@ -1,3 +1,4 @@
+const fs = require('fs');
 const mammoth = require('mammoth');
 const path = require('path');
 
@@ -39,10 +40,6 @@ function parseWordExamText(rawText, filename = '') {
   }
 
   // 2. Nhận diện các câu hỏi
-  // Regex bắt các dạng:
-  // - "Câu 1:", "Câu 1.", "Câu 1 -", "Câu 1 (2,0 điểm):", "Câu 1 (2.0 đ):"
-  // - "Bài 1:", "Bài 1 (2 điểm):"
-  // - "Câu I:", "Bài I (2,5 điểm):"
   const questionHeaderRegex = /^(Câu|Bài|Phần)\s*(\d+|[IVXLCDM]+)[\s:.\-\)]*(?:\(([\d.,]+)\s*(?:đ|điểm|đ\.)?\))?[\s:.\-]*(.*)$/i;
 
   const questions = [];
@@ -77,7 +74,6 @@ function parseWordExamText(rawText, filename = '') {
       if (currentQ) {
         currentQ.contentLines.push(line);
       } else {
-        // Dòng phụ trước khi bắt đầu câu 1 (ví dụ thông tin thời gian, môn học)
         if (!title || title === cleanFilename(filename)) {
           title = line;
         }
@@ -119,14 +115,80 @@ function cleanFilename(filename) {
 }
 
 /**
- * Đọc file .docx và phân tích danh sách câu hỏi
+ * Đọc file .docx, tự động trích xuất hình ảnh nhúng ra đĩa và phân tích đề bằng AI Groq
  * @param {string} filePath 
  * @param {string} originalFilename 
  */
 async function parseWordFile(filePath, originalFilename = '') {
-  const result = await mammoth.extractRawText({ path: filePath });
-  const rawText = result.value || '';
-  return parseWordExamText(rawText, originalFilename);
+  const uploadsDir = path.join(__dirname, '../../public/uploads/assignments');
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+
+  let imgCounter = 0;
+  const imageOptions = {
+    convertImage: mammoth.images.inline(function(element) {
+      imgCounter++;
+      const ext = (element.contentType && (element.contentType.includes('jpeg') || element.contentType.includes('jpg'))) ? 'jpg' : 'png';
+      const filename = `word_img_${Date.now()}_${imgCounter}.${ext}`;
+      const diskPath = path.join(uploadsDir, filename);
+      const webPath = `/uploads/assignments/${filename}`;
+
+      return element.read().then(function(buffer) {
+        try {
+          fs.writeFileSync(diskPath, buffer);
+        } catch (eWrite) {
+          console.warn('Lỗi ghi ảnh từ Word:', eWrite.message);
+        }
+        return {
+          src: webPath
+        };
+      });
+    })
+  };
+
+  // 1. Chuyển đổi Word sang HTML kèm lưu toàn bộ ảnh ra thư mục uploads
+  const htmlRes = await mammoth.convertToHtml({ path: filePath }, imageOptions);
+  let htmlContent = htmlRes.value || '';
+
+  // Chuyển thẻ img sang markdown hình ảnh để AI và giao diện nhận diện chuẩn
+  let textWithImages = htmlContent
+    .replace(/<img[^>]*src="([^"]+)"[^>]*>/gi, '\n![Hình ảnh minh họa]($1)\n')
+    .replace(/<\/p>/gi, '\n')
+    .replace(/<br\s*[\/]?>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .trim();
+
+  // 2. TÍCH HỢP AI GROQ: Bóc tách ngữ nghĩa, phân tích từng câu hỏi và chuẩn hóa KaTeX
+  try {
+    const { parseExamWithAi } = require('../services/aiService');
+    const aiResult = await parseExamWithAi(textWithImages);
+
+    if (aiResult && aiResult.questions && aiResult.questions.length > 0) {
+      let finalTitle = aiResult.title;
+      if (!finalTitle || finalTitle.includes('Đề bài tập tự luận') || finalTitle.length < 5) {
+        finalTitle = originalFilename ? cleanFilename(originalFilename) : (finalTitle || 'Đề bài tập tự luận Toán');
+      }
+
+      return {
+        title: finalTitle,
+        time_limit_minutes: aiResult.time_limit_minutes || null,
+        questions: aiResult.questions,
+        aiPowered: true,
+        extractedImagesCount: imgCounter
+      };
+    }
+  } catch (aiError) {
+    console.warn('AI Groq parsing failed or offline, fallback to regex parser:', aiError.message);
+  }
+
+  // 3. Fallback: Nếu AI Groq gặp sự cố, tự động dùng bộ phân tích regex truyền thống
+  const fallbackResult = parseWordExamText(textWithImages, originalFilename);
+  return {
+    ...fallbackResult,
+    aiPowered: false,
+    extractedImagesCount: imgCounter
+  };
 }
 
 module.exports = {
