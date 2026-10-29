@@ -16,8 +16,8 @@ const PROVIDERS = {
 const DEFAULT_CONFIGS = {
   groq: {
     baseUrl: 'https://api.groq.com/openai/v1',
-    model: 'llama-3.1-8b-instant',
-    label: 'Groq Cloud (Miễn phí 100%, siêu tốc độ, Llama 3.1)'
+    model: 'qwen/qwen3.8-27b',
+    label: 'Groq Cloud (Miễn phí 100%, siêu tốc độ, Qwen 27B / GPT-OSS)'
   },
   deepseek: {
     baseUrl: 'https://api.deepseek.com',
@@ -134,7 +134,7 @@ function saveAiConfig({ provider, apiKey, model, baseUrl, tutorPersona }) {
 /**
  * Gọi API theo chuẩn OpenAI Chat Completions (Groq, DeepSeek, Ollama, OpenAI, Custom)
  */
-async function callOpenAiCompatibleApi({ baseUrl, apiKey, model, messages, temperature = 0.7 }) {
+async function callOpenAiCompatibleApi({ baseUrl, apiKey, model, messages, temperature = 0.7, max_tokens = 8192 }) {
   const cleanBase = (baseUrl || 'https://api.groq.com/openai/v1').replace(/\/+$/, '');
   const endpoint = `${cleanBase}/chat/completions`;
 
@@ -147,9 +147,10 @@ async function callOpenAiCompatibleApi({ baseUrl, apiKey, model, messages, tempe
   }
 
   const payload = {
-    model: model || 'llama-3.3-70b-versatile',
+    model: model || 'qwen/qwen3.8-27b',
     messages: messages,
-    temperature: temperature
+    temperature: temperature,
+    max_tokens: max_tokens
   };
 
   const controller = new AbortController();
@@ -1572,11 +1573,17 @@ Tuyệt đối không kèm bất kỳ câu chào hay lời dẫn nào ngoài JSO
     return regexResult;
   }
 
+  let parseConfig = { ...config };
+  // Nếu dùng Groq và tài liệu đề thi dài (> 1500 ký tự), tự động ưu tiên model qwen/qwen3.8-27b để có TPM cao và output dài 8192 tokens
+  if (config.provider === PROVIDERS.GROQ && (config.model === 'openai/gpt-oss-120b' || !config.model) && rawText.length > 1500) {
+    parseConfig.model = 'qwen/qwen3.8-27b';
+  }
+
   try {
     const replyText = await dispatchAiCall({
       systemPrompt,
       userPrompt,
-      overrideConfig: config
+      overrideConfig: parseConfig
     });
 
     const aiParsed = extractJsonFromText(replyText);
@@ -1585,14 +1592,23 @@ Tuyệt đối không kèm bất kỳ câu chào hay lời dẫn nào ngoài JSO
 
     // Nếu AI trả về kết quả tốt và không bị cắt cụt quá nhiều câu so với regex
     if (aiParsed && aiParsed.questions && (regexCount === 0 || aiCount >= Math.max(1, regexCount * 0.7))) {
-      return aiParsed;
+      return {
+        ...aiParsed,
+        aiPowered: true
+      };
     }
 
     console.warn(`AI bóc tách được ${aiCount} câu trong khi văn bản gốc có ${regexCount} câu. Ưu tiên giữ trọn vẹn đề.`);
-    return regexResult;
+    return {
+      ...regexResult,
+      aiPowered: false
+    };
   } catch (err) {
     console.warn('Lỗi gọi AI bóc tách đề, tự động dùng bộ phân tích regex:', err.message);
-    return regexResult;
+    return {
+      ...regexResult,
+      aiPowered: false
+    };
   }
 }
 
@@ -1604,6 +1620,7 @@ module.exports = {
   testAiConnection,
   generateMathQuestions,
   parseExamWithAi,
+  extractJsonFromText,
   reviewSubmissionWithAi,
   getMathHint,
   chatWithAiTutor,

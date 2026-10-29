@@ -174,7 +174,7 @@ async function parseWordFile(filePath, originalFilename = '') {
         title: finalTitle,
         time_limit_minutes: aiResult.time_limit_minutes || null,
         questions: aiResult.questions,
-        aiPowered: true,
+        aiPowered: aiResult.aiPowered !== false,
         extractedImagesCount: imgCounter
       };
     }
